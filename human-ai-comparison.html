@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human vs AI - Capability Comparison</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0a0a1a 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            transition: all 0.5s ease-in-out;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            transition: all 0.5s ease-in-out;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+            align-items: stretch;
+        }
+
+        .sliders-panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 300px;
+            max-height: 700px;
+            overflow-y: auto;
+        }
+
+        .sliders-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sliders-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .sliders-panel::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .sliders-panel.human::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 255, 0.4);
+        }
+
+        .sliders-panel.ai::-webkit-scrollbar-thumb {
+            background: rgba(255, 0, 255, 0.4);
+        }
+
+        .sliders-panel h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .sliders-panel.human h2 {
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+        }
+
+        .sliders-panel.ai h2 {
+            color: #ff00ff;
+            text-shadow: 0 0 20px rgba(255, 0, 255, 0.7);
+        }
+
+        .slider-group {
+            margin-bottom: 12px;
+        }
+
+        .group-header {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #888;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .group-header:first-child {
+            margin-top: 0;
+        }
+
+        .attr-name {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted rgba(255, 255, 255, 0.3);
+        }
+
+        .tooltip-popup {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.95);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 9999;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .tooltip-popup.human {
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+        }
+
+        .tooltip-popup.ai {
+            border-color: rgba(255, 0, 255, 0.6);
+            box-shadow: 0 0 25px rgba(255, 0, 255, 0.4);
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            color: #ccc;
+        }
+
+        .slider-value {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .human input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00ffff;
+            cursor: pointer;
+            box-shadow: 0 0 15px #00ffff;
+        }
+
+        .ai input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ff00ff;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ff00ff;
+        }
+
+        .charts-container {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .charts-wrapper {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            justify-content: center;
+            position: relative;
+            min-height: 620px;
+        }
+
+        .chart-box {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: opacity 1.2s ease-in-out, transform 1.2s ease-in-out;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .chart-box.human,
+        .chart-box.ai {
+            position: relative;
+        }
+
+        .chart-box.human.merging {
+            opacity: 0;
+            transform: translateX(100px) scale(0.7);
+        }
+
+        .chart-box.ai.merging {
+            opacity: 0;
+            transform: translateX(-100px) scale(0.7);
+        }
+
+        .chart-box.best {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%) scale(0.7);
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: 0 0 40px rgba(255, 255, 0, 0.3), inset 0 0 30px rgba(255, 255, 0, 0.05);
+            width: 580px;
+        }
+
+        .chart-box.best.appearing {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+            pointer-events: auto;
+            box-shadow: 0 0 60px rgba(255, 255, 0, 0.4), inset 0 0 40px rgba(255, 255, 0, 0.08);
+            border: 1px solid rgba(255, 255, 0, 0.4);
+        }
+
+        .chart-box.best canvas {
+            width: 550px !important;
+            height: 550px !important;
+        }
+
+        .chart-box.best.disappearing {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.7);
+        }
+
+        .chart-box canvas {
+            max-width: 450px;
+            max-height: 450px;
+        }
+
+        .chart-box.combined {
+            position: relative;
+        }
+
+        .chart-box h3 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .chart-box.human h3 {
+            color: #00ffff;
+        }
+
+        .chart-box.ai h3 {
+            color: #ff00ff;
+        }
+
+        .chart-box.best h3 {
+            color: #ffff00;
+            text-shadow: 0 0 20px rgba(255, 255, 0, 0.7);
+        }
+
+        .toggle-btn {
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            color: #000;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4), 0 0 30px rgba(255, 0, 255, 0.4);
+        }
+
+        .toggle-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.6), 0 0 50px rgba(255, 0, 255, 0.6);
+        }
+
+        .toggle-btn.combined {
+            background: linear-gradient(135deg, #ffff00, #ffcc00);
+            box-shadow: 0 0 40px rgba(255, 255, 0, 0.6);
+        }
+
+        .toggle-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        .settings-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .settings-btn {
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .settings-btn.export {
+            background: linear-gradient(135deg, #00ccff, #0088ff);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 136, 255, 0.4);
+        }
+
+        .settings-btn.export:hover {
+            box-shadow: 0 0 25px rgba(0, 136, 255, 0.6);
+            transform: scale(1.05);
+        }
+
+        .settings-btn.import {
+            background: linear-gradient(135deg, #ff88ff, #ff44ff);
+            color: #000;
+            box-shadow: 0 0 15px rgba(255, 68, 255, 0.4);
+        }
+
+        .settings-btn.import:hover {
+            box-shadow: 0 0 25px rgba(255, 68, 255, 0.6);
+            transform: scale(1.05);
+        }
+
+        .settings-btn.reset {
+            background: linear-gradient(135deg, #666, #444);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(100, 100, 100, 0.3);
+        }
+
+        .settings-btn.reset:hover {
+            box-shadow: 0 0 20px rgba(100, 100, 100, 0.5);
+            transform: scale(1.05);
+        }
+
+        .status-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+
+        .status-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status-message.success {
+            background: rgba(0, 255, 136, 0.9);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .status-message.info {
+            background: rgba(0, 136, 255, 0.9);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(0, 136, 255, 0.5);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .legend {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.human {
+            background: #00ffff;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        .legend-dot.ai {
+            background: #ff00ff;
+            box-shadow: 0 0 10px #ff00ff;
+        }
+    </style>
+</head>
+<body>
+    <div id="statusMessage" class="status-message"></div>
+    <h1 id="mainTitle">Human vs AI</h1>
+    <p class="subtitle" id="subtitle">Compare capabilities and find the best of both worlds</p>
+
+    <div class="container">
+        <!-- Human Sliders -->
+        <div class="sliders-panel human">
+            <h2>👤 Human</h2>
+            <div id="human-sliders"></div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-container">
+            <div class="charts-wrapper" id="charts-wrapper">
+                <div class="chart-box human" id="human-chart-box">
+                    <h3>Human Capabilities</h3>
+                    <canvas id="humanChart"></canvas>
+                </div>
+                <div class="chart-box ai" id="ai-chart-box">
+                    <h3>AI Capabilities</h3>
+                    <canvas id="aiChart"></canvas>
+                </div>
+                <div class="chart-box best" id="combined-chart-box">
+                    <h3>✨ Combined Best Values ✨</h3>
+                    <canvas id="combinedChart"></canvas>
+                    <div class="legend">
+                        <div class="legend-item"><span class="legend-dot human"></span> Human leads</div>
+                        <div class="legend-item"><span class="legend-dot ai"></span> AI leads</div>
+                    </div>
+                </div>
+            </div>
+            <button class="toggle-btn" id="toggleBtn" onclick="toggleView()">Combine</button>
+            <div class="settings-buttons">
+                <button class="settings-btn export" onclick="exportSettings()">⬇ Export Settings</button>
+                <button class="settings-btn import" onclick="document.getElementById('importFile').click()">⬆ Import Settings</button>
+                <input type="file" id="importFile" accept=".json" onchange="importSettings(event)" style="display:none">
+                <button class="settings-btn reset" onclick="resetToDefaults()">↺ Reset Defaults</button>
+            </div>
+        </div>
+
+        <!-- AI Sliders -->
+        <div class="sliders-panel ai">
+            <h2>🤖 AI</h2>
+            <div id="ai-sliders"></div>
+        </div>
+    </div>
+
+    <script>
+        // Grouped attributes with tooltips
+        const attributeGroups = [
+            {
+                name: '🧠 Cognitive',
+                items: [
+                    { name: 'Intelligence', tooltip: 'General mental capability and reasoning power' },
+                    { name: 'Processing Speed', tooltip: 'Speed of processing and analyzing information' },
+                    { name: 'Logical Reasoning', tooltip: 'Ability to think systematically and draw valid conclusions' },
+                    { name: 'Pattern Recognition', tooltip: 'Identifying patterns and regularities in data' },
+                    { name: 'Memory/Recall', tooltip: 'Storing and retrieving information accurately' },
+                    { name: 'Attention to Detail', tooltip: 'Noticing and processing fine details precisely' }
+                ]
+            },
+            {
+                name: '📚 Learning & Expertise',
+                items: [
+                    { name: 'Learning Ability', tooltip: 'Acquiring new knowledge and skills from experience' },
+                    { name: 'Adaptability', tooltip: 'Adjusting to new situations and environments' },
+                    { name: 'Expertise', tooltip: 'Deep specialized knowledge in specific domains' },
+                    { name: 'Problem-Solving', tooltip: 'Finding solutions to complex challenges' }
+                ]
+            },
+            {
+                name: '⚡ Drive & Execution',
+                items: [
+                    { name: 'Initiative', tooltip: 'Taking action proactively without being prompted' },
+                    { name: 'Willpower', tooltip: 'Inner drive to overcome obstacles and persist' },
+                    { name: 'Persistence', tooltip: 'Continuing despite difficulties or setbacks' },
+                    { name: 'Consistency', tooltip: 'Delivering reliable, steady performance over time' },
+                    { name: 'Multi-tasking', tooltip: 'Handling multiple tasks simultaneously' }
+                ]
+            },
+            {
+                name: '💡 Creative & Intuitive',
+                items: [
+                    { name: 'Creativity', tooltip: 'Generating original ideas and novel solutions' },
+                    { name: 'Intuition', tooltip: 'Understanding without conscious reasoning' },
+                    { name: 'Common Sense', tooltip: 'Practical everyday judgment and wisdom' }
+                ]
+            },
+            {
+                name: '🤝 Social & Emotional',
+                items: [
+                    { name: 'Empathy', tooltip: 'Understanding and sharing others\' feelings' },
+                    { name: 'Social Intelligence', tooltip: 'Reading and navigating social dynamics' },
+                    { name: 'Context Awareness', tooltip: 'Understanding situational and social context' },
+                    { name: 'Language Proficiency', tooltip: 'Understanding and producing language effectively' }
+                ]
+            },
+            {
+                name: '🪞 Self & Physical',
+                items: [
+                    { name: 'Self-Awareness', tooltip: 'Conscious knowledge of one\'s own nature and state' },
+                    { name: 'Physical Intelligence', tooltip: 'Bodily coordination and motor skills' }
+                ]
+            }
+        ];
+
+        // Flatten for chart labels
+        const attributes = attributeGroups.flatMap(g => g.items.map(i => i.name));
+        const tooltips = attributeGroups.flatMap(g => g.items.map(i => i.tooltip));
+
+        // Default values (1-10) - same order as attributes
+        // 🧠 Cognitive: Intelligence, Processing Speed, Logical Reasoning, Pattern Recognition, Memory/Recall, Attention to Detail
+        // 📚 Learning: Learning Ability, Adaptability, Expertise, Problem-Solving
+        // ⚡ Drive: Initiative, Willpower, Persistence, Consistency, Multi-tasking
+        // 💡 Creative: Creativity, Intuition, Common Sense
+        // 🤝 Social: Empathy, Social Intelligence, Context Awareness, Language Proficiency
+        // 🪞 Self: Self-Awareness, Physical Intelligence
+        
+        const humanDefaults = [
+            7, 4, 6, 6, 5, 6,       // Cognitive
+            8, 8, 6, 7,             // Learning
+            8, 8, 6, 5, 4,          // Drive
+            9, 8, 8,                // Creative
+            9, 7, 8, 7,             // Social
+            7, 8                    // Self & Physical
+        ];
+        
+        const aiDefaults = [
+            7, 10, 8, 9, 9, 9,      // Cognitive
+            4, 6, 8, 7,             // Learning
+            3, 1, 10, 10, 10,       // Drive
+            5, 2, 3,                // Creative
+            2, 4, 6, 9,             // Social
+            1, 1                    // Self & Physical
+        ];
+
+        let humanValues = [...humanDefaults];
+        let aiValues = [...aiDefaults];
+        let isCombined = false;
+
+        let humanChart, aiChart, combinedChart;
+
+        // Create sliders with groups and tooltips
+        function createSliders() {
+            const humanContainer = document.getElementById('human-sliders');
+            const aiContainer = document.getElementById('ai-sliders');
+            
+            let index = 0;
+            
+            attributeGroups.forEach(group => {
+                // Add group header
+                humanContainer.innerHTML += `<div class="group-header">${group.name}</div>`;
+                aiContainer.innerHTML += `<div class="group-header">${group.name}</div>`;
+                
+                group.items.forEach(item => {
+                    const humanVal = humanDefaults[index];
+                    const aiVal = aiDefaults[index];
+                    
+                    // Human slider
+                    humanContainer.innerHTML += `
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span class="attr-name" data-tooltip="${item.tooltip}">${item.name}</span>
+                                <span class="slider-value" id="human-val-${index}">${humanVal}</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="${humanVal}" 
+                                   onchange="updateHuman(${index}, this.value)" 
+                                   oninput="updateHuman(${index}, this.value)">
+                        </div>
+                    `;
+
+                    // AI slider
+                    aiContainer.innerHTML += `
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span class="attr-name" data-tooltip="${item.tooltip}">${item.name}</span>
+                                <span class="slider-value" id="ai-val-${index}">${aiVal}</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="${aiVal}" 
+                                   onchange="updateAI(${index}, this.value)" 
+                                   oninput="updateAI(${index}, this.value)">
+                        </div>
+                    `;
+                    
+                    index++;
+                });
+            });
+        }
+
+        function updateHuman(index, value) {
+            humanValues[index] = parseInt(value);
+            document.getElementById(`human-val-${index}`).textContent = value;
+            updateCharts();
+            saveToLocalStorage();
+        }
+
+        function updateAI(index, value) {
+            aiValues[index] = parseInt(value);
+            document.getElementById(`ai-val-${index}`).textContent = value;
+            updateCharts();
+            saveToLocalStorage();
+        }
+
+    function getChartConfig(data, color, bgColor) {
+            return {
+                type: 'radar',
+                data: {
+                    labels: attributes,
+                    datasets: [{
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: bgColor,
+                        borderWidth: 2,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 10,
+                            ticks: {
+                                stepSize: 2,
+                                color: '#666',
+                                backdropColor: 'transparent'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            pointLabels: {
+                                color: '#aaa',
+                                font: { size: 8 }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        function initCharts() {
+            const humanCtx = document.getElementById('humanChart').getContext('2d');
+            const aiCtx = document.getElementById('aiChart').getContext('2d');
+            const combinedCtx = document.getElementById('combinedChart').getContext('2d');
+
+            humanChart = new Chart(humanCtx, getChartConfig(humanValues, '#00ffff', 'rgba(0, 255, 255, 0.2)'));
+            aiChart = new Chart(aiCtx, getChartConfig(aiValues, '#ff00ff', 'rgba(255, 0, 255, 0.2)'));
+            
+            combinedChart = new Chart(combinedCtx, {
+                type: 'radar',
+                data: {
+                    labels: attributes,
+                    datasets: [{
+                        label: 'Best Combined',
+                        data: getBestValues(),
+                        borderColor: '#ffff00',
+                        backgroundColor: 'rgba(255, 255, 0, 0.75)',
+                        borderWidth: 3,
+                        pointBackgroundColor: getPointColors(),
+                        pointBorderColor: '#fff',
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 10,
+                            ticks: {
+                                stepSize: 2,
+                                color: '#666',
+                                backdropColor: 'transparent'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 0, 0.15)'
+                            },
+                            angleLines: {
+                                color: 'rgba(255, 255, 0, 0.2)'
+                            },
+                            pointLabels: {
+                                color: '#ccc',
+                                font: { size: 9 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function getBestValues() {
+            return humanValues.map((h, i) => Math.max(h, aiValues[i]));
+        }
+
+        function getPointColors() {
+            return humanValues.map((h, i) => {
+                if (h >= aiValues[i]) return '#00ffff'; // Human wins or tie - cyan
+                return '#ff00ff'; // AI wins - magenta
+            });
+        }
+
+        function updateCharts() {
+            humanChart.data.datasets[0].data = humanValues;
+            aiChart.data.datasets[0].data = aiValues;
+            combinedChart.data.datasets[0].data = getBestValues();
+            combinedChart.data.datasets[0].pointBackgroundColor = getPointColors();
+
+            humanChart.update();
+            aiChart.update();
+            combinedChart.update();
+        }
+
+        function toggleView() {
+            const btn = document.getElementById('toggleBtn');
+            const humanBox = document.getElementById('human-chart-box');
+            const aiBox = document.getElementById('ai-chart-box');
+            const combinedBox = document.getElementById('combined-chart-box');
+            const mainTitle = document.getElementById('mainTitle');
+            const subtitle = document.getElementById('subtitle');
+
+            btn.disabled = true;
+
+            if (!isCombined) {
+                // COMBINE: Crossfade - both animations happen simultaneously
+                humanBox.classList.add('merging');
+                aiBox.classList.add('merging');
+                combinedBox.classList.add('appearing');
+                combinedBox.classList.remove('disappearing');
+                
+                mainTitle.textContent = 'Human + AI';
+                mainTitle.style.background = 'linear-gradient(90deg, #ffff00, #ffcc00)';
+                mainTitle.style.webkitBackgroundClip = 'text';
+                mainTitle.style.webkitTextFillColor = 'transparent';
+                subtitle.textContent = 'The best of both worlds combined';
+                subtitle.style.color = '#ffff88';
+                
+                setTimeout(() => {
+                    btn.textContent = 'Separate';
+                    btn.classList.add('combined');
+                    btn.disabled = false;
+                }, 1200);
+                
+                isCombined = true;
+                
+            } else {
+                // SEPARATE: Crossfade back - both animations happen simultaneously
+                combinedBox.classList.remove('appearing');
+                combinedBox.classList.add('disappearing');
+                humanBox.classList.remove('merging');
+                aiBox.classList.remove('merging');
+                
+                mainTitle.textContent = 'Human vs AI';
+                mainTitle.style.background = 'linear-gradient(90deg, #00ffff, #ff00ff)';
+                mainTitle.style.webkitBackgroundClip = 'text';
+                mainTitle.style.webkitTextFillColor = 'transparent';
+                subtitle.textContent = 'Compare capabilities and find the best of both worlds';
+                subtitle.style.color = '#888';
+                
+                setTimeout(() => {
+                    btn.textContent = 'Combine';
+                    btn.classList.remove('combined');
+                    btn.disabled = false;
+                }, 1200);
+                
+                isCombined = false;
+            }
+        }
+
+        // Initialize
+        createSliders();
+        initCharts();
+        loadSettings();
+        initTooltips();
+        initSyncScroll();
+
+        // Synchronized scrolling between panels
+        function initSyncScroll() {
+            const humanPanel = document.querySelector('.sliders-panel.human');
+            const aiPanel = document.querySelector('.sliders-panel.ai');
+            let isSyncing = false;
+
+            humanPanel.addEventListener('scroll', function() {
+                if (!isSyncing) {
+                    isSyncing = true;
+                    aiPanel.scrollTop = this.scrollTop;
+                    setTimeout(() => isSyncing = false, 10);
+                }
+            });
+
+            aiPanel.addEventListener('scroll', function() {
+                if (!isSyncing) {
+                    isSyncing = true;
+                    humanPanel.scrollTop = this.scrollTop;
+                    setTimeout(() => isSyncing = false, 10);
+                }
+            });
+        }
+
+        // Initialize tooltip positioning
+        function initTooltips() {
+            document.querySelectorAll('.attr-name').forEach(el => {
+                el.addEventListener('mouseenter', function(e) {
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'tooltip-popup';
+                    tooltip.textContent = this.getAttribute('data-tooltip');
+                    
+                    // Add color based on parent panel
+                    if (this.closest('.sliders-panel').classList.contains('human')) {
+                        tooltip.classList.add('human');
+                    } else {
+                        tooltip.classList.add('ai');
+                    }
+                    
+                    document.body.appendChild(tooltip);
+                    
+                    const rect = this.getBoundingClientRect();
+                    const tooltipRect = tooltip.getBoundingClientRect();
+                    
+                    let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                    let top = rect.top - tooltipRect.height - 8;
+                    
+                    // Keep tooltip within viewport
+                    if (left < 10) left = 10;
+                    if (left + tooltipRect.width > window.innerWidth - 10) {
+                        left = window.innerWidth - tooltipRect.width - 10;
+                    }
+                    if (top < 10) {
+                        top = rect.bottom + 8;
+                    }
+                    
+                    tooltip.style.left = left + 'px';
+                    tooltip.style.top = top + 'px';
+                    tooltip.style.opacity = '1';
+                    
+                    this._tooltip = tooltip;
+                });
+                
+                el.addEventListener('mouseleave', function() {
+                    if (this._tooltip) {
+                        this._tooltip.remove();
+                        this._tooltip = null;
+                    }
+                });
+            });
+        }
+
+        // Status message display
+        function showStatus(message, type = 'success') {
+            const status = document.getElementById('statusMessage');
+            status.textContent = message;
+            status.className = 'status-message ' + type + ' show';
+            setTimeout(() => {
+                status.classList.remove('show');
+            }, 3000);
+        }
+
+        // Save to localStorage
+        function saveToLocalStorage() {
+            const settings = {
+                human: humanValues,
+                ai: aiValues,
+                savedAt: new Date().toISOString()
+            };
+            localStorage.setItem('humanAiComparison', JSON.stringify(settings));
+        }
+
+        // Load settings (localStorage first, then defaults)
+        function loadSettings() {
+            const saved = localStorage.getItem('humanAiComparison');
+            if (saved) {
+                try {
+                    const settings = JSON.parse(saved);
+                    applySettings(settings);
+                    showStatus('Settings loaded from browser storage', 'info');
+                } catch (e) {
+                    console.log('Could not load saved settings, using defaults');
+                }
+            }
+        }
+
+        // Apply settings to sliders and charts
+        function applySettings(settings) {
+            if (settings.human && settings.human.length === attributes.length) {
+                humanValues = [...settings.human];
+            }
+            if (settings.ai && settings.ai.length === attributes.length) {
+                aiValues = [...settings.ai];
+            }
+            
+            // Update slider positions and values
+            attributes.forEach((attr, index) => {
+                const humanSlider = document.querySelector(`#human-sliders input[type="range"]:nth-of-type(${index + 1})`);
+                const aiSlider = document.querySelector(`#ai-sliders input[type="range"]:nth-of-type(${index + 1})`);
+                
+                // Use querySelectorAll to get all range inputs
+                const humanSliders = document.querySelectorAll('#human-sliders input[type="range"]');
+                const aiSliders = document.querySelectorAll('#ai-sliders input[type="range"]');
+                
+                if (humanSliders[index]) {
+                    humanSliders[index].value = humanValues[index];
+                    document.getElementById(`human-val-${index}`).textContent = humanValues[index];
+                }
+                if (aiSliders[index]) {
+                    aiSliders[index].value = aiValues[index];
+                    document.getElementById(`ai-val-${index}`).textContent = aiValues[index];
+                }
+            });
+            
+            updateCharts();
+        }
+
+        // Export settings to JSON file
+        function exportSettings() {
+            const settings = {
+                human: humanValues,
+                ai: aiValues,
+                attributes: attributes,
+                exportedAt: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'human-ai-comparison-settings.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showStatus('Settings exported successfully!', 'success');
+        }
+
+        // Import settings from JSON file
+        function importSettings(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const settings = JSON.parse(e.target.result);
+                    applySettings(settings);
+                    saveToLocalStorage();
+                    showStatus('Settings imported successfully!', 'success');
+                } catch (error) {
+                    showStatus('Error: Invalid settings file', 'info');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset file input
+        }
+
+        // Reset to defaults
+        function resetToDefaults() {
+            if (confirm('Reset all values to defaults?')) {
+                humanValues = [...humanDefaults];
+                aiValues = [...aiDefaults];
+                applySettings({ human: humanDefaults, ai: aiDefaults });
+                saveToLocalStorage();
+                showStatus('Reset to defaults', 'info');
+            }
+        }
+    </script>
+</body>
+</html>
