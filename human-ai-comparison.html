@@ -96,6 +96,14 @@
             text-shadow: 0 0 20px rgba(255, 0, 255, 0.7);
         }
 
+        .sliders-panel.human .panel-icon {
+            filter: drop-shadow(0 0 8px #00ffff) drop-shadow(0 0 15px #00ffff);
+        }
+
+        .sliders-panel.ai .panel-icon {
+            filter: drop-shadow(0 0 8px #ff00ff) drop-shadow(0 0 15px #ff00ff);
+        }
+
         .slider-group {
             margin-bottom: 12px;
         }
@@ -191,12 +199,12 @@
         }
 
         .charts-container {
-            flex: 2;
+            flex: 3;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            gap: 20px;
+            gap: 15px;
         }
 
         .charts-wrapper {
@@ -205,17 +213,19 @@
             width: 100%;
             justify-content: center;
             position: relative;
-            min-height: 620px;
+            min-height: 780px;
         }
 
         .chart-box {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 15px;
-            padding: 15px;
+            padding: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: opacity 1.2s ease-in-out, transform 1.2s ease-in-out;
             opacity: 1;
             transform: scale(1);
+            flex: 1;
+            max-width: 520px;
         }
 
         .chart-box.human,
@@ -241,7 +251,12 @@
             opacity: 0;
             pointer-events: none;
             box-shadow: 0 0 40px rgba(255, 255, 0, 0.3), inset 0 0 30px rgba(255, 255, 0, 0.05);
-            width: 580px;
+            width: 950px !important;
+            max-width: 950px !important;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .chart-box.best.appearing {
@@ -253,8 +268,8 @@
         }
 
         .chart-box.best canvas {
-            width: 550px !important;
-            height: 550px !important;
+            width: 650px !important;
+            height: 650px !important;
         }
 
         .chart-box.best.disappearing {
@@ -263,8 +278,8 @@
         }
 
         .chart-box canvas {
-            max-width: 450px;
-            max-height: 450px;
+            width: 480px !important;
+            height: 480px !important;
         }
 
         .chart-box.combined {
@@ -291,8 +306,8 @@
         }
 
         .toggle-btn {
-            padding: 15px 50px;
-            font-size: 1.2rem;
+            padding: 10px 35px;
+            font-size: 1rem;
             font-weight: bold;
             border: none;
             border-radius: 50px;
@@ -302,12 +317,12 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 2px;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4), 0 0 30px rgba(255, 0, 255, 0.4);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4), 0 0 20px rgba(255, 0, 255, 0.4);
         }
 
         .toggle-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 0 50px rgba(0, 255, 255, 0.6), 0 0 50px rgba(255, 0, 255, 0.6);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.6), 0 0 40px rgba(255, 0, 255, 0.6);
         }
 
         .toggle-btn.combined {
@@ -328,11 +343,11 @@
         }
 
         .settings-btn {
-            padding: 10px 20px;
-            font-size: 0.85rem;
+            padding: 7px 14px;
+            font-size: 0.75rem;
             font-weight: bold;
             border: none;
-            border-radius: 25px;
+            border-radius: 20px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
@@ -445,7 +460,7 @@
     <div class="container">
         <!-- Human Sliders -->
         <div class="sliders-panel human">
-            <h2>👤 Human</h2>
+            <h2><span class="panel-icon">👤</span> Human</h2>
             <div id="human-sliders"></div>
         </div>
 
@@ -480,7 +495,7 @@
 
         <!-- AI Sliders -->
         <div class="sliders-panel ai">
-            <h2>🤖 AI</h2>
+            <h2><span class="panel-icon">🤖</span> AI</h2>
             <div id="ai-sliders"></div>
         </div>
     </div>
@@ -680,7 +695,7 @@
                             },
                             pointLabels: {
                                 color: '#aaa',
-                                font: { size: 8 }
+                                font: { size: 11 }
                             }
                         }
                     }
@@ -704,7 +719,7 @@
                         label: 'Best Combined',
                         data: getBestValues(),
                         borderColor: '#ffff00',
-                        backgroundColor: 'rgba(255, 255, 0, 0.75)',
+                        backgroundColor: 'rgba(255, 255, 50, 0.85)',
                         borderWidth: 3,
                         pointBackgroundColor: getPointColors(),
                         pointBorderColor: '#fff',
@@ -726,7 +741,8 @@
                             ticks: {
                                 stepSize: 2,
                                 color: '#666',
-                                backdropColor: 'transparent'
+                                backdropColor: 'transparent',
+                                font: { size: 13 }
                             },
                             grid: {
                                 color: 'rgba(255, 255, 0, 0.15)'
@@ -736,11 +752,98 @@
                             },
                             pointLabels: {
                                 color: '#ccc',
-                                font: { size: 9 }
+                                font: { size: 12 }
                             }
                         }
                     }
-                }
+                },
+                plugins: [{
+                    id: 'whiteGridInsideData',
+                    afterDatasetsDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        const scale = chart.scales.r;
+                        const data = chart.data.datasets[0].data;
+                        const centerX = scale.xCenter;
+                        const centerY = scale.yCenter;
+                        const numPoints = data.length;
+                        
+                        // Calculate data points positions
+                        const dataPoints = data.map((value, index) => {
+                            const angle = (Math.PI * 2 * index / numPoints) - Math.PI / 2;
+                            const distance = (value / 10) * scale.drawingArea;
+                            return {
+                                x: centerX + Math.cos(angle) * distance,
+                                y: centerY + Math.sin(angle) * distance
+                            };
+                        });
+                        
+                        // Create clipping path from data shape
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.moveTo(dataPoints[0].x, dataPoints[0].y);
+                        for (let i = 1; i < dataPoints.length; i++) {
+                            ctx.lineTo(dataPoints[i].x, dataPoints[i].y);
+                        }
+                        ctx.closePath();
+                        ctx.clip();
+                        
+                        // Draw white grid circles inside clipped area
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                        ctx.lineWidth = 1;
+                        
+                        for (let level = 2; level <= 10; level += 2) {
+                            const radius = (level / 10) * scale.drawingArea;
+                            ctx.beginPath();
+                            for (let i = 0; i <= numPoints; i++) {
+                                const angle = (Math.PI * 2 * i / numPoints) - Math.PI / 2;
+                                const x = centerX + Math.cos(angle) * radius;
+                                const y = centerY + Math.sin(angle) * radius;
+                                if (i === 0) {
+                                    ctx.moveTo(x, y);
+                                } else {
+                                    ctx.lineTo(x, y);
+                                }
+                            }
+                            ctx.closePath();
+                            ctx.stroke();
+                        }
+                        
+                        // Draw white angle lines inside clipped area
+                        for (let i = 0; i < numPoints; i++) {
+                            const angle = (Math.PI * 2 * i / numPoints) - Math.PI / 2;
+                            const outerX = centerX + Math.cos(angle) * scale.drawingArea;
+                            const outerY = centerY + Math.sin(angle) * scale.drawingArea;
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(centerX, centerY);
+                            ctx.lineTo(outerX, outerY);
+                            ctx.stroke();
+                        }
+                        
+                        // Draw white tick numbers inside clipped area
+                        // Intelligence is at index 0, angle is -PI/2 (straight up)
+                        const intelligenceValue = data[0];
+                        const tickAngle = -Math.PI / 2;
+                        
+                        ctx.font = 'bold 13px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = '#ffffff';
+                        
+                        for (let level = 2; level <= 10; level += 2) {
+                            if (level <= intelligenceValue) {
+                                const radius = (level / 10) * scale.drawingArea;
+                                const x = centerX + Math.cos(tickAngle) * radius;
+                                const y = centerY + Math.sin(tickAngle) * radius;
+                                
+                                // Draw white number only
+                                ctx.fillText(level.toString(), x, y);
+                            }
+                        }
+                        
+                        ctx.restore();
+                    }
+                }]
             });
         }
 
@@ -966,7 +1069,7 @@
         }
 
         // Export settings to JSON file
-        function exportSettings() {
+        async function exportSettings() {
             const settings = {
                 human: humanValues,
                 ai: aiValues,
@@ -975,7 +1078,31 @@
                 version: '1.0'
             };
             
-            const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+            const jsonContent = JSON.stringify(settings, null, 2);
+            
+            // Try to use File System Access API (allows folder selection)
+            if ('showSaveFilePicker' in window) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: 'human-ai-comparison-settings.json',
+                        types: [{
+                            description: 'JSON Files',
+                            accept: { 'application/json': ['.json'] }
+                        }]
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(jsonContent);
+                    await writable.close();
+                    showStatus('Settings exported successfully!', 'success');
+                    return;
+                } catch (err) {
+                    // User cancelled or error - fall through to legacy method
+                    if (err.name === 'AbortError') return;
+                }
+            }
+            
+            // Fallback for browsers without File System Access API
+            const blob = new Blob([jsonContent], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
