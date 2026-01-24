@@ -207,14 +207,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
             gap: 15px;
+            container-type: inline-size;
+            container-name: charts;
         }
 
         .charts-wrapper {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: clamp(8px, 2cqi, 20px);
             width: 100%;
             justify-content: center;
             position: relative;
@@ -224,13 +226,13 @@
         .chart-box {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 15px;
-            padding: 20px;
+            padding: clamp(8px, 3cqi, 20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: opacity 1.2s ease-in-out, transform 1.2s ease-in-out;
             opacity: 1;
             transform: scale(1);
-            flex: 1 1 300px;
-            min-width: 280px;
+            flex: 1 1 min(280px, 45cqi);
+            min-width: min(280px, 40cqi);
             max-width: 520px;
         }
 
@@ -462,6 +464,97 @@
         }
 
         /* ============================================
+           CONTAINER QUERIES - Charts auto-adapt
+           ============================================ */
+        
+        /* Large container - side by side charts */
+        @container charts (min-width: 500px) {
+            .chart-box {
+                flex: 1 1 45%;
+                max-width: 48%;
+            }
+            
+            .chart-box canvas {
+                max-width: min(350px, 90cqi) !important;
+            }
+            
+            .chart-box.best canvas {
+                max-width: min(500px, 80cqi) !important;
+            }
+        }
+        
+        /* Medium container */
+        @container charts (min-width: 350px) and (max-width: 499px) {
+            .chart-box {
+                flex: 1 1 45%;
+                min-width: 140px;
+                max-width: 48%;
+            }
+            
+            .chart-box h3 {
+                font-size: 0.8rem;
+            }
+            
+            .chart-box canvas {
+                max-width: min(180px, 42cqi) !important;
+            }
+            
+            .chart-box.best {
+                position: relative;
+                left: auto;
+                top: auto;
+                transform: none;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            
+            .chart-box.best.appearing {
+                transform: none;
+            }
+            
+            .chart-box.best canvas {
+                max-width: min(280px, 70cqi) !important;
+            }
+        }
+        
+        /* Small container */
+        @container charts (max-width: 349px) {
+            .chart-box {
+                flex: 1 1 45%;
+                min-width: 100px;
+                max-width: 48%;
+                padding: 6px;
+            }
+            
+            .chart-box h3 {
+                font-size: 0.65rem;
+                margin-bottom: 4px;
+            }
+            
+            .chart-box canvas {
+                max-width: min(130px, 42cqi) !important;
+            }
+            
+            .chart-box.best {
+                position: relative;
+                left: auto;
+                top: auto;
+                transform: none;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 8px;
+            }
+            
+            .chart-box.best.appearing {
+                transform: none;
+            }
+            
+            .chart-box.best canvas {
+                max-width: min(200px, 70cqi) !important;
+            }
+        }
+
+        /* ============================================
            RESPONSIVE DESIGN - Tablet & Mobile
            ============================================ */
         
@@ -532,40 +625,6 @@
                 gap: 8px;
             }
             
-            .chart-box {
-                padding: 8px;
-                min-width: 150px;
-                max-width: 45%;
-                flex: 1 1 45%;
-            }
-            
-            .chart-box h3 {
-                font-size: 0.7rem;
-                margin-bottom: 5px;
-            }
-            
-            .chart-box canvas {
-                max-width: 180px !important;
-            }
-            
-            .chart-box.best {
-                position: relative;
-                left: auto;
-                top: auto;
-                transform: none;
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 10px;
-            }
-            
-            .chart-box.best.appearing {
-                transform: none;
-            }
-            
-            .chart-box.best canvas {
-                max-width: 250px !important;
-            }
-            
             .toggle-btn {
                 padding: 6px 15px;
                 font-size: 0.7rem;
@@ -608,14 +667,6 @@
             .slider-label {
                 font-size: 0.55rem;
             }
-            
-            .chart-box canvas {
-                max-width: 140px !important;
-            }
-            
-            .chart-box.best canvas {
-                max-width: 200px !important;
-            }
         }
         
         /* Very small landscape (phones) */
@@ -646,22 +697,6 @@
             
             .group-header {
                 font-size: 0.5rem;
-            }
-            
-            .chart-box {
-                padding: 5px;
-            }
-            
-            .chart-box h3 {
-                font-size: 0.6rem;
-            }
-            
-            .chart-box canvas {
-                max-width: 110px !important;
-            }
-            
-            .chart-box.best canvas {
-                max-width: 160px !important;
             }
             
             .toggle-btn {
@@ -725,32 +760,6 @@
                 flex-direction: row;
                 align-items: flex-start;
             }
-            
-            .chart-box {
-                max-width: 48%;
-                min-width: 280px;
-            }
-            
-            .chart-box canvas {
-                max-width: 350px !important;
-            }
-            
-            .chart-box.best {
-                position: relative;
-                left: auto;
-                top: auto;
-                transform: none;
-                width: 100% !important;
-                max-width: 100% !important;
-            }
-            
-            .chart-box.best.appearing {
-                transform: none;
-            }
-            
-            .chart-box.best canvas {
-                max-width: 500px !important;
-            }
         }
         
         /* Tablet Portrait (max 900px) */
@@ -766,14 +775,6 @@
             .subtitle {
                 font-size: 0.9rem;
                 margin-bottom: 20px;
-            }
-            
-            .chart-box canvas {
-                max-width: 350px !important;
-            }
-            
-            .chart-box.best canvas {
-                max-width: 400px !important;
             }
             
             .toggle-btn {
@@ -800,22 +801,6 @@
             
             .sliders-panel h2 {
                 font-size: 1.1rem;
-            }
-            
-            .chart-box {
-                padding: 15px;
-            }
-            
-            .chart-box canvas {
-                max-width: 300px !important;
-            }
-            
-            .chart-box.best canvas {
-                max-width: 350px !important;
-            }
-            
-            .chart-box h3 {
-                font-size: 0.9rem;
             }
             
             .legend {
@@ -862,23 +847,6 @@
                 font-size: 0.65rem;
             }
             
-            .chart-box {
-                padding: 10px;
-                border-radius: 10px;
-            }
-            
-            .chart-box canvas {
-                max-width: 250px !important;
-            }
-            
-            .chart-box.best canvas {
-                max-width: 280px !important;
-            }
-            
-            .chart-box h3 {
-                font-size: 0.85rem;
-            }
-            
             .toggle-btn {
                 padding: 8px 20px;
                 font-size: 0.8rem;
@@ -903,14 +871,6 @@
         @media (orientation: portrait) and (max-width: 360px) {
             h1 {
                 font-size: 1.1rem;
-            }
-            
-            .chart-box canvas {
-                max-width: 200px !important;
-            }
-            
-            .chart-box.best canvas {
-                max-width: 230px !important;
             }
         }
     </style>
