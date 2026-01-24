@@ -466,7 +466,217 @@
            ============================================ */
         
         /* Tablet Landscape & smaller desktops (max 1200px) */
-        @media (max-width: 1200px) {
+        /* ===== LANDSCAPE MODE - Always show 4 columns ===== */
+        @media (orientation: landscape) and (max-width: 1200px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.2rem;
+                margin-bottom: 5px;
+            }
+            
+            .subtitle {
+                font-size: 0.7rem;
+                margin-bottom: 10px;
+            }
+            
+            .container {
+                flex-wrap: nowrap;
+                gap: 8px;
+                align-items: stretch;
+            }
+            
+            .sliders-panel {
+                flex: 0 0 18%;
+                min-width: 120px;
+                max-width: 180px;
+                padding: 8px;
+                max-height: calc(100vh - 120px);
+                overflow-y: auto;
+            }
+            
+            .sliders-panel h2 {
+                font-size: 0.8rem;
+                margin-bottom: 8px;
+            }
+            
+            .slider-label {
+                font-size: 0.6rem;
+            }
+            
+            .group-header {
+                font-size: 0.55rem;
+                margin-top: 8px;
+                margin-bottom: 4px;
+            }
+            
+            input[type="range"] {
+                height: 4px;
+            }
+            
+            .human input[type="range"]::-webkit-slider-thumb,
+            .ai input[type="range"]::-webkit-slider-thumb {
+                width: 12px;
+                height: 12px;
+            }
+            
+            .charts-container {
+                flex: 1 1 auto;
+                min-width: 200px;
+                gap: 8px;
+            }
+            
+            .charts-wrapper {
+                gap: 8px;
+            }
+            
+            .chart-box {
+                padding: 8px;
+                min-width: 150px;
+                max-width: 45%;
+                flex: 1 1 45%;
+            }
+            
+            .chart-box h3 {
+                font-size: 0.7rem;
+                margin-bottom: 5px;
+            }
+            
+            .chart-box canvas {
+                max-width: 180px !important;
+            }
+            
+            .chart-box.best {
+                position: relative;
+                left: auto;
+                top: auto;
+                transform: none;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 10px;
+            }
+            
+            .chart-box.best.appearing {
+                transform: none;
+            }
+            
+            .chart-box.best canvas {
+                max-width: 250px !important;
+            }
+            
+            .toggle-btn {
+                padding: 6px 15px;
+                font-size: 0.7rem;
+                letter-spacing: 1px;
+            }
+            
+            .settings-buttons {
+                gap: 4px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .settings-btn {
+                padding: 4px 8px;
+                font-size: 0.55rem;
+            }
+            
+            .legend {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.6rem;
+            }
+        }
+        
+        /* Even smaller landscape screens */
+        @media (orientation: landscape) and (max-width: 900px) {
+            .sliders-panel {
+                flex: 0 0 15%;
+                min-width: 100px;
+                max-width: 140px;
+                padding: 6px;
+            }
+            
+            .sliders-panel h2 {
+                font-size: 0.7rem;
+            }
+            
+            .slider-label {
+                font-size: 0.55rem;
+            }
+            
+            .chart-box canvas {
+                max-width: 140px !important;
+            }
+            
+            .chart-box.best canvas {
+                max-width: 200px !important;
+            }
+        }
+        
+        /* Very small landscape (phones) */
+        @media (orientation: landscape) and (max-width: 740px) {
+            h1 {
+                font-size: 1rem;
+            }
+            
+            .subtitle {
+                display: none;
+            }
+            
+            .sliders-panel {
+                flex: 0 0 14%;
+                min-width: 85px;
+                max-width: 120px;
+                padding: 5px;
+            }
+            
+            .sliders-panel h2 {
+                font-size: 0.65rem;
+                margin-bottom: 5px;
+            }
+            
+            .slider-label {
+                font-size: 0.5rem;
+            }
+            
+            .group-header {
+                font-size: 0.5rem;
+            }
+            
+            .chart-box {
+                padding: 5px;
+            }
+            
+            .chart-box h3 {
+                font-size: 0.6rem;
+            }
+            
+            .chart-box canvas {
+                max-width: 110px !important;
+            }
+            
+            .chart-box.best canvas {
+                max-width: 160px !important;
+            }
+            
+            .toggle-btn {
+                padding: 5px 12px;
+                font-size: 0.6rem;
+            }
+            
+            .settings-btn {
+                padding: 3px 6px;
+                font-size: 0.5rem;
+            }
+        }
+        
+        /* ===== PORTRAIT MODE - Stack vertically ===== */
+        @media (orientation: portrait) and (max-width: 1200px) {
             .container {
                 flex-direction: column;
                 align-items: center;
@@ -542,7 +752,7 @@
         }
         
         /* Tablet Portrait (max 900px) */
-        @media (max-width: 900px) {
+        @media (orientation: portrait) and (max-width: 900px) {
             body {
                 padding: 15px;
             }
@@ -575,8 +785,8 @@
             }
         }
         
-        /* Mobile Landscape & small tablets (max 768px) */
-        @media (max-width: 768px) {
+        /* Mobile Portrait (max 768px) */
+        @media (orientation: portrait) and (max-width: 768px) {
             h1 {
                 font-size: 1.6rem;
             }
@@ -619,7 +829,7 @@
         }
         
         /* Mobile Portrait (max 480px) */
-        @media (max-width: 480px) {
+        @media (orientation: portrait) and (max-width: 480px) {
             body {
                 padding: 10px;
             }
@@ -687,8 +897,8 @@
             }
         }
         
-        /* Very small screens (max 360px) */
-        @media (max-width: 360px) {
+        /* Very small portrait screens (max 360px) */
+        @media (orientation: portrait) and (max-width: 360px) {
             h1 {
                 font-size: 1.1rem;
             }
