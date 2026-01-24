@@ -222,6 +222,11 @@
             position: relative;
             min-height: auto;
         }
+        
+        /* Ensure wrapper has enough height when combined chart shows */
+        .charts-wrapper.combined-view {
+            min-height: 500px;
+        }
 
         .chart-box {
             background: rgba(255, 255, 255, 0.03);
@@ -330,6 +335,9 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.4), 0 0 20px rgba(255, 0, 255, 0.4);
+            position: relative;
+            z-index: 100;
+            margin-top: 10px;
         }
 
         .toggle-btn:hover {
@@ -481,6 +489,10 @@
             .chart-box.best canvas {
                 max-width: min(500px, 80cqi) !important;
             }
+            
+            .charts-wrapper.combined-view {
+                min-height: min(500px, 80cqi);
+            }
         }
         
         /* Medium container */
@@ -514,6 +526,10 @@
             
             .chart-box.best canvas {
                 max-width: min(280px, 70cqi) !important;
+            }
+            
+            .charts-wrapper.combined-view {
+                min-height: min(350px, 70cqi);
             }
         }
         
@@ -551,6 +567,10 @@
             
             .chart-box.best canvas {
                 max-width: min(200px, 70cqi) !important;
+            }
+            
+            .charts-wrapper.combined-view {
+                min-height: min(250px, 60cqi);
             }
         }
 
@@ -1297,6 +1317,7 @@
             const humanBox = document.getElementById('human-chart-box');
             const aiBox = document.getElementById('ai-chart-box');
             const combinedBox = document.getElementById('combined-chart-box');
+            const chartsWrapper = document.getElementById('charts-wrapper');
             const mainTitle = document.getElementById('mainTitle');
             const subtitle = document.getElementById('subtitle');
 
@@ -1308,6 +1329,7 @@
                 aiBox.classList.add('merging');
                 combinedBox.classList.add('appearing');
                 combinedBox.classList.remove('disappearing');
+                chartsWrapper.classList.add('combined-view');
                 
                 mainTitle.textContent = 'Human + AI';
                 mainTitle.style.background = 'linear-gradient(90deg, #ffff00, #ffcc00)';
@@ -1330,6 +1352,7 @@
                 combinedBox.classList.add('disappearing');
                 humanBox.classList.remove('merging');
                 aiBox.classList.remove('merging');
+                chartsWrapper.classList.remove('combined-view');
                 
                 mainTitle.textContent = 'Human vs AI';
                 mainTitle.style.background = 'linear-gradient(90deg, #00ffff, #ff00ff)';
