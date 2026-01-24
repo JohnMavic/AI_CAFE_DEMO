@@ -40,20 +40,23 @@
 
         .container {
             display: flex;
+            flex-wrap: wrap;
             gap: 20px;
             max-width: 1800px;
             margin: 0 auto;
             align-items: stretch;
+            justify-content: center;
         }
 
         .sliders-panel {
-            flex: 1;
+            flex: 1 1 250px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
             padding: 20px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             max-width: 300px;
+            min-width: 250px;
             max-height: 700px;
             overflow-y: auto;
         }
@@ -199,7 +202,8 @@
         }
 
         .charts-container {
-            flex: 3;
+            flex: 3 1 500px;
+            min-width: 300px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -209,11 +213,12 @@
 
         .charts-wrapper {
             display: flex;
+            flex-wrap: wrap;
             gap: 20px;
             width: 100%;
             justify-content: center;
             position: relative;
-            min-height: 780px;
+            min-height: auto;
         }
 
         .chart-box {
@@ -224,7 +229,8 @@
             transition: opacity 1.2s ease-in-out, transform 1.2s ease-in-out;
             opacity: 1;
             transform: scale(1);
-            flex: 1;
+            flex: 1 1 300px;
+            min-width: 280px;
             max-width: 520px;
         }
 
@@ -251,8 +257,8 @@
             opacity: 0;
             pointer-events: none;
             box-shadow: 0 0 40px rgba(255, 255, 0, 0.3), inset 0 0 30px rgba(255, 255, 0, 0.05);
-            width: 950px !important;
-            max-width: 950px !important;
+            width: 90%;
+            max-width: 950px;
             padding: 30px;
             display: flex;
             flex-direction: column;
@@ -268,8 +274,10 @@
         }
 
         .chart-box.best canvas {
-            width: 650px !important;
-            height: 650px !important;
+            width: 100% !important;
+            max-width: 650px !important;
+            height: auto !important;
+            aspect-ratio: 1;
         }
 
         .chart-box.best.disappearing {
@@ -278,8 +286,10 @@
         }
 
         .chart-box canvas {
-            width: 480px !important;
-            height: 480px !important;
+            width: 100% !important;
+            max-width: 480px !important;
+            height: auto !important;
+            aspect-ratio: 1;
         }
 
         .chart-box.combined {
@@ -450,6 +460,247 @@
             background: #ff00ff;
             box-shadow: 0 0 10px #ff00ff;
         }
+
+        /* ============================================
+           RESPONSIVE DESIGN - Tablet & Mobile
+           ============================================ */
+        
+        /* Tablet Landscape & smaller desktops (max 1200px) */
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            /* Charts zuerst (oben) */
+            .charts-container {
+                order: 1;
+                width: 100%;
+            }
+            
+            /* Human Slider als zweites */
+            .sliders-panel.human {
+                order: 2;
+                max-width: 100%;
+                width: 100%;
+                max-height: none;
+                overflow-y: visible;
+            }
+            
+            /* AI Slider als drittes */
+            .sliders-panel.ai {
+                order: 3;
+                max-width: 100%;
+                width: 100%;
+                max-height: none;
+                overflow-y: visible;
+            }
+            
+            .sliders-panel .slider-group {
+                display: inline-block;
+                width: calc(50% - 10px);
+                vertical-align: top;
+                margin-right: 10px;
+            }
+            
+            .sliders-panel .group-header {
+                display: block;
+                width: 100%;
+            }
+            
+            .charts-wrapper {
+                min-height: auto;
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            
+            .chart-box {
+                max-width: 48%;
+                min-width: 280px;
+            }
+            
+            .chart-box canvas {
+                max-width: 350px !important;
+            }
+            
+            .chart-box.best {
+                position: relative;
+                left: auto;
+                top: auto;
+                transform: none;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            
+            .chart-box.best.appearing {
+                transform: none;
+            }
+            
+            .chart-box.best canvas {
+                max-width: 500px !important;
+            }
+        }
+        
+        /* Tablet Portrait (max 900px) */
+        @media (max-width: 900px) {
+            body {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 0.9rem;
+                margin-bottom: 20px;
+            }
+            
+            .chart-box canvas {
+                max-width: 350px !important;
+            }
+            
+            .chart-box.best canvas {
+                max-width: 400px !important;
+            }
+            
+            .toggle-btn {
+                padding: 8px 25px;
+                font-size: 0.9rem;
+            }
+            
+            .settings-buttons {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        
+        /* Mobile Landscape & small tablets (max 768px) */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.6rem;
+            }
+            
+            .sliders-panel .slider-group {
+                width: 100%;
+                display: block;
+            }
+            
+            .sliders-panel h2 {
+                font-size: 1.1rem;
+            }
+            
+            .chart-box {
+                padding: 15px;
+            }
+            
+            .chart-box canvas {
+                max-width: 300px !important;
+            }
+            
+            .chart-box.best canvas {
+                max-width: 350px !important;
+            }
+            
+            .chart-box h3 {
+                font-size: 0.9rem;
+            }
+            
+            .legend {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            
+            .settings-btn {
+                padding: 6px 12px;
+                font-size: 0.7rem;
+            }
+        }
+        
+        /* Mobile Portrait (max 480px) */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+            
+            .subtitle {
+                font-size: 0.8rem;
+                margin-bottom: 15px;
+            }
+            
+            .sliders-panel {
+                padding: 15px;
+            }
+            
+            .sliders-panel h2 {
+                font-size: 1rem;
+                margin-bottom: 15px;
+            }
+            
+            .slider-label {
+                font-size: 0.7rem;
+            }
+            
+            .group-header {
+                font-size: 0.65rem;
+            }
+            
+            .chart-box {
+                padding: 10px;
+                border-radius: 10px;
+            }
+            
+            .chart-box canvas {
+                max-width: 250px !important;
+            }
+            
+            .chart-box.best canvas {
+                max-width: 280px !important;
+            }
+            
+            .chart-box h3 {
+                font-size: 0.85rem;
+            }
+            
+            .toggle-btn {
+                padding: 8px 20px;
+                font-size: 0.8rem;
+                letter-spacing: 1px;
+            }
+            
+            .settings-buttons {
+                gap: 5px;
+            }
+            
+            .settings-btn {
+                padding: 5px 10px;
+                font-size: 0.65rem;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* Very small screens (max 360px) */
+        @media (max-width: 360px) {
+            h1 {
+                font-size: 1.1rem;
+            }
+            
+            .chart-box canvas {
+                max-width: 200px !important;
+            }
+            
+            .chart-box.best canvas {
+                max-width: 230px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -547,8 +798,7 @@
                     { name: 'Empathy', tooltip: 'Understanding and sharing others\' feelings' },
                     { name: 'Social Intelligence', tooltip: 'Reading and navigating social dynamics' },
                     { name: 'Context Awareness', tooltip: 'Understanding situational and social context' },
-                    { name: 'Language Proficiency', tooltip: 'Understanding and producing language effectively' },
-                    { name: 'Patience', tooltip: 'Ability to calmly explain or repeat without frustration' }
+                    { name: 'Language Proficiency', tooltip: 'Understanding and producing language effectively' }
                 ]
             },
             {
@@ -569,7 +819,7 @@
         // 📚 Learning: Learning Ability, Adaptability, Expertise, Problem-Solving
         // ⚡ Drive: Initiative, Willpower, Persistence, Consistency, Multi-tasking
         // 💡 Creative: Creativity, Intuition, Common Sense
-        // 🤝 Social: Empathy, Social Intelligence, Context Awareness, Language Proficiency, Patience
+        // 🤝 Social: Empathy, Social Intelligence, Context Awareness, Language Proficiency
         // 🪞 Self: Self-Awareness, Physical Intelligence
         
         const humanDefaults = [
@@ -577,7 +827,7 @@
             8, 8, 6, 7,             // Learning
             8, 8, 6, 5, 4,          // Drive
             9, 8, 8,                // Creative
-            9, 7, 8, 7, 5,          // Social (incl. Patience)
+            9, 7, 8, 7,             // Social
             7, 8                    // Self & Physical
         ];
         
@@ -586,7 +836,7 @@
             4, 6, 8, 7,             // Learning
             3, 1, 10, 10, 10,       // Drive
             5, 2, 3,                // Creative
-            2, 4, 6, 9, 10,         // Social (incl. Patience)
+            2, 4, 6, 9,             // Social
             1, 1                    // Self & Physical
         ];
 
