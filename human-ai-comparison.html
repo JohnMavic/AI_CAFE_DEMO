@@ -4,7 +4,168 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Human vs AI - Capability Comparison</title>
-    <script src="custom-radar.js"></script>
+    <script>
+    /**
+     * Custom Radar Chart - No external dependencies
+     * Independent controls for label height, width, font size, and radar size
+     */
+    class CustomRadarChart {
+        constructor(canvas, options = {}) {
+            this.canvas = canvas;
+            this.ctx = canvas.getContext('2d');
+            this.dpr = window.devicePixelRatio || 1;
+            this.labels = options.labels || [];
+            this.data = options.data || [];
+            this.maxValue = options.maxValue || 10;
+            this.lineColor = options.lineColor || '#00ffff';
+            this.fillColor = options.fillColor || 'rgba(0, 255, 255, 0.2)';
+            this.gridColor = options.gridColor || 'rgba(255, 255, 255, 0.1)';
+            this.labelColor = options.labelColor || '#bbb';
+            this.pointColors = options.pointColors || null;
+            this.labelHeight = options.labelHeight || 160;
+            this.labelWidth = options.labelWidth || 120;
+            this.labelFontSize = options.labelFontSize || 11;
+            this.radarRadius = options.radarRadius || 120;
+            this.gridLevels = options.gridLevels || 5;
+            this.pointRadius = options.pointRadius || 4;
+            this.lineWidth = options.lineWidth || 2;
+            this.labelTextPadding = 90;
+            this.resize();
+        }
+        
+        resize() {
+            const rect = this.canvas.getBoundingClientRect();
+            const displayWidth = rect.width || 400;
+            const displayHeight = rect.height || 400;
+            const size = Math.min(displayWidth, displayHeight);
+            if (size < 10) return;
+            this.dpr = window.devicePixelRatio || 1;
+            const canvasSize = Math.round(size * this.dpr);
+            this.canvas.width = canvasSize;
+            this.canvas.height = canvasSize;
+            this.size = size;
+            this.centerX = size / 2;
+            this.centerY = size / 2;
+            this.maxRadius = (size / 2) - this.labelTextPadding;
+            if (this.maxRadius < 50) this.maxRadius = 50;
+        }
+        
+        getScaledRadarRadius() {
+            const minSlider = 60, maxSlider = 150;
+            const normalized = (this.radarRadius - minSlider) / (maxSlider - minSlider);
+            return this.maxRadius * (0.4 + normalized * 0.45);
+        }
+        
+        setData(data) { this.data = data; this.draw(); }
+        setLabelHeight(value) { this.labelHeight = value; this.draw(); }
+        setLabelWidth(value) { this.labelWidth = value; this.draw(); }
+        setLabelFontSize(value) { this.labelFontSize = value; this.draw(); }
+        setRadarRadius(value) { this.radarRadius = value; this.draw(); }
+        
+        draw() {
+            const ctx = this.ctx;
+            const numPoints = this.labels.length;
+            if (numPoints === 0) return;
+            ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+            ctx.clearRect(0, 0, this.size, this.size);
+            const angleStep = (2 * Math.PI) / numPoints;
+            const startAngle = -Math.PI / 2;
+            this.drawGrid(ctx, numPoints, angleStep, startAngle);
+            this.drawAxisLines(ctx, numPoints, angleStep, startAngle);
+            this.drawDataPolygon(ctx, numPoints, angleStep, startAngle);
+            this.drawLabels(ctx, numPoints, angleStep, startAngle);
+        }
+        
+        drawGrid(ctx, numPoints, angleStep, startAngle) {
+            ctx.strokeStyle = this.gridColor;
+            ctx.lineWidth = 1;
+            const actualRadarRadius = this.getScaledRadarRadius();
+            for (let level = 1; level <= this.gridLevels; level++) {
+                const levelRadius = (actualRadarRadius / this.gridLevels) * level;
+                ctx.beginPath();
+                for (let i = 0; i <= numPoints; i++) {
+                    const angle = startAngle + (i % numPoints) * angleStep;
+                    const x = this.centerX + Math.cos(angle) * levelRadius;
+                    const y = this.centerY + Math.sin(angle) * levelRadius;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.stroke();
+            }
+        }
+        
+        drawAxisLines(ctx, numPoints, angleStep, startAngle) {
+            ctx.strokeStyle = this.gridColor;
+            ctx.lineWidth = 1;
+            const actualRadarRadius = this.getScaledRadarRadius();
+            for (let i = 0; i < numPoints; i++) {
+                const angle = startAngle + i * angleStep;
+                const x = this.centerX + Math.cos(angle) * actualRadarRadius;
+                const y = this.centerY + Math.sin(angle) * actualRadarRadius;
+                ctx.beginPath();
+                ctx.moveTo(this.centerX, this.centerY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+        }
+        
+        drawDataPolygon(ctx, numPoints, angleStep, startAngle) {
+            if (this.data.length === 0) return;
+            const actualRadarRadius = this.getScaledRadarRadius();
+            const points = [];
+            for (let i = 0; i < numPoints; i++) {
+                const angle = startAngle + i * angleStep;
+                const value = this.data[i] || 0;
+                const normalizedValue = value / this.maxValue;
+                const pointRadius = normalizedValue * actualRadarRadius;
+                points.push({
+                    x: this.centerX + Math.cos(angle) * pointRadius,
+                    y: this.centerY + Math.sin(angle) * pointRadius
+                });
+            }
+            ctx.beginPath();
+            ctx.fillStyle = this.fillColor;
+            points.forEach((point, i) => { if (i === 0) ctx.moveTo(point.x, point.y); else ctx.lineTo(point.x, point.y); });
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.strokeStyle = this.lineColor;
+            ctx.lineWidth = this.lineWidth;
+            points.forEach((point, i) => { if (i === 0) ctx.moveTo(point.x, point.y); else ctx.lineTo(point.x, point.y); });
+            ctx.closePath();
+            ctx.stroke();
+            points.forEach((point, i) => {
+                const pointColor = (this.pointColors && this.pointColors[i]) ? this.pointColors[i] : this.lineColor;
+                ctx.fillStyle = pointColor;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, this.pointRadius, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+        }
+        
+        drawLabels(ctx, numPoints, angleStep, startAngle) {
+            ctx.fillStyle = this.labelColor;
+            ctx.font = `${this.labelFontSize}px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif`;
+            ctx.textBaseline = 'middle';
+            const verticalRadius = this.labelHeight;
+            const horizontalRadius = this.labelWidth;
+            for (let i = 0; i < numPoints; i++) {
+                const angle = startAngle + i * angleStep;
+                const x = this.centerX + Math.cos(angle) * horizontalRadius;
+                const y = this.centerY + Math.sin(angle) * verticalRadius;
+                const label = this.labels[i] || '';
+                if (Math.abs(Math.cos(angle)) < 0.1) ctx.textAlign = 'center';
+                else if (Math.cos(angle) > 0) ctx.textAlign = 'left';
+                else ctx.textAlign = 'right';
+                ctx.fillText(label, x, y);
+            }
+        }
+    }
+    window.CustomRadarChart = CustomRadarChart;
+    </script>
     <style>
         * {
             margin: 0;
@@ -341,19 +502,6 @@
         }
 
         /* Combined chart title styling removed - defined earlier */
-
-        .combined-title {
-            display: none;
-            color: #ffff00;
-            text-shadow: 0 0 20px rgba(255, 255, 0, 0.7);
-            font-size: 1.2rem;
-            margin: 30px 0 15px 0;
-            text-align: center;
-        }
-
-        .combined-title.visible {
-            display: block;
-        }
 
         .toggle-btn {
             padding: 10px 35px;
@@ -997,7 +1145,6 @@
                     </div>
                 </div>
             </div>
-            <h3 class="combined-title" id="combinedTitle">✨ Combined Best Values ✨</h3>
             <button class="toggle-btn" id="toggleBtn" onclick="toggleView()">Combine</button>
             <div class="display-controls">
                 <label class="controls-toggle">
@@ -1151,55 +1298,64 @@
         let combinedLabelFontSize = 11;
         let combinedRadarRadius = 110;
 
-        // Load display settings from localStorage
+        // Load display settings from localStorage (with iframe security fallback)
         function loadDisplaySettings() {
-            // Load standard chart settings
-            const savedStandard = localStorage.getItem('displaySettings');
-            if (savedStandard) {
-                try {
-                    const settings = JSON.parse(savedStandard);
-                    if (settings.labelHeight) labelHeight = settings.labelHeight;
-                    if (settings.labelWidth) labelWidth = settings.labelWidth;
-                    if (settings.labelFontSize) labelFontSize = settings.labelFontSize;
-                    if (settings.radarRadius) radarRadius = settings.radarRadius;
-                } catch (e) {
-                    console.log('Could not load standard display settings');
+            try {
+                // Load standard chart settings
+                const savedStandard = localStorage.getItem('displaySettings');
+                if (savedStandard) {
+                    try {
+                        const settings = JSON.parse(savedStandard);
+                        if (settings.labelHeight) labelHeight = settings.labelHeight;
+                        if (settings.labelWidth) labelWidth = settings.labelWidth;
+                        if (settings.labelFontSize) labelFontSize = settings.labelFontSize;
+                        if (settings.radarRadius) radarRadius = settings.radarRadius;
+                    } catch (e) {
+                        console.log('Could not parse standard display settings');
+                    }
                 }
-            }
-            // Load combined chart settings
-            const savedCombined = localStorage.getItem('displaySettingsCombined');
-            if (savedCombined) {
-                try {
-                    const settings = JSON.parse(savedCombined);
-                    if (settings.labelHeight) combinedLabelHeight = settings.labelHeight;
-                    if (settings.labelWidth) combinedLabelWidth = settings.labelWidth;
-                    if (settings.labelFontSize) combinedLabelFontSize = settings.labelFontSize;
-                    if (settings.radarRadius) combinedRadarRadius = settings.radarRadius;
-                } catch (e) {
-                    console.log('Could not load combined display settings');
+                // Load combined chart settings
+                const savedCombined = localStorage.getItem('displaySettingsCombined');
+                if (savedCombined) {
+                    try {
+                        const settings = JSON.parse(savedCombined);
+                        if (settings.labelHeight) combinedLabelHeight = settings.labelHeight;
+                        if (settings.labelWidth) combinedLabelWidth = settings.labelWidth;
+                        if (settings.labelFontSize) combinedLabelFontSize = settings.labelFontSize;
+                        if (settings.radarRadius) combinedRadarRadius = settings.radarRadius;
+                    } catch (e) {
+                        console.log('Could not parse combined display settings');
+                    }
                 }
+            } catch (e) {
+                // localStorage not available (e.g., in sandboxed iframe)
+                console.log('localStorage not available, using defaults');
             }
         }
 
-        // Save display settings to localStorage
+        // Save display settings to localStorage (with iframe security fallback)
         function saveDisplaySettings() {
-            // Save standard chart settings
-            const standardSettings = {
-                labelHeight,
-                labelWidth,
-                labelFontSize,
-                radarRadius
-            };
-            localStorage.setItem('displaySettings', JSON.stringify(standardSettings));
-            
-            // Save combined chart settings
-            const combinedSettings = {
-                labelHeight: combinedLabelHeight,
-                labelWidth: combinedLabelWidth,
-                labelFontSize: combinedLabelFontSize,
-                radarRadius: combinedRadarRadius
-            };
-            localStorage.setItem('displaySettingsCombined', JSON.stringify(combinedSettings));
+            try {
+                // Save standard chart settings
+                const standardSettings = {
+                    labelHeight,
+                    labelWidth,
+                    labelFontSize,
+                    radarRadius
+                };
+                localStorage.setItem('displaySettings', JSON.stringify(standardSettings));
+                
+                // Save combined chart settings
+                const combinedSettings = {
+                    labelHeight: combinedLabelHeight,
+                    labelWidth: combinedLabelWidth,
+                    labelFontSize: combinedLabelFontSize,
+                    radarRadius: combinedRadarRadius
+                };
+                localStorage.setItem('displaySettingsCombined', JSON.stringify(combinedSettings));
+            } catch (e) {
+                // localStorage not available (e.g., in sandboxed iframe)
+            }
         }
 
         // Create sliders with groups and tooltips
@@ -1296,7 +1452,7 @@
                 labels: attributes,
                 data: getBestValues(),
                 lineColor: '#ffff00',
-                fillColor: 'rgba(255, 255, 50, 0.5)',
+                fillColor: 'rgba(255, 255, 0, 0.55)',
                 labelColor: '#ccc',
                 labelHeight: combinedLabelHeight,
                 labelWidth: combinedLabelWidth,
@@ -1480,7 +1636,6 @@
             const chartsWrapper = document.getElementById('charts-wrapper');
             const mainTitle = document.getElementById('mainTitle');
             const subtitle = document.getElementById('subtitle');
-            const combinedTitle = document.getElementById('combinedTitle');
 
             btn.disabled = true;
 
@@ -1491,13 +1646,13 @@
                 combinedBox.classList.add('appearing');
                 combinedBox.classList.remove('disappearing');
                 chartsWrapper.classList.add('combined-view');
-                combinedTitle.classList.add('visible');
                 
                 mainTitle.textContent = 'Human + AI';
                 mainTitle.style.background = 'linear-gradient(90deg, #ffff00, #ffcc00)';
                 mainTitle.style.webkitBackgroundClip = 'text';
                 mainTitle.style.webkitTextFillColor = 'transparent';
-                subtitle.style.display = 'none';
+                subtitle.textContent = '✨ Combined Best Values ✨';
+                subtitle.style.color = '#ffff88';
                 
                 setTimeout(() => {
                     btn.textContent = 'Separate';
@@ -1515,13 +1670,13 @@
                 humanBox.classList.remove('merging');
                 aiBox.classList.remove('merging');
                 chartsWrapper.classList.remove('combined-view');
-                combinedTitle.classList.remove('visible');
                 
                 mainTitle.textContent = 'Human vs AI';
                 mainTitle.style.background = 'linear-gradient(90deg, #00ffff, #ff00ff)';
                 mainTitle.style.webkitBackgroundClip = 'text';
                 mainTitle.style.webkitTextFillColor = 'transparent';
-                subtitle.style.display = '';
+                subtitle.textContent = 'Compare capabilities and find the best of both worlds';
+                subtitle.style.color = '#888';
                 
                 setTimeout(() => {
                     btn.textContent = 'Combine';
@@ -1624,27 +1779,36 @@
             }, 3000);
         }
 
-        // Save to localStorage
+        // Save to localStorage (with iframe security fallback)
         function saveToLocalStorage() {
-            const settings = {
-                human: humanValues,
-                ai: aiValues,
-                savedAt: new Date().toISOString()
-            };
-            localStorage.setItem('humanAiComparison', JSON.stringify(settings));
+            try {
+                const settings = {
+                    human: humanValues,
+                    ai: aiValues,
+                    savedAt: new Date().toISOString()
+                };
+                localStorage.setItem('humanAiComparison', JSON.stringify(settings));
+            } catch (e) {
+                // localStorage not available (e.g., in sandboxed iframe)
+            }
         }
 
-        // Load settings (localStorage first, then defaults)
+        // Load settings (localStorage first, then defaults) - with iframe security fallback
         function loadSettings() {
-            const saved = localStorage.getItem('humanAiComparison');
-            if (saved) {
-                try {
-                    const settings = JSON.parse(saved);
-                    applySettings(settings);
-                    showStatus('Settings loaded from browser storage', 'info');
-                } catch (e) {
-                    console.log('Could not load saved settings, using defaults');
+            try {
+                const saved = localStorage.getItem('humanAiComparison');
+                if (saved) {
+                    try {
+                        const settings = JSON.parse(saved);
+                        applySettings(settings);
+                        showStatus('Settings loaded from browser storage', 'info');
+                    } catch (e) {
+                        console.log('Could not load saved settings, using defaults');
+                    }
                 }
+            } catch (e) {
+                // localStorage not available (e.g., in sandboxed iframe)
+                console.log('localStorage not available, using defaults');
             }
         }
 
