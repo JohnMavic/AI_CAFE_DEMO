@@ -97,6 +97,95 @@
             text-decoration: none;
             font-weight: 600;
         }
+        .methodology-card h4 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-text);
+            margin: 20px 0 12px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .source-explanation {
+            background: #F8FAFC;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        .source-explanation h4 {
+            margin-top: 0;
+        }
+        .source-type {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .source-type:last-child {
+            margin-bottom: 0;
+        }
+        .source-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .source-badge.transcript {
+            background: #FEF3C7;
+            color: #92400E;
+            border: 1px solid #FCD34D;
+        }
+        .source-badge.cnn {
+            background: #F1F5F9;
+            color: #475569;
+            border: 1px solid #CBD5E1;
+        }
+        .source-badge.factcheck {
+            background: #DCFCE7;
+            color: #166534;
+            border: 1px solid #86EFAC;
+        }
+        .source-desc {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+        .source-reliability {
+            margin-top: 20px;
+        }
+        .reliability-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+        .reliability-table th {
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 2px solid var(--color-border);
+            font-weight: 600;
+            color: var(--color-text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .reliability-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text-secondary);
+        }
+        .reliability-table tr:last-child td {
+            border-bottom: none;
+        }
+        .reliability-table a {
+            color: var(--color-accent-light);
+            text-decoration: none;
+        }
+        .reliability-table .rating {
+            color: #F59E0B;
+            letter-spacing: -2px;
+        }
         
         main { max-width: 800px; margin: 0 auto; padding: 40px 20px 80px; }
         
@@ -115,6 +204,64 @@
         }
         .stat-number { font-size: 36px; font-weight: 600; }
         .stat-label { font-size: 12px; color: var(--color-text-muted); font-weight: 500; }
+        
+        .summary-table {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .summary-table h3 {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-text-muted);
+            margin-bottom: 16px;
+        }
+        .summary-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .summary-table th {
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 8px;
+            border-bottom: 2px solid var(--color-border);
+        }
+        .summary-table th:last-child {
+            text-align: right;
+            width: 80px;
+        }
+        .summary-table td {
+            padding: 6px 8px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text);
+        }
+        .summary-table tr:last-child td {
+            border-bottom: none;
+        }
+        .summary-table td:last-child {
+            text-align: right;
+        }
+        .result-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border: 2px solid var(--color-false);
+            border-radius: 4px;
+            background: white;
+            color: var(--color-false);
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
         
         .claims-list { display: flex; flex-direction: column; gap: 16px; }
         
@@ -231,6 +378,13 @@
         .source-link.claim-source .source-icon {
             background: #94A3B8;
         }
+        .source-link.transcript-source {
+            background: #FEF3C7;
+            border-color: #FCD34D;
+        }
+        .source-link.transcript-source .source-icon {
+            background: #FBBF24;
+        }
         .source-link:active {
             transform: scale(0.98);
             opacity: 0.8;
@@ -291,7 +445,58 @@
     <div class="methodology">
         <div class="methodology-card">
             <h3>✓ Methodik</h3>
-            <p>Jede Behauptung enthält das <strong>exakte englische Zitat</strong> aus dem CNN Fact-Check. Alle Quellen wurden manuell verifiziert. Primärquelle: <a href="https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims" target="_blank">CNN Facts First, Daniel Dale, 20.01.2026</a></p>
+            <p style="margin-bottom: 16px;">Jede Behauptung enthält das <strong>exakte englische Originalzitat</strong> aus der Pressekonferenz. Alle Quellen sind direkt verlinkt und überprüfbar.</p>
+            
+            <div class="source-explanation">
+                <h4>Drei Quellen pro Behauptung:</h4>
+                <div class="source-type">
+                    <span class="source-badge transcript">🎤 Rev.com Transkript</span>
+                    <span class="source-desc">Wort-für-Wort Transkription der Pressekonferenz mit Zeitstempeln</span>
+                </div>
+                <div class="source-type">
+                    <span class="source-badge cnn">📰 CNN Facts First</span>
+                    <span class="source-desc">Fact-Check Artikel von Daniel Dale mit Kontext und Analyse</span>
+                </div>
+                <div class="source-type">
+                    <span class="source-badge factcheck">✓ Primärquelle</span>
+                    <span class="source-desc">Offizielle Datenquelle für die Widerlegung (z.B. AAA, BLS, CDC, NATO)</span>
+                </div>
+            </div>
+            
+            <div class="source-reliability">
+                <h4>Quellenbeurteilung – Originalaussagen:</h4>
+                <table class="reliability-table">
+                    <thead>
+                        <tr>
+                            <th>Quelle</th>
+                            <th>Typ</th>
+                            <th>Verlässlichkeit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><a href="https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26" target="_blank">Rev.com Transkript</a></td>
+                            <td>Wort-für-Wort Transkription</td>
+                            <td class="rating">⭐⭐⭐⭐⭐</td>
+                        </tr>
+                        <tr>
+                            <td>C-SPAN Video</td>
+                            <td>Originalaufnahme</td>
+                            <td class="rating">⭐⭐⭐⭐⭐</td>
+                        </tr>
+                        <tr>
+                            <td>White House Briefing</td>
+                            <td>Offizielle Pressekonferenz</td>
+                            <td class="rating">⭐⭐⭐⭐⭐</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://rollcall.com/factbase/trump/" target="_blank">Factba.se/Roll Call</a></td>
+                            <td>Transkriptions-Datenbank</td>
+                            <td class="rating">⭐⭐⭐⭐⭐</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     
@@ -305,6 +510,36 @@
                 <div class="stat-number serif" style="color: var(--color-false)">16</div>
                 <div class="stat-label">Als falsch bewertet</div>
             </div>
+        </div>
+        
+        <div class="summary-table">
+            <h3>Übersicht aller Behauptungen</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Behauptung</th>
+                        <th>Resultat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Durchschnittlicher Benzinpreis bei $2.31</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>Benzin kostet an vielen Orten $1.99</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>Medikamentenpreise um 300-600% gesenkt</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>Viele Lebensmittelpreise stark gefallen</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>Wir haben keine Inflation</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>Höchste Inflation aller Zeiten geerbt</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>$18 Billionen Investitionszusagen</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>NATO-Mitglieder zahlen jetzt 5% des BIP</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>Ich habe 8 unlösbare Kriege beendet</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>Kein Präsident hat je einen Krieg beigelegt</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>Venezuela öffnete Gefängnisse für USA-Migration</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>USA haben 92% der Golf-Küstenlinie</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>Die Wahl 2020 wurde manipuliert</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>NPR und PBS sind geschlossen</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>LA-Brände wegen Schutz eines kleinen Fisches</td><td><span class="result-badge">Falsch</span></td></tr>
+                    <tr><td>300.000 Fentanyl-Tote pro Jahr</td><td><span class="result-badge">Falsch</span></td></tr>
+                </tbody>
+            </table>
         </div>
         
         <div class="claims-list" id="claims-list"></div>
@@ -322,7 +557,8 @@
                 originalQuote: "I guess the average now, they're saying, is $2.31",
                 claim: "Durchschnittlicher Benzinpreis bei $2.31",
                 explanation: "Laut AAA lag der nationale Durchschnitt bei $2.82 pro Gallone. Der niedrigste Durchschnitt eines Bundesstaates war $2.31 in Oklahoma.",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Gas prices' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Timestamp 01:03:46" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Gas prices'" },
                 factCheckSource: { name: "AAA Gas Prices", url: "https://gasprices.aaa.com/", detail: "Offizielle Benzinpreis-Daten" }
             },
             {
@@ -330,7 +566,8 @@
                 originalQuote: "They have places in the country now, $1.99 a gallon. $1.99!",
                 claim: "Benzin kostet an vielen Orten $1.99",
                 explanation: "Kein Bundesstaat hatte einen Durchschnitt unter $2. GasBuddy fand weniger als 100 Tankstellen unter $2 von 150.000 erfassten.",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Gas prices' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Timestamp 01:03:46" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Gas prices'" },
                 factCheckSource: { name: "AAA State Averages", url: "https://gasprices.aaa.com/state-gas-price-averages/", detail: "Durchschnittspreise nach Bundesstaat" }
             },
             {
@@ -338,15 +575,17 @@
                 originalQuote: "to slash drug prices by as much as 300, 400, 500, and even 600%",
                 claim: "Medikamentenpreise um 300-600% gesenkt",
                 explanation: "Mathematisch unmöglich: 100% Senkung = kostenlos. Über 100% würde bedeuten, Amerikaner werden für Medikamente bezahlt.",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Prescription drug prices' – direktes Zitat" },
-                factCheckSource: { name: "CNN Fact Check", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Mathematische Erklärung im Artikel" }
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Timestamp 01:10:03" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Prescription drug prices'" },
+                factCheckSource: { name: "Mathematische Grundlagen", url: "https://www.calculatorsoup.com/calculators/algebra/percentage-decrease-calculator.php", detail: "Prozentrechnung erklärt" }
             },
             {
                 category: "Wirtschaft",
                 originalQuote: "many of the groceries have come way down",
                 claim: "Viele Lebensmittelpreise stark gefallen",
                 explanation: "Gesamte Lebensmittelpreise stiegen um 1,9% laut Consumer Price Index. Im Dezember stärkster Monatsanstieg (0,7%) seit über 3 Jahren.",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Grocery prices' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Pressekonferenz 20.01.2026" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Grocery prices'" },
                 factCheckSource: { name: "Bureau of Labor Statistics", url: "https://www.bls.gov/news.release/cpi.nr0.htm", detail: "Consumer Price Index Report" }
             },
             {
@@ -354,23 +593,26 @@
                 originalQuote: "We have no inflation",
                 claim: "Wir haben keine Inflation",
                 explanation: "Inflation lag bei 2,7% im Jahresvergleich und 0,3% im Monatsvergleich laut Consumer Price Index Dezember 2025.",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Overall inflation' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Timestamp 01:08:59" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Overall inflation'" },
                 factCheckSource: { name: "Bureau of Labor Statistics", url: "https://www.bls.gov/news.release/cpi.nr0.htm", detail: "CPI Dezember 2025" }
             },
             {
                 category: "Wirtschaft",
-                originalQuote: "we had the highest inflation, in my opinion, that we've ever had",
+                originalQuote: "the biggest inflation in the history of our country",
                 claim: "Höchste Inflation aller Zeiten geerbt",
                 explanation: "Biden-Maximum: 9,1% (Juni 2022). US-Allzeit-Rekord: 23,7% (1920). Bei Amtsantritt Jan. 2025: bereits auf 3,0% gefallen.",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Biden-era inflation' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Timestamp 01:02:04" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Biden-era inflation'" },
                 factCheckSource: { name: "FRED Economic Data", url: "https://fred.stlouisfed.org/series/CPIAUCNS", detail: "Historische Inflationsdaten seit 1913" }
             },
             {
                 category: "Wirtschaft",
-                originalQuote: "$18 trillion",
+                originalQuote: "Secured a record breaking $18 trillion in commitments",
                 claim: "$18 Billionen Investitionszusagen",
                 explanation: "White House Website zeigte $9,6 Billionen. CNN-Analyse: Viele Zusagen waren vage, betrafen 'bilateralen Handel' statt US-Investitionen.",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Investment in the US' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Timestamp 01:06:51" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Investment in the US'" },
                 factCheckSource: { name: "White House Investments", url: "https://www.whitehouse.gov/investments/", detail: "Offizielle Investitionsliste" }
             },
             {
@@ -378,15 +620,17 @@
                 originalQuote: "Got NATO members to agree to raise defense spending to 5% of GDP from 2%, and they pay the 5%",
                 claim: "NATO-Mitglieder zahlen jetzt 5% des BIP",
                 explanation: "Kein NATO-Land bei 5%, nicht mal 4,5%. Nur Polen, Litauen, Lettland über 3,5%. Prof. Lagadec (GWU): 'Absolut nicht wahr.'",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'NATO members' defense spending' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Pressekonferenz 20.01.2026" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'NATO members' defense spending'" },
                 factCheckSource: { name: "NATO Defence Expenditures", url: "https://www.nato.int/cps/en/natohq/topics_49198.htm", detail: "Offizielle Statistik" }
             },
             {
                 category: "Aussenpolitik",
-                originalQuote: "I ended eight unendable wars",
+                originalQuote: "Ended eight unendable wars in 10 months",
                 claim: "Ich habe 8 unlösbare Kriege beendet",
                 explanation: "Liste enthält Nicht-Kriege (Ägypten-Äthiopien Staudamm-Streit) und fortdauernde Konflikte (Kongo-Ruanda, Thailand-Kambodscha).",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Trump and wars' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Timestamp 01:42:56" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Trump and wars'" },
                 factCheckSource: { name: "CNN Fact Check", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Detaillierte Analyse der 8 'Kriege'" }
             },
             {
@@ -394,15 +638,17 @@
                 originalQuote: "No president has probably ever settled one war",
                 claim: "Kein Präsident hat je einen Krieg beigelegt",
                 explanation: "Roosevelt 1906 Nobelpreis (Russland-Japan), Carter 1979 (Ägypten-Israel), Clinton 1995 (Bosnien). Alle historisch belegt.",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Previous presidents and wars' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Pressekonferenz 20.01.2026" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Previous presidents and wars'" },
                 factCheckSource: { name: "Nobel Prize 1906", url: "https://www.nobelprize.org/prizes/peace/1906/summary/", detail: "Roosevelt Friedenspreis" }
             },
             {
                 category: "Aussenpolitik",
-                originalQuote: "Venezuela opened their prisons into the United States",
+                originalQuote: "Venezuela, as an example, opened their prisons into the United States",
                 claim: "Venezuela öffnete Gefängnisse um Insassen in die USA zu schicken",
                 explanation: "Kein Beweis geliefert. Roberto Briceño-León (Venezuelan Observatory): 'Wir haben keine Beweise für Gefängnisöffnungen.'",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Foreign countries, migration and prisons' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Timestamp 00:53:03" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Foreign countries, migration and prisons'" },
                 factCheckSource: { name: "Venezuelan Observatory of Violence", url: "https://observatoriodeviolencia.org.ve/", detail: "Unabhängige Forschungsorganisation" }
             },
             {
@@ -410,15 +656,17 @@
                 originalQuote: "we have 92% of the shoreline",
                 claim: "USA haben 92% der Golf-Küstenlinie",
                 explanation: "Prof. MacDonald (FSU): '92% ist Unsinn.' Prof. Davis (Pulitzer): 'US-Küste = knapp unter Hälfte des Golfs.'",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'The Gulf of Mexico' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Timestamp 01:30:40" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'The Gulf of Mexico'" },
                 factCheckSource: { name: "EPA Gulf of America", url: "https://www.epa.gov/gulfofamerica", detail: "US-Küstenlänge: 1.630 Meilen" }
             },
             {
                 category: "Innenpolitik",
-                originalQuote: "it was a rigged election, everybody knows that now",
+                originalQuote: "A man that didn't win the election, by the way, got a rigged election",
                 claim: "Die Wahl 2020 wurde manipuliert",
                 explanation: "Biden gewann legitim eine freie und faire Wahl. Trumps Behauptungen wurden von Gerichten wiederholt zurückgewiesen.",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'The 2020 election' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Timestamp 01:00:42" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'The 2020 election'" },
                 factCheckSource: { name: "CNN Fact Check", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Erklärung im Artikel" }
             },
             {
@@ -426,7 +674,8 @@
                 originalQuote: "they're sorta gone now, I guess; I heard they're closed up",
                 claim: "NPR und PBS sind geschlossen",
                 explanation: "Beide sind weiterhin in Betrieb (npr.org, pbs.org). Corporation for Public Broadcasting aufgelöst, nicht NPR/PBS selbst.",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'NPR and PBS' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Pressekonferenz 20.01.2026" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'NPR and PBS'" },
                 factCheckSource: { name: "NPR Homepage", url: "https://www.npr.org/", detail: "NPR weiterhin online und aktiv" }
             },
             {
@@ -434,7 +683,8 @@
                 originalQuote: "protect a tiny little fish",
                 claim: "LA-Brände wegen Schutz eines kleinen Fisches",
                 explanation: "CNN: 'Die zwei Dinge haben nichts miteinander zu tun.' Kalifornische Wasserexperten haben dies wiederholt erklärt.",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'California water policy' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Pressekonferenz 20.01.2026" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'California water policy'" },
                 factCheckSource: { name: "CNN Wildfire Fact Check", url: "https://www.cnn.com/2025/01/09/politics/fact-check-trump-california-wildfires-fema/index.html", detail: "Detaillierte Wasserpolitik-Analyse" }
             },
             {
@@ -442,7 +692,8 @@
                 originalQuote: "we lost, I believe, 300,000 people last year, this year",
                 claim: "300.000 Fentanyl-Tote pro Jahr",
                 explanation: "CDC: ~72.836 Drogentote insgesamt (alle Drogen, nicht nur Fentanyl) in 12 Monaten bis Aug. 2025. Dr. Kolodny: 'Erfundene Zahl.'",
-                claimSource: { name: "CNN Fact Check (Trump-Zitat)", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Fentanyl deaths' – direktes Zitat" },
+                transcriptSource: { name: "Rev.com – Offizielles Transkript", url: "https://www.rev.com/transcripts/donald-trump-white-house-press-briefing-on-1-20-26", detail: "Timestamp 01:32:32" },
+                cnnSource: { name: "CNN Facts First – Daniel Dale", url: "https://www.cnn.com/2026/01/20/politics/fact-check-trump-one-year-false-claims", detail: "Abschnitt 'Fentanyl deaths'" },
                 factCheckSource: { name: "CDC Overdose Data", url: "https://www.cdc.gov/nchs/nvss/vsrr/drug-overdose-data.htm", detail: "Offizielle Überdosis-Statistik" }
             }
         ];
@@ -489,12 +740,22 @@
                     <div class="sources-panel" id="sources-${idx}">
                         <div class="sources-section">
                             <div class="sources-title">📍 Quelle der Behauptung</div>
-                            <a href="${claim.claimSource.url}" target="_blank" rel="noopener noreferrer" class="source-link claim-source">
+                            <a href="${claim.transcriptSource.url}" target="_blank" rel="noopener noreferrer" class="source-link transcript-source">
                                 <div class="source-link-inner">
-                                    <div class="source-icon">📄</div>
+                                    <div class="source-icon">🎤</div>
                                     <div class="source-content">
-                                        <div class="source-name">${claim.claimSource.name}</div>
-                                        <div class="source-detail">${claim.claimSource.detail}</div>
+                                        <div class="source-name">${claim.transcriptSource.name}</div>
+                                        <div class="source-detail">${claim.transcriptSource.detail}</div>
+                                    </div>
+                                    <div class="source-arrow">→</div>
+                                </div>
+                            </a>
+                            <a href="${claim.cnnSource.url}" target="_blank" rel="noopener noreferrer" class="source-link claim-source">
+                                <div class="source-link-inner">
+                                    <div class="source-icon">📰</div>
+                                    <div class="source-content">
+                                        <div class="source-name">${claim.cnnSource.name}</div>
+                                        <div class="source-detail">${claim.cnnSource.detail}</div>
                                     </div>
                                     <div class="source-arrow">→</div>
                                 </div>
