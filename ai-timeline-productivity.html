@@ -1,0 +1,2694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Evolution Timeline & Personal Productivity (2015–2026)</title>
+    <style>
+        /* ============================================
+           CSS VARIABLES & RESET
+           ============================================ */
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-purple: #1a0a2e;
+            --cyan: #00f5ff;
+            --magenta: #ff2bd6;
+            --lime: #7CFF6B;
+            --amber: #FFD24A;
+            --microsoft: #7CFF6B;
+            --glass-bg: rgba(20, 20, 40, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.4);
+            --glow-cyan: 0 0 20px rgba(0, 245, 255, 0.5);
+            --glow-magenta: 0 0 20px rgba(255, 43, 214, 0.5);
+            --glow-microsoft: 0 0 20px rgba(124, 255, 107, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           ANIMATED BACKGROUND
+           ============================================ */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .background::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                135deg,
+                var(--bg-dark) 0%,
+                #0f0f2a 25%,
+                var(--bg-purple) 50%,
+                #150a25 75%,
+                var(--bg-dark) 100%
+            );
+            animation: gradientShift 20s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-10%, -10%); }
+            50% { transform: translate(-5%, -5%); }
+            75% { transform: translate(-15%, -5%); }
+        }
+
+        .starfield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.3), transparent),
+                radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.2), transparent),
+                radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,0.25), transparent),
+                radial-gradient(1px 1px at 80% 60%, rgba(255,255,255,0.2), transparent),
+                radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.15), transparent),
+                radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.2), transparent),
+                radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.1), transparent),
+                radial-gradient(2px 2px at 30% 90%, rgba(255,255,255,0.2), transparent),
+                radial-gradient(1px 1px at 70% 10%, rgba(255,255,255,0.15), transparent);
+            background-size: 200% 200%;
+            animation: starTwinkle 30s linear infinite;
+        }
+
+        @keyframes starTwinkle {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+            pointer-events: none;
+        }
+
+        /* ============================================
+           LAYOUT
+           ============================================ */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 0 15px 15px;
+            height: calc(100vh - 80px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 10px 0 10px;
+        }
+
+        header h1 {
+            font-size: clamp(1.2rem, 4vw, 2rem);
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, var(--cyan), var(--magenta), var(--microsoft));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 0px 1fr;
+            gap: 0;
+            flex: 1;
+            min-height: 0; /* Important: allows flex children to shrink below content size */
+            column-gap: 0;
+        }
+
+        .main-content > .glass-panel:first-child {
+            margin-right: 0;
+        }
+
+        .main-content > .glass-panel:last-child {
+            margin-left: 0;
+        }
+
+        /* Draggable splitter between panels */
+        .panel-splitter {
+            width: 15px;
+            cursor: col-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .panel-splitter::before {
+            content: '';
+            width: 3px;
+            height: 40px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.15);
+            transition: background 0.2s, height 0.2s, box-shadow 0.2s;
+        }
+
+        .panel-splitter:hover::before,
+        .panel-splitter.dragging::before {
+            background: var(--cyan);
+            height: 60px;
+            box-shadow: var(--glow-cyan);
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .panel-splitter {
+                display: none;
+            }
+        }
+
+        /* ============================================
+           GLASS PANELS
+           ============================================ */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .canvas-panel {
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* Allow shrinking */
+            overflow: hidden;
+        }
+
+        .canvas-panel h2 {
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            position: relative;
+            min-height: 0; /* Allow shrinking */
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border-radius: 8px;
+        }
+
+        /* ============================================
+           CONTROLS PANEL
+           ============================================ */
+        .controls-panel {
+            position: relative;
+            z-index: 100;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+            padding: 15px;
+        }
+
+        @media (max-width: 1024px) {
+            .controls-panel {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+
+        .control-group .value-display {
+            font-size: 0.85rem;
+            color: var(--cyan);
+            font-weight: 600;
+        }
+
+        /* Custom Range Slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: var(--glow-cyan);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 30px rgba(0, 245, 255, 0.8);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: var(--glow-cyan);
+        }
+
+        /* Select Dropdown */
+        select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:hover, select:focus {
+            border-color: var(--cyan);
+        }
+
+        select option {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+        }
+
+        /* Toggle Switches */
+        .toggle-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+            background: white;
+        }
+
+        .toggle-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Provider toggles with colors */
+        .toggle-item.openai .toggle-switch input:checked + .toggle-slider {
+            background: var(--cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .toggle-item.anthropic .toggle-switch input:checked + .toggle-slider {
+            background: var(--magenta);
+            box-shadow: var(--glow-magenta);
+        }
+
+        .toggle-item.microsoft .toggle-switch input:checked + .toggle-slider {
+            background: var(--microsoft);
+            box-shadow: var(--glow-microsoft);
+        }
+
+        /* ============================================
+           TOOLTIP
+           ============================================ */
+        .tooltip {
+            position: fixed;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1000;
+            max-width: 300px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-provider {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .tooltip-provider.openai { color: var(--cyan); }
+        .tooltip-provider.anthropic { color: var(--magenta); }
+        .tooltip-provider.microsoft { color: var(--microsoft); }
+
+        .tooltip-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .tooltip-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .tooltip-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--cyan);
+        }
+
+        /* ============================================
+           LEGEND
+           ============================================ */
+        .legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-color.openai { background: var(--cyan); box-shadow: var(--glow-cyan); }
+        .legend-color.anthropic { background: var(--magenta); box-shadow: var(--glow-magenta); }
+        .legend-color.microsoft { background: var(--microsoft); box-shadow: var(--glow-microsoft); }
+        .legend-color.baseline { background: rgba(255, 220, 50, 0.8); box-shadow: 0 0 6px rgba(255, 220, 50, 0.4); }
+        .legend-color.ai-curve { background: var(--cyan); box-shadow: var(--glow-cyan); }
+
+        /* ============================================
+           INFO PANEL (for pinned events)
+           ============================================ */
+        .info-panel {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 15px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .info-panel.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .info-panel .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .info-panel .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        /* ============================================
+           CURRENT VALUES DISPLAY
+           ============================================ */
+        .current-values {
+            display: flex;
+            gap: 15px;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .current-value-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .current-value-item .label {
+            color: var(--text-muted);
+        }
+
+        .current-value-item .value {
+            font-weight: 700;
+            font-family: ui-monospace, monospace;
+        }
+
+        .current-value-item.baseline .value { color: rgba(255, 220, 50, 0.9); }
+        .current-value-item.ai .value { color: var(--cyan); }
+        .current-value-item.multiplier .value { color: var(--magenta); }
+
+        /* ============================================
+           ABOUT BUTTON & ABOUT PAGE
+           ============================================ */
+        .about-btn {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 18px;
+            background: rgba(0, 245, 255, 0.08);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 20px;
+            color: var(--cyan);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .about-btn:hover {
+            background: rgba(0, 245, 255, 0.15);
+            border-color: var(--cyan);
+            box-shadow: 0 0 12px rgba(0, 245, 255, 0.2);
+        }
+
+        .about-page {
+            display: none;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 30px 40px;
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
+            scrollbar-width: none;
+        }
+        .about-page::-webkit-scrollbar {
+            width: 3px;
+        }
+        .about-page::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .about-page::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.06);
+            border-radius: 3px;
+        }
+        .about-page::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        .about-page.visible {
+            display: block;
+        }
+        .about-page-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            padding: 16px 0 20px;
+            margin-bottom: 4px;
+            background: var(--bg-dark);
+            box-shadow: 0 8px 20px var(--bg-dark);
+        }
+        .back-btn {
+            padding: 8px 20px;
+            background: rgba(255, 0, 255, 0.08);
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            border-radius: 20px;
+            color: var(--magenta);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .back-btn::before {
+            content: '\2190  ';
+        }
+        .back-btn:hover {
+            background: rgba(255, 0, 255, 0.15);
+            border-color: var(--magenta);
+            box-shadow: 0 0 12px rgba(255, 0, 255, 0.2);
+        }
+        .about-page-content {
+            padding: 0;
+        }
+
+        .methodology-section {
+            margin-bottom: 24px;
+        }
+
+        .methodology-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .methodology-section h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--cyan);
+            margin: 0 0 12px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(0, 245, 255, 0.15);
+        }
+
+        .methodology-section p {
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin: 0 0 10px 0;
+        }
+
+        .study-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            margin: 10px 0;
+        }
+
+        .study-table th {
+            text-align: left;
+            padding: 8px 10px;
+            background: rgba(0, 245, 255, 0.08);
+            color: var(--cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.7rem;
+            border-bottom: 1px solid rgba(0, 245, 255, 0.2);
+        }
+
+        .study-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        .study-table tr:hover td {
+            background: rgba(0, 245, 255, 0.03);
+        }
+
+        .study-table a {
+            color: var(--cyan);
+            text-decoration: none;
+            border-bottom: 1px dotted rgba(0, 245, 255, 0.4);
+            transition: border-color 0.2s;
+        }
+
+        .study-table a:hover {
+            border-bottom-color: var(--cyan);
+        }
+
+        .study-finding {
+            color: var(--magenta) !important;
+            font-weight: 600;
+            font-family: ui-monospace, monospace;
+        }
+
+        .methodology-graphic {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            display: flex;
+            justify-content: flex-start;
+            overflow-x: auto;
+        }
+
+        .methodology-graphic svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .methodology-note {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 8px 12px;
+            background: rgba(255, 0, 255, 0.05);
+            border-left: 2px solid var(--magenta);
+            border-radius: 0 4px 4px 0;
+            margin: 10px 0;
+        }
+
+        .formula-box {
+            font-family: ui-monospace, monospace;
+            font-size: 0.78rem;
+            color: var(--cyan);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 245, 255, 0.15);
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+
+        /* Fact / Assumption / Decision tags */
+        .methodology-section h4 {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+        }
+
+        .methodology-section ul {
+            margin: 6px 0 10px 0;
+            padding-left: 20px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .methodology-section li { margin-bottom: 4px; }
+
+        /* Reset Button */
+        .reset-btn {
+            background: rgba(255, 0, 255, 0.1);
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            color: var(--magenta);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            align-self: center;
+        }
+
+        .reset-btn:hover {
+            background: rgba(255, 0, 255, 0.2);
+            border-color: var(--magenta);
+            box-shadow: 0 0 12px rgba(255, 0, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="background">
+        <div class="starfield"></div>
+        <div class="vignette"></div>
+    </div>
+
+    <header>
+        <h1>AI Evolution Timeline & Personal Productivity (2015–2026)</h1>
+        <button id="showAboutBtn" class="about-btn" title="How this visualization works — data sources, assumptions, methodology">How It Works</button>
+    </header>
+
+    <!-- ==================== MAIN PAGE ==================== -->
+    <div class="container" id="mainPage">
+
+        <!-- Controls Panel -->
+        <div class="controls-panel glass-panel">
+            <div class="controls-grid">
+                <!-- Year Scrubber -->
+                <div class="control-group" style="grid-column: span 2;" title="Drag to travel through time and see AI evolution and productivity changes">
+                    <label>Time Travel: <span class="value-display" id="yearDisplay">2026.0</span></label>
+                    <input type="range" id="yearSlider" min="2015" max="2026" step="0.1" value="2026" title="Scrub through years 2015-2026 to see historical AI developments">
+                    <div style="font-size: 0.75rem; color: var(--text-muted);" id="nearestEvent">Nearest: —</div>
+                </div>
+
+                <!-- Role Selector -->
+                <div class="control-group" title="Choose your profile to see how AI tools impact different roles">
+                    <label>Role</label>
+                    <select id="roleSelector" title="Vision Engineer: Turns ideas into reality using AI coding tools. Office Worker: Leverages M365 Copilot and general AI assistants">
+                        <option value="developer">Vision Engineer</option>
+                        <option value="office">Office Worker</option>
+                    </select>
+                </div>
+
+                <!-- AI Dependence -->
+                <div class="control-group" title="How much AI propels you into new frontiers of productivity">
+                    <label>AI Warp Factor: <span class="value-display" id="dependenceDisplay">3</span>/10</label>
+                    <input type="range" id="dependenceSlider" min="0" max="10" step="1" value="3" title="0 = Impulse only (no AI). 10 = Maximum warp (full AI integration). Default 3 = evidence-based average from peer-reviewed studies">
+                </div>
+
+                <!-- Baseline Growth -->
+                <div class="control-group" title="Natural productivity growth without any AI tools">
+                    <label>Baseline Growth: <span class="value-display" id="growthDisplay">1.5</span>%/year</label>
+                    <input type="range" id="growthSlider" min="0" max="5" step="0.1" value="1.5" title="Annual productivity improvement from experience, better processes, and non-AI tools">
+                </div>
+
+                <!-- Toggles -->
+                <div class="control-group">
+                    <label>Display Options</label>
+                    <div class="toggle-group">
+                        <div class="toggle-item" title="Use logarithmic scale to better visualize exponential productivity growth">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="logScaleToggle" title="Toggle between linear and logarithmic Y-axis for the productivity chart">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">Log Scale</span>
+                        </div>
+                        <div class="toggle-item" title="Compress early years (less activity) and expand recent years (more releases)">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="expTimelineToggle" checked title="When enabled, the timeline stretches recent years where more AI releases occurred">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">Exp. Timeline</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Provider Toggles -->
+                <div class="control-group">
+                    <label title="Show or hide AI provider lanes on the timeline">Show Providers</label>
+                    <div class="toggle-group">
+                        <div class="toggle-item openai" title="OpenAI: GPT series, ChatGPT, Codex">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="showOpenAI" checked title="Toggle OpenAI events (GPT-1 through GPT-5, ChatGPT, Codex)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">OpenAI</span>
+                        </div>
+                        <div class="toggle-item anthropic" title="Anthropic: Claude model family">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="showAnthropic" checked title="Toggle Anthropic events (Claude 1 through Claude Opus 4.5)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">Anthropic</span>
+                        </div>
+                        <div class="toggle-item microsoft" title="Microsoft: GitHub Copilot, M365 Copilot, Bing Chat">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="showMicrosoft" checked title="Toggle Microsoft/GitHub events (Copilot, M365 Copilot, Bing Chat)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">Microsoft</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Reset Button -->
+                <div class="control-group" style="justify-content: flex-end;">
+                    <button id="resetDefaults" class="reset-btn" title="Reset all settings to evidence-based defaults">Reset to Defaults</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Timeline Panel -->
+            <div class="glass-panel canvas-panel">
+                <h2>🕐 AI Timeline (2015–2026)</h2>
+                <div class="canvas-wrapper">
+                    <canvas id="timelineCanvas"></canvas>
+                    <div class="info-panel" id="infoPanel">
+                        <button class="close-btn" onclick="closeInfoPanel()">×</button>
+                        <div class="tooltip-provider" id="infoPanelProvider"></div>
+                        <div class="tooltip-label" id="infoPanelLabel"></div>
+                        <div class="tooltip-date" id="infoPanelDate"></div>
+                    </div>
+                </div>
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-color openai"></div>OpenAI</div>
+                    <div class="legend-item"><div class="legend-color anthropic"></div>Anthropic</div>
+                    <div class="legend-item"><div class="legend-color microsoft"></div>Microsoft / GitHub</div>
+                    <div class="legend-item" style="color: var(--text-muted); font-style: italic; margin-left: 8px;">— Selected milestones only</div>
+                </div>
+            </div>
+
+            <!-- Draggable Splitter -->
+            <div class="panel-splitter" id="panelSplitter"></div>
+
+            <!-- Productivity Chart Panel -->
+            <div class="glass-panel canvas-panel">
+                <h2>📈 Cumulative Productivity Over Time</h2>
+                <div class="canvas-wrapper">
+                    <canvas id="chartCanvas"></canvas>
+                </div>
+                <div class="current-values">
+                    <div class="current-value-item baseline">
+                        <span class="label">Baseline Growth (No AI):</span>
+                        <span class="value" id="baselineValue">+0%</span>
+                    </div>
+                    <div class="current-value-item multiplier">
+                        <span class="label">AI Productivity Multiplier:</span>
+                        <span class="value" id="multiplierValue">1.00x</span>
+                    </div>
+                </div>
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-color baseline"></div>No AI (Baseline)</div>
+                    <div class="legend-item"><div class="legend-color ai-curve"></div>With AI Tools</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== ABOUT PAGE ==================== -->
+    <div class="about-page" id="aboutPage">
+        <div class="about-page-header">
+            <button id="backBtn" class="back-btn" title="Back to main view">Back</button>
+        </div>
+        <div class="about-page-content">
+
+                <!-- ============================================ -->
+                <!-- 1. THE IDEA                                  -->
+                <!-- ============================================ -->
+                <div class="methodology-section">
+                    <h3>1. The Idea</h3>
+                    <p>AI is transforming how we work — but by how much? This tool visualizes the
+                    <strong>cumulative productivity impact of AI</strong> from 2015 to 2026 for two roles:
+                    a <strong>Vision Engineer</strong> (citizen developer / coder) and an <strong>Office Worker</strong>.</p>
+                    <p>The central question: <em>If I use AI tools at full intensity, how much more can I accomplish
+                    compared to working without AI?</em></p>
+                </div>
+
+                <!-- ============================================ -->
+                <!-- 2. WHAT YOU SEE                              -->
+                <!-- ============================================ -->
+                <div class="methodology-section">
+                    <h3>2. The Two Charts</h3>
+
+                    <h4>Left Panel: AI Timeline (2015–2026)</h4>
+                    <p>A chronological view of major AI releases from three providers:
+                    <strong style="color:#00f5ff">OpenAI</strong>,
+                    <strong style="color:#ff2bd6">Anthropic</strong>, and
+                    <strong style="color:#7CFF6B">Microsoft / GitHub</strong>.
+                    Each dot is a real release with its actual date. Click any dot to see details.
+                    The timeline is optionally compressed — early years (less activity) are narrower,
+                    recent years (more releases) are wider.</p>
+
+                    <div class="methodology-graphic">
+                        <svg width="560" height="180" viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="0" y="0" width="560" height="180" rx="8" fill="rgba(0,0,0,0.2)"/>
+                            <!-- Title -->
+                            <text x="14" y="20" fill="rgba(255,255,255,0.5)" font-size="10" font-weight="600" letter-spacing="0.5">AI TIMELINE</text>
+                            <!-- Y axis labels -->
+                            <text x="14" y="52" fill="#00f5ff" font-size="8" font-weight="600">OpenAI</text>
+                            <text x="14" y="92" fill="#ff2bd6" font-size="8" font-weight="600">Anthropic</text>
+                            <text x="14" y="132" fill="#7CFF6B" font-size="8" font-weight="600">Microsoft</text>
+                            <!-- Lanes -->
+                            <line x1="80" y1="48" x2="540" y2="48" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                            <line x1="80" y1="88" x2="540" y2="88" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                            <line x1="80" y1="128" x2="540" y2="128" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                            <!-- X axis years -->
+                            <text x="90" y="165" fill="rgba(255,255,255,0.25)" font-size="7">2015</text>
+                            <text x="170" y="165" fill="rgba(255,255,255,0.25)" font-size="7">2018</text>
+                            <text x="260" y="165" fill="rgba(255,255,255,0.25)" font-size="7">2020</text>
+                            <text x="350" y="165" fill="rgba(255,255,255,0.25)" font-size="7">2022</text>
+                            <text x="440" y="165" fill="rgba(255,255,255,0.25)" font-size="7">2024</text>
+                            <text x="520" y="165" fill="rgba(255,255,255,0.25)" font-size="7">2026</text>
+                            <!-- OpenAI dots -->
+                            <circle cx="100" cy="48" r="4" fill="rgba(0,245,255,0.5)" stroke="#00f5ff" stroke-width="1"/>
+                            <text x="100" y="40" text-anchor="middle" fill="rgba(0,245,255,0.5)" font-size="6">GPT-1</text>
+                            <circle cx="150" cy="48" r="4" fill="rgba(0,245,255,0.5)" stroke="#00f5ff" stroke-width="1"/>
+                            <text x="150" y="40" text-anchor="middle" fill="rgba(0,245,255,0.5)" font-size="6">GPT-2</text>
+                            <circle cx="240" cy="48" r="5" fill="rgba(0,245,255,0.6)" stroke="#00f5ff" stroke-width="1.5"/>
+                            <text x="240" y="40" text-anchor="middle" fill="rgba(0,245,255,0.6)" font-size="6">GPT-3</text>
+                            <circle cx="360" cy="48" r="6" fill="rgba(0,245,255,0.8)" stroke="#00f5ff" stroke-width="1.5"/>
+                            <text x="360" y="38" text-anchor="middle" fill="#00f5ff" font-size="6.5" font-weight="600">ChatGPT</text>
+                            <circle cx="400" cy="48" r="6" fill="rgba(0,245,255,0.8)" stroke="#00f5ff" stroke-width="1.5"/>
+                            <text x="400" y="38" text-anchor="middle" fill="#00f5ff" font-size="6.5" font-weight="600">GPT-4</text>
+                            <circle cx="500" cy="48" r="7" fill="#00f5ff" stroke="#00f5ff" stroke-width="2"/>
+                            <text x="500" y="38" text-anchor="middle" fill="#00f5ff" font-size="6.5" font-weight="600">GPT-5</text>
+                            <!-- Anthropic dots -->
+                            <circle cx="380" cy="88" r="5" fill="rgba(255,43,214,0.6)" stroke="#ff2bd6" stroke-width="1"/>
+                            <text x="380" y="80" text-anchor="middle" fill="rgba(255,43,214,0.6)" font-size="6">Claude 1</text>
+                            <circle cx="420" cy="88" r="5" fill="rgba(255,43,214,0.7)" stroke="#ff2bd6" stroke-width="1.5"/>
+                            <text x="420" y="80" text-anchor="middle" fill="#ff2bd6" font-size="6">Claude 3</text>
+                            <circle cx="490" cy="88" r="6" fill="#ff2bd6" stroke="#ff2bd6" stroke-width="2"/>
+                            <text x="490" y="80" text-anchor="middle" fill="#ff2bd6" font-size="6.5" font-weight="600">Opus 4.5</text>
+                            <!-- Microsoft dots -->
+                            <circle cx="330" cy="128" r="5" fill="rgba(124,255,107,0.6)" stroke="#7CFF6B" stroke-width="1"/>
+                            <text x="330" y="120" text-anchor="middle" fill="rgba(124,255,107,0.6)" font-size="6">Copilot</text>
+                            <circle cx="410" cy="128" r="5" fill="rgba(124,255,107,0.7)" stroke="#7CFF6B" stroke-width="1.5"/>
+                            <text x="410" y="120" text-anchor="middle" fill="#7CFF6B" font-size="6">M365 Copilot</text>
+                            <circle cx="480" cy="128" r="6" fill="#7CFF6B" stroke="#7CFF6B" stroke-width="2"/>
+                            <text x="480" y="120" text-anchor="middle" fill="#7CFF6B" font-size="6.5" font-weight="600">Coding Agent</text>
+                        </svg>
+                    </div>
+
+                    <h4>Right Panel: Cumulative Productivity Over Time</h4>
+                    <p>Shows how much more productive someone can be with AI tools compared to working without them.
+                    Two lines tell the story:</p>
+                    <ul>
+                        <li><strong style="color:rgba(255,220,50,0.9)">Yellow line</strong> — Baseline: productivity
+                        growth in a hypothetical world without AI. Grows slowly at ~1.5%/year (historical OECD average).</li>
+                        <li><strong style="color:#00f5ff">Cyan line</strong> — With AI: productivity multiplied by the
+                        cumulative impact of all AI tools released up to that point. The height is controlled by the
+                        Warp Factor slider.</li>
+                    </ul>
+
+                    <div class="methodology-graphic">
+                        <svg width="560" height="190" viewBox="0 0 560 190" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="0" y="0" width="560" height="190" rx="8" fill="rgba(0,0,0,0.2)"/>
+                            <!-- Title -->
+                            <text x="14" y="20" fill="rgba(255,255,255,0.5)" font-size="10" font-weight="600" letter-spacing="0.5">CUMULATIVE PRODUCTIVITY</text>
+                            <!-- Y axis -->
+                            <line x1="50" y1="35" x2="50" y2="155" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+                            <text x="45" y="153" text-anchor="end" fill="rgba(255,255,255,0.3)" font-size="7">1x</text>
+                            <text x="45" y="103" text-anchor="end" fill="rgba(255,255,255,0.3)" font-size="7">1.5x</text>
+                            <text x="45" y="53" text-anchor="end" fill="rgba(255,255,255,0.3)" font-size="7">2.3x</text>
+                            <!-- X axis -->
+                            <line x1="50" y1="155" x2="530" y2="155" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+                            <text x="60" y="172" fill="rgba(255,255,255,0.25)" font-size="7">2015</text>
+                            <text x="180" y="172" fill="rgba(255,255,255,0.25)" font-size="7">2018</text>
+                            <text x="290" y="172" fill="rgba(255,255,255,0.25)" font-size="7">2021</text>
+                            <text x="390" y="172" fill="rgba(255,255,255,0.25)" font-size="7">2023</text>
+                            <text x="490" y="172" fill="rgba(255,255,255,0.25)" font-size="7">2026</text>
+                            <!-- Grid lines -->
+                            <line x1="50" y1="100" x2="530" y2="100" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+                            <line x1="50" y1="50" x2="530" y2="50" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+                            <!-- Yellow baseline -->
+                            <path d="M60,148 L180,146 L290,143 L390,141 L530,138" fill="none" stroke="rgba(255,220,50,0.7)" stroke-width="2.5"/>
+                            <circle cx="530" cy="138" r="4" fill="rgba(255,220,50,0.9)"/>
+                            <text x="460" y="132" fill="rgba(255,220,50,0.6)" font-size="8" font-weight="600">1.18x (No AI)</text>
+                            <!-- Cyan AI curve -->
+                            <path d="M60,148 C180,147 290,142 350,120 C390,95 430,65 480,50 C500,46 520,44 530,43" fill="none" stroke="#00f5ff" stroke-width="2.5"/>
+                            <circle cx="530" cy="43" r="5" fill="#00f5ff"/>
+                            <text x="460" y="38" fill="#00f5ff" font-size="8" font-weight="600">2.3x (Warp 3)</text>
+                            <!-- Magenta year cursor -->
+                            <line x1="480" y1="35" x2="480" y2="155" stroke="rgba(255,0,255,0.5)" stroke-width="1.5" stroke-dasharray="4,3"/>
+                            <text x="480" y="185" text-anchor="middle" fill="rgba(255,0,255,0.4)" font-size="7">Current year</text>
+                            <!-- Gap annotation -->
+                            <line x1="540" y1="43" x2="540" y2="138" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="2,2"/>
+                            <text x="548" y="95" fill="rgba(255,255,255,0.35)" font-size="8" font-weight="600">Gap =</text>
+                            <text x="548" y="107" fill="rgba(255,255,255,0.35)" font-size="8" font-weight="600">AI gain</text>
+                        </svg>
+                    </div>
+
+                    <p>The <strong>Warp Factor slider</strong> (0–10) controls how much AI impacts productivity.
+                    At Warp 0, both lines overlap — no AI impact.
+                    At Warp 3 (the default), you see the gain supported by scientific studies.
+                    Above Warp 3, we enter the territory of assumptions and extrapolation.</p>
+                </div>
+
+                <!-- ============================================ -->
+                <!-- 3. WHERE THE DATA COMES FROM                 -->
+                <!-- ============================================ -->
+                <div class="methodology-section">
+                    <h3>3. Where the Data Comes From</h3>
+
+                    <h4>AI Release Timeline (the dots on the left panel)</h4>
+                    <p>Public release dates of major AI models and tools from OpenAI, Anthropic, and Microsoft/GitHub.
+                    These are verifiable facts.</p>
+
+                    <h4>Productivity Multipliers (how high the cyan line goes)</h4>
+                    <p>At <strong>Warp Factor 3</strong>, the multipliers come from 7 peer-reviewed studies:</p>
+
+                    <table class="study-table">
+                        <thead>
+                            <tr><th>Study</th><th>Authors / Institution</th><th>Year</th><th>Finding</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><a href="https://arxiv.org/abs/2302.06590" target="_blank">GitHub Copilot Experiment</a></td>
+                                <td>Peng, Kalliamvakou, Cihon, Demirer — Microsoft Research / GitHub</td>
+                                <td>2023</td>
+                                <td class="study-finding">1.56x faster</td>
+                            </tr>
+                            <tr>
+                                <td><a href="https://www.mckinsey.com/capabilities/mckinsey-digital/our-insights/unleashing-developer-productivity-with-generative-ai" target="_blank">Unleashing Developer Productivity</a></td>
+                                <td>McKinsey &amp; Company</td>
+                                <td>2023</td>
+                                <td class="study-finding">1.2–1.8x time savings</td>
+                            </tr>
+                            <tr>
+                                <td><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4573321" target="_blank">Navigating the Jagged Frontier</a></td>
+                                <td>Dell'Acqua, Mollick et al. — Harvard / BCG / Wharton</td>
+                                <td>2023</td>
+                                <td class="study-finding">1.25x speed, 1.40x quality</td>
+                            </tr>
+                            <tr>
+                                <td><a href="https://www.science.org/doi/10.1126/science.adh2586" target="_blank">Productivity Effects of GenAI</a></td>
+                                <td>Noy &amp; Zhang — MIT Dept. of Economics (published in <em>Science</em>)</td>
+                                <td>2023</td>
+                                <td class="study-finding">1.67x speed (writing)</td>
+                            </tr>
+                            <tr>
+                                <td><a href="https://www.nber.org/papers/w31161" target="_blank">Generative AI at Work</a></td>
+                                <td>Brynjolfsson, Li, Raymond — Stanford / MIT</td>
+                                <td>2023</td>
+                                <td class="study-finding">1.14x avg, 1.35x novices</td>
+                            </tr>
+                            <tr>
+                                <td><a href="https://www.nngroup.com/articles/ai-tools-productivity-gains/" target="_blank">AI Improves Employee Productivity by 66%</a></td>
+                                <td>Nielsen Norman Group — Meta-study of 3 domains</td>
+                                <td>2023</td>
+                                <td class="study-finding">1.66x weighted average</td>
+                            </tr>
+                            <tr>
+                                <td><a href="https://www.bcg.com/publications/2024/gen-ai-increases-productivity-and-expands-capabilities" target="_blank">GenAI Expands Capabilities</a></td>
+                                <td>BCG Henderson Institute / Boston University / OpenAI</td>
+                                <td>2024</td>
+                                <td class="study-finding">Non-coders reach 85% of expert level</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <p>A key finding across all studies: <strong>lower-skilled workers benefit the most</strong>.
+                    The performance gap between low and high performers shrinks from 22% to just 4% when
+                    using AI (Harvard/BCG, 2023). This is the foundation for higher multipliers at high warp factors.</p>
+                </div>
+
+                <!-- ============================================ -->
+                <!-- 4. ASSUMPTIONS                               -->
+                <!-- ============================================ -->
+                <div class="methodology-section">
+                    <h3>4. What Assumptions We Make</h3>
+
+                    <p>The app starts at <strong>Warp Factor 3</strong> — the level directly supported by studies.
+                    Everything above Warp 3 is extrapolation.</p>
+
+                    <h4>Vision Engineer at Warp 3: 2.3x</h4>
+                    <p>Studies show 1.56x–2.26x for programming tasks. We use 2.3x (upper end)
+                    because those studies tested early 2022–2023 tools — current AI is more capable.</p>
+
+                    <h4>Office Worker at Warp 3: 1.66x</h4>
+                    <p>The NN/g weighted average across writing, coding, and customer service.
+                    MIT (1.67x) and Stanford (1.14x) bracket this range.</p>
+
+                    <h4>Vision Engineer at Warp 10: 10,000x</h4>
+                    <p>This represents <strong>Capability Creation</strong> — someone who can't write a single line
+                    of code now builds functional applications with AI. The traditional path (learning to code
+                    or hiring a developer) takes ~1 year. With AI: hours to days.
+                    Time ratio: ~365 days / a few hours ≈ 10,000x. This is a time-to-value ratio,
+                    not a speed improvement. Quality reaches ~85% of expert level (BCG, 2024).</p>
+
+                    <h4>Office Worker at Warp 10: 20x</h4>
+                    <p>Office work is a mix of automatable tasks (emails, reports, data analysis) and
+                    non-automatable tasks (meetings, decisions, relationships). Even if AI makes the automatable
+                    half 40x faster, the human-only portion creates a ceiling of ~20x overall.</p>
+
+                    <h4>Baseline Growth: 1.5%/year</h4>
+                    <p>The yellow line shows a hypothetical world without AI, growing at the historical
+                    OECD average of ~1.5%/year (BLS, Eurostat, 2010–2019). This is adjustable via slider.</p>
+                </div>
+
+                <!-- ============================================ -->
+                <!-- 5. HOW WE CALCULATE                          -->
+                <!-- ============================================ -->
+                <div class="methodology-section">
+                    <h3>5. How We Calculate</h3>
+
+                    <p>The cyan curve combines two things: <strong>when</strong> AI tools appeared (the shape)
+                    and <strong>how much impact</strong> they have (the height, set by Warp Factor).</p>
+
+                    <div class="methodology-graphic">
+                        <svg width="520" height="200" viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="0" y="0" width="520" height="200" rx="8" fill="rgba(0,0,0,0.2)"/>
+                            <text x="260" y="22" text-anchor="middle" fill="#00f5ff" font-size="11" font-weight="600" letter-spacing="1">HOW THE CURVE IS BUILT</text>
+                            <!-- Axes -->
+                            <line x1="60" y1="170" x2="490" y2="170" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+                            <line x1="60" y1="40" x2="60" y2="170" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+                            <text x="275" y="188" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="8">2015        2018        2021        2023        2025   2026</text>
+                            <!-- Ceiling line -->
+                            <line x1="60" y1="50" x2="490" y2="50" stroke="rgba(255,0,255,0.35)" stroke-width="1" stroke-dasharray="6,4"/>
+                            <text x="495" y="48" fill="rgba(255,0,255,0.6)" font-size="8">Ceiling (Warp)</text>
+                            <!-- Yellow baseline -->
+                            <path d="M60,166 Q275,164 490,160" fill="none" stroke="rgba(255,220,50,0.6)" stroke-width="2"/>
+                            <text x="495" y="158" fill="rgba(255,220,50,0.6)" font-size="8">Baseline</text>
+                            <!-- S-curve -->
+                            <path d="M60,166 C130,166 200,164 245,145 C290,120 330,80 380,60 C410,52 450,50 490,49" fill="none" stroke="#00f5ff" stroke-width="2.5"/>
+                            <text x="495" y="44" fill="#00f5ff" font-size="8" font-weight="600">AI Curve</text>
+                            <!-- Event markers -->
+                            <circle cx="245" cy="145" r="3" fill="#00f5ff"/>
+                            <text x="250" y="140" fill="rgba(0,245,255,0.6)" font-size="7">ChatGPT</text>
+                            <circle cx="330" cy="80" r="3" fill="#00f5ff"/>
+                            <text x="335" y="75" fill="rgba(0,245,255,0.6)" font-size="7">GPT-4</text>
+                            <circle cx="410" cy="52" r="3" fill="#00f5ff"/>
+                            <text x="380" y="46" fill="rgba(0,245,255,0.6)" font-size="7">Agents</text>
+                        </svg>
+                    </div>
+
+                    <h4>The Three Building Blocks</h4>
+
+                    <div class="formula-box">
+                        <strong>Baseline</strong> = 100 × (1 + growth%)^years
+                    </div>
+                    <p>The yellow line. Imagine a world without AI: productivity still grows slowly through
+                    experience, better processes, and traditional tools. At 1.5%/year, after 11 years (2015→2026)
+                    that's 1.015<sup>11</sup> = <strong>1.18x</strong>. Barely noticeable — but it compounds over decades.</p>
+
+                    <div class="formula-box">
+                        <strong>Adoption</strong> = sum of activated AI events / total possible &nbsp;(0 → 1)
+                    </div>
+                    <p>How much of the AI revolution has "arrived" at a given point in time. Each AI release
+                    (ChatGPT, GPT-4, Copilot, Claude, etc.) contributes a weighted share. Before 2020, almost nothing
+                    existed — adoption is near 0. By 2026, most major tools are released — adoption approaches 1.
+                    The transitions are smooth (S-shaped), not sudden jumps. This creates the characteristic curve shape.</p>
+
+                    <div class="formula-box">
+                        <strong>AI Curve</strong> = Baseline × (1 + (Ceiling − 1) × Adoption)
+                    </div>
+                    <p>The cyan line. It starts at the baseline (when adoption = 0, no AI tools exist yet)
+                    and rises toward the ceiling (when adoption = 1, all tools are available).
+                    The <strong>Ceiling</strong> is the maximum multiplier at your chosen Warp Factor.
+                    Example at Warp 3: Ceiling = 2.3x for Vision Engineer. When adoption reaches 1.0,
+                    the AI curve = Baseline × 2.3.</p>
+
+                    <div class="formula-box">
+                        <strong>Ceiling</strong> per role and warp factor:<br>
+                        &nbsp;&nbsp;Vision Engineer: 10<sup style="color:var(--magenta)">(0.04 × w²)</sup> &nbsp;→ w3 = 2.3x, w5 = 10x, w10 = 10,000x<br>
+                        &nbsp;&nbsp;Office Worker: 10<sup style="color:var(--magenta)">(0.049w + 0.0081w²)</sup> &nbsp;→ w3 = 1.66x, w5 = 2.8x, w10 = 20x
+                    </div>
+                    <p>These formulas were designed to pass through the evidence-based anchor points:
+                    the studies tell us "Warp 3 = 2.3x for developers" and "Warp 3 = 1.66x for office workers."
+                    The curve shape between those anchors and the theoretical maximum at Warp 10 is a smooth
+                    exponential. The Vision Engineer formula grows faster because the gap between
+                    "normal productivity" and "capability creation" is much larger than for office work.</p>
+
+                    <h4>Warp Factor Quick Guide</h4>
+                    <ul>
+                        <li><strong>Warp 0</strong> — No AI. Both lines overlap. Pure baseline world.</li>
+                        <li><strong>Warp 3</strong> — Default. Directly backed by peer-reviewed studies (2023–2024).</li>
+                        <li><strong>Warp 4–6</strong> — Moderate extrapolation. Plausible but not directly measured.</li>
+                        <li><strong>Warp 7–10</strong> — Theoretical maximum. For Vision Engineer: the Citizen Developer scenario where someone who couldn't code at all now builds functional applications.</li>
+                    </ul>
+                </div>
+
+                <!-- ============================================ -->
+                <!-- 6. LIMITATIONS & OPEN QUESTIONS              -->
+                <!-- ============================================ -->
+                <div class="methodology-section">
+                    <h3>6. Limitations &amp; Open Questions</h3>
+
+                    <h4>The studies are already outdated</h4>
+                    <p>All seven studies cited above were conducted in 2023–2024, using early AI tools
+                    (GPT-3.5, early Copilot, Claude 1). Today's tools (GPT-5, Claude Opus, Copilot Coding Agent)
+                    are significantly more capable. No controlled experiment has measured these newer tools yet.
+                    Our Warp 3 defaults may already be conservative — but we don't have the data to prove it.</p>
+
+                    <h4>The "Divide by Zero" Problem — why 10,000x is not a normal multiplier</h4>
+                    <p>Productivity multipliers assume you had <em>some</em> ability to begin with.
+                    "2x faster" means you could already do the task, just slower.
+                    But what if your starting ability is <strong>zero</strong>?</p>
+                    <p>A person who cannot write a single line of code has a coding productivity of 0.
+                    With AI, they can now build a functional app. Mathematically: output / 0 = undefined.
+                    You can't express "going from impossible to possible" as a multiplier —
+                    it's division by zero. Economists call this the <strong>"extensive margin"</strong>
+                    (Acemoglu &amp; Restrepo, 2019): a completely new productive activity that didn't exist before,
+                    not an acceleration of an existing one.</p>
+                    <p>Our workaround: instead of measuring output/output, we measure <strong>time-to-value</strong>.
+                    The question becomes: "How long would it take to get this result through the traditional path?"</p>
+                    <ul>
+                        <li><strong>Traditional path:</strong> Learn to code (bootcamp: 3–6 months, self-taught: 6–18 months)
+                        or hire a developer (finding, briefing, iterating: weeks to months). Average: ~1 year (365 days).</li>
+                        <li><strong>With AI (Warp 10):</strong> Describe what you want in natural language, iterate with
+                        AI coding agents. Time to functional prototype: hours to a few days.</li>
+                        <li><strong>Best case:</strong> 365 days / ~1 hour (0.04 days) ≈ <strong>~10,000x</strong></li>
+                        <li><strong>Typical case:</strong> 365 days / ~1 day ≈ <strong>~365x</strong></li>
+                    </ul>
+                    <p>This is not "10,000 times faster at coding." It is: "what previously required a year-long detour
+                    now takes between an afternoon and a day." The BCG 2024 study confirms the concept — non-coders reached
+                    85% of expert-level output quality — but doesn't measure the time-to-value ratio directly.
+                    The 10,000x best case is our estimate, not a measured value; the typical range lies between 365x and 10,000x.</p>
+
+                    <h4>Only Warp 3 is backed by evidence</h4>
+                    <p>The seven studies give us confidence that Warp 3 (2.3x for developers, 1.66x for office workers)
+                    is realistic. Everything above Warp 3 — including the dramatic 10,000x — is extrapolation.
+                    Warp 4–6 is plausible speculation. Warp 7–10 is a thought experiment about theoretical limits.</p>
+
+                    <h4>AI doesn't always help</h4>
+                    <p>A <a href="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/" target="_blank" style="color:var(--cyan)">2025 METR study</a> found that experienced developers were actually <strong>19% slower</strong>
+                    when using AI on their own mature, complex codebases. The AI didn't understand the architecture,
+                    introduced subtle bugs, and developers spent more time reviewing AI output than they saved.
+                    This is an important counterpoint: AI's productivity gain depends heavily on the task type
+                    (greenfield vs. legacy), the person's expertise level, and the codebase complexity.
+                    Our visualization shows the optimistic case — the maximum potential gain, not the guaranteed outcome.</p>
+                </div>
+
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip">
+        <div class="tooltip-provider" id="tooltipProvider"></div>
+        <div class="tooltip-label" id="tooltipLabel"></div>
+        <div class="tooltip-date" id="tooltipDate"></div>
+        <div class="tooltip-value" id="tooltipValue"></div>
+    </div>
+
+    <script>
+        /* ============================================
+           DATA: AI EVENTS
+           Each event has provider, date (ISO), label, and type
+           ============================================ */
+        const events = [
+            // OpenAI (cyan)
+            { provider: "OpenAI", date: "2015-12-11", label: "OpenAI announced", type: "product" },
+            { provider: "OpenAI", date: "2018-06-01", label: "GPT-1 (paper release)", type: "model" },
+            { provider: "OpenAI", date: "2019-02-14", label: "GPT-2 initial release", type: "model" },
+            { provider: "OpenAI", date: "2020-06-11", label: "GPT-3 (API beta)", type: "model" },
+            { provider: "OpenAI", date: "2021-08-10", label: "OpenAI Codex announced", type: "model" },
+            { provider: "OpenAI", date: "2022-03-15", label: "InstructGPT (text-davinci-002)", type: "model" },
+            { provider: "OpenAI", date: "2022-11-30", label: "ChatGPT launched (GPT-3.5)", type: "product" },
+            { provider: "OpenAI", date: "2023-03-14", label: "GPT-4 released", type: "model" },
+            { provider: "OpenAI", date: "2024-05-13", label: "GPT-4o released", type: "model" },
+            { provider: "OpenAI", date: "2024-09-12", label: "o1-preview (reasoning)", type: "model" },
+            { provider: "OpenAI", date: "2025-01-31", label: "o3-mini released", type: "model" },
+            { provider: "OpenAI", date: "2025-02-27", label: "GPT-4.5 released", type: "model" },
+            { provider: "OpenAI", date: "2025-04-14", label: "GPT-4.1 released (API)", type: "model" },
+            { provider: "OpenAI", date: "2025-04-16", label: "o3 & o4-mini released", type: "model" },
+            { provider: "OpenAI", date: "2025-08-07", label: "GPT-5 released", type: "model" },
+            { provider: "OpenAI", date: "2025-11-12", label: "GPT-5.1 released", type: "model" },
+            { provider: "OpenAI", date: "2025-12-11", label: "GPT-5.2 released", type: "model" },
+            
+            // Anthropic (magenta)
+            { provider: "Anthropic", date: "2023-03-14", label: "Claude 1 (launch)", type: "model" },
+            { provider: "Anthropic", date: "2023-07-11", label: "Claude 2 released", type: "model" },
+            { provider: "Anthropic", date: "2023-11-21", label: "Claude 2.1 released", type: "model" },
+            { provider: "Anthropic", date: "2024-03-04", label: "Claude 3 (Opus/Sonnet/Haiku)", type: "model" },
+            { provider: "Anthropic", date: "2024-06-20", label: "Claude 3.5 Sonnet released", type: "model" },
+            { provider: "Anthropic", date: "2024-10-22", label: "Claude 3.5 Sonnet v2 + Computer Use", type: "model" },
+            { provider: "Anthropic", date: "2025-05-22", label: "Claude Opus 4 / Sonnet 4", type: "model" },
+            { provider: "Anthropic", date: "2025-08-05", label: "Claude Opus 4.1 released", type: "model" },
+            { provider: "Anthropic", date: "2025-09-29", label: "Sonnet 4.5 released", type: "model" },
+            { provider: "Anthropic", date: "2025-10-15", label: "Haiku 4.5 released", type: "model" },
+            { provider: "Anthropic", date: "2025-11-24", label: "Opus 4.5 released", type: "model" },
+            { provider: "Anthropic", date: "2026-02-05", label: "Opus 4.6 released", type: "model" },
+            
+            // Microsoft / GitHub (lime)
+            { provider: "Microsoft", date: "2021-06-29", label: "GitHub Copilot technical preview", type: "product" },
+            { provider: "Microsoft", date: "2022-06-21", label: "GitHub Copilot GA", type: "product" },
+            { provider: "Microsoft", date: "2023-02-07", label: "New Bing with Chat (Copilot)", type: "product" },
+            { provider: "Microsoft", date: "2023-03-16", label: "M365 Copilot announced", type: "product" },
+            { provider: "Microsoft", date: "2023-09-26", label: "Copilot in Windows rollout", type: "product" },
+            { provider: "Microsoft", date: "2023-11-01", label: "M365 Copilot GA (enterprise)", type: "product" },
+            { provider: "Microsoft", date: "2023-12-29", label: "GitHub Copilot Chat GA", type: "product" },
+            { provider: "Microsoft", date: "2024-04-01", label: "Copilot for Security GA", type: "product" },
+            { provider: "Microsoft", date: "2024-05-20", label: "Copilot+ PC announced", type: "product" },
+            { provider: "Microsoft", date: "2024-12-18", label: "GitHub Copilot Free Tier", type: "product" },
+            { provider: "Microsoft", date: "2025-02-06", label: "Copilot Agent Mode (preview)", type: "product" },
+            { provider: "Microsoft", date: "2025-09-25", label: "Coding Agent GA", type: "product" },
+        ];
+
+        /* ============================================
+           PRODUCTIVITY BOOST DATA
+           Defines how each event affects productivity
+           Weights are multiplied by AI Dependence slider
+           ============================================ */
+        const productivityBoosts = {
+            // Key: ISO date string, Value: { developer: weight, office: weight }
+            "2021-08-10": { developer: 0.15, office: 0.05 },    // Codex
+            "2021-06-29": { developer: 0.20, office: 0.02 },    // GH Copilot preview
+            "2022-06-21": { developer: 0.25, office: 0.03 },    // GH Copilot GA
+            "2022-11-30": { developer: 0.35, office: 0.25 },    // ChatGPT
+            "2023-03-14": { developer: 0.25, office: 0.15 },    // GPT-4
+            "2023-03-16": { developer: 0.05, office: 0.10 },    // M365 Copilot announced
+            "2023-09-26": { developer: 0.05, office: 0.15 },    // Windows Copilot
+            "2023-11-01": { developer: 0.10, office: 0.25 },    // M365 Copilot GA
+            "2023-12-29": { developer: 0.30, office: 0.05 },    // Copilot Chat GA
+            "2024-03-04": { developer: 0.15, office: 0.10 },    // Claude 3
+            "2024-05-13": { developer: 0.20, office: 0.15 },    // GPT-4o
+            "2024-06-20": { developer: 0.10, office: 0.08 },    // Claude 3.5 Sonnet
+            "2024-09-12": { developer: 0.15, office: 0.10 },    // o1-preview (reasoning)
+            "2024-10-22": { developer: 0.12, office: 0.08 },    // Claude 3.5 Sonnet v2 + Computer Use
+            "2024-12-18": { developer: 0.15, office: 0.03 },    // GitHub Copilot Free Tier
+            "2025-01-31": { developer: 0.10, office: 0.05 },    // o3-mini
+            "2025-02-06": { developer: 0.20, office: 0.03 },    // Copilot Agent Mode
+            "2025-02-27": { developer: 0.15, office: 0.10 },    // GPT-4.5
+            "2025-04-16": { developer: 0.15, office: 0.08 },    // o3 & o4-mini
+            "2025-05-22": { developer: 0.15, office: 0.10 },    // Claude 4
+            "2025-08-05": { developer: 0.10, office: 0.08 },    // Claude Opus 4.1
+            "2025-08-07": { developer: 0.30, office: 0.20 },    // GPT-5
+            "2025-09-25": { developer: 0.20, office: 0.03 },    // Coding Agent GA
+            "2025-09-29": { developer: 0.10, office: 0.08 },    // Sonnet 4.5
+            "2025-11-24": { developer: 0.12, office: 0.10 },    // Opus 4.5
+            "2025-12-11": { developer: 0.25, office: 0.15 },    // GPT-5.2
+            "2026-02-05": { developer: 0.15, office: 0.10 },    // Opus 4.6
+        };
+
+        /* ============================================
+           UTILITY FUNCTIONS
+           ============================================ */
+        
+        // Convert ISO date string to fractional year (e.g., "2023-06-15" -> 2023.45)
+        function dateToYear(dateStr) {
+            const d = new Date(dateStr);
+            const year = d.getFullYear();
+            const startOfYear = new Date(year, 0, 1);
+            const endOfYear = new Date(year + 1, 0, 1);
+            const fraction = (d - startOfYear) / (endOfYear - startOfYear);
+            return year + fraction;
+        }
+
+        // Format fractional year to display string
+        function formatYear(year) {
+            return year.toFixed(1);
+        }
+
+        // Format date from ISO string to readable format
+        function formatDate(dateStr) {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        // Get provider color
+        function getProviderColor(provider, alpha = 1) {
+            const colors = {
+                "OpenAI": `rgba(0, 245, 255, ${alpha})`,
+                "Anthropic": `rgba(255, 43, 214, ${alpha})`,
+                "Microsoft": `rgba(124, 255, 107, ${alpha})`
+            };
+            return colors[provider] || `rgba(255, 255, 255, ${alpha})`;
+        }
+
+        // Get provider glow color for canvas
+        function getProviderGlow(provider) {
+            const glows = {
+                "OpenAI": "rgba(0, 245, 255, 0.6)",
+                "Anthropic": "rgba(255, 43, 214, 0.6)",
+                "Microsoft": "rgba(124, 255, 107, 0.6)"
+            };
+            return glows[provider] || "rgba(255, 255, 255, 0.6)";
+        }
+
+        // Sigmoid/logistic function for smooth transitions
+        function sigmoid(x) {
+            return 1 / (1 + Math.exp(-x));
+        }
+
+        // Smooth step function centered at eventYear with ~6 month ramp
+        function smoothStep(currentYear, eventYear, rampMonths = 6) {
+            const rampYears = rampMonths / 12;
+            const x = (currentYear - eventYear) / rampYears * 6; // Scale so ±3 ramp years = ±18 in sigmoid
+            return sigmoid(x);
+        }
+
+        // Format large numbers with commas
+        function formatNumber(num) {
+            if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+            return num.toFixed(0);
+        }
+
+        /* ============================================
+           STATE
+           ============================================ */
+        let state = {
+            currentYear: 2026,
+            role: 'developer',
+            aiDependence: 3,
+            aiDependenceByRole: { developer: 3, office: 3 },
+            baselineGrowth: 1.5,
+            logScale: false,
+            expTimeline: true,  // Exponential timeline: compress early years, expand recent years
+            showOpenAI: true,
+            showAnthropic: true,
+            showMicrosoft: true,
+            hoveredEvent: null,
+            pinnedEvent: null,
+            hoveredChartPoint: null,
+            animationTarget: {},
+            animationCurrent: {}
+        };
+
+        // Cached productivity data
+        let productivityCache = null;
+
+        /* ============================================
+           DOM ELEMENTS
+           ============================================ */
+        const timelineCanvas = document.getElementById('timelineCanvas');
+        const chartCanvas = document.getElementById('chartCanvas');
+        const timelineCtx = timelineCanvas.getContext('2d');
+        const chartCtx = chartCanvas.getContext('2d');
+
+        const tooltip = document.getElementById('tooltip');
+        const tooltipProvider = document.getElementById('tooltipProvider');
+        const tooltipLabel = document.getElementById('tooltipLabel');
+        const tooltipDate = document.getElementById('tooltipDate');
+        const tooltipValue = document.getElementById('tooltipValue');
+
+        const infoPanel = document.getElementById('infoPanel');
+        const infoPanelProvider = document.getElementById('infoPanelProvider');
+        const infoPanelLabel = document.getElementById('infoPanelLabel');
+        const infoPanelDate = document.getElementById('infoPanelDate');
+
+        const yearSlider = document.getElementById('yearSlider');
+        const yearDisplay = document.getElementById('yearDisplay');
+        const nearestEventDisplay = document.getElementById('nearestEvent');
+        const roleSelector = document.getElementById('roleSelector');
+        const dependenceSlider = document.getElementById('dependenceSlider');
+        const dependenceDisplay = document.getElementById('dependenceDisplay');
+        const growthSlider = document.getElementById('growthSlider');
+        const growthDisplay = document.getElementById('growthDisplay');
+        const logScaleToggle = document.getElementById('logScaleToggle');
+        const expTimelineToggle = document.getElementById('expTimelineToggle');
+        const showOpenAI = document.getElementById('showOpenAI');
+        const showAnthropic = document.getElementById('showAnthropic');
+        const showMicrosoft = document.getElementById('showMicrosoft');
+
+        const baselineValueEl = document.getElementById('baselineValue');
+        // aiValue element removed — now showing multiplier directly
+        const multiplierValueEl = document.getElementById('multiplierValue');
+        const resetDefaultsBtn = document.getElementById('resetDefaults');
+        const mainPage = document.getElementById('mainPage');
+        const aboutPage = document.getElementById('aboutPage');
+        const showAboutBtn = document.getElementById('showAboutBtn');
+        const backBtn = document.getElementById('backBtn');
+
+        // Page switching
+        showAboutBtn.addEventListener('click', () => {
+            mainPage.style.display = 'none';
+            aboutPage.classList.add('visible');
+            aboutPage.scrollTop = 0;
+        });
+        backBtn.addEventListener('click', () => {
+            aboutPage.classList.remove('visible');
+            mainPage.style.display = '';
+            requestAnimationFrame(render);
+        });
+
+        /* ============================================
+           CANVAS SETUP (High DPI)
+           ============================================ */
+        function setupCanvas(canvas, ctx) {
+            // Reset explicit pixel sizes so canvas follows its CSS width:100%/height:100%
+            // This is critical for the splitter: without it, getBoundingClientRect()
+            // returns the OLD fixed size instead of the new container size.
+            canvas.style.width = '';
+            canvas.style.height = '';
+
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+        }
+
+        function resizeCanvases() {
+            setupCanvas(timelineCanvas, timelineCtx);
+            setupCanvas(chartCanvas, chartCtx);
+            productivityCache = null; // Invalidate cache on resize
+            render();
+        }
+
+        /* ============================================
+           PRODUCTIVITY CALCULATION
+           Evidence-based model: adoption curve × ceiling
+
+           Ceiling values per role (at AI Warp Factor):
+             Vision Engineer: Warp 3 → 2.3x (studies avg), Warp 10 → 10,000x (enablement)
+             Office Worker:   Warp 3 → 1.66x (NN/g avg),   Warp 10 → 20x (ceiling)
+
+           Formula: 10^(c × w²) for developer, 10^(a×w + b×w²) for office
+           See explanation panel for full study citations.
+           ============================================ */
+
+        // Maps warp factor (0-10) to evidence-based max multiplier per role
+        function warpToMaxMultiplier(warp, role) {
+            if (warp === 0) return 1;
+            if (role === 'developer') {
+                // 10^(0.04 × w²): w3→2.3x, w5→10x, w7→91x, w10→10,000x
+                return Math.pow(10, 0.04 * warp * warp);
+            } else {
+                // 10^(0.049×w + 0.0081×w²): w3→1.66x, w5→3.5x, w7→8x, w10→20x
+                return Math.pow(10, 0.049 * warp + 0.0081 * warp * warp);
+            }
+        }
+
+        function calculateProductivity() {
+            const startYear = 2015;
+            const endYear = 2026;
+            const stepsPerYear = 12; // Monthly resolution
+
+            const baselineGrowthRate = state.baselineGrowth / 100;
+            const role = state.role;
+            const maxMultiplier = warpToMaxMultiplier(state.aiDependence, role);
+
+            const data = {
+                years: [],
+                baseline: [],
+                aiCurve: []
+            };
+
+            // Sort boost events by date
+            const boostDates = Object.keys(productivityBoosts)
+                .map(d => ({ date: d, year: dateToYear(d), boosts: productivityBoosts[d] }))
+                .sort((a, b) => a.year - b.year);
+
+            // Calculate max possible cumulative boost (all events fully activated)
+            let maxCumulativeBoost = 0;
+            for (const boostEvent of boostDates) {
+                maxCumulativeBoost += (boostEvent.boosts[role] || 0);
+            }
+            // Avoid division by zero if no boosts exist for role
+            if (maxCumulativeBoost === 0) maxCumulativeBoost = 1;
+
+            for (let i = 0; i <= (endYear - startYear) * stepsPerYear; i++) {
+                const year = startYear + i / stepsPerYear;
+                data.years.push(year);
+
+                // Baseline: compound growth from 100 (no AI)
+                const yearsElapsed = year - startYear;
+                const baseline = 100 * Math.pow(1 + baselineGrowthRate, yearsElapsed);
+                data.baseline.push(baseline);
+
+                // Normalized adoption curve: additive sum of activated boosts / max
+                let cumulativeBoost = 0;
+                for (const boostEvent of boostDates) {
+                    const eventYear = boostEvent.year;
+                    const rawBoost = boostEvent.boosts[role] || 0;
+                    const activation = smoothStep(year, eventYear, 6);
+                    cumulativeBoost += rawBoost * activation;
+                }
+
+                // Normalize to 0..1 range
+                const adoptionNorm = cumulativeBoost / maxCumulativeBoost;
+
+                // AI productivity = baseline × (1 + (ceiling - 1) × adoption)
+                const aiProductivity = baseline * (1 + (maxMultiplier - 1) * adoptionNorm);
+                data.aiCurve.push(aiProductivity);
+            }
+
+            productivityCache = data;
+            return data;
+        }
+
+        // Get productivity values at a specific year
+        function getProductivityAtYear(year) {
+            if (!productivityCache) calculateProductivity();
+            
+            const data = productivityCache;
+            const idx = Math.round((year - 2015) * 12);
+            const clampedIdx = Math.max(0, Math.min(idx, data.years.length - 1));
+            
+            return {
+                year: data.years[clampedIdx],
+                baseline: data.baseline[clampedIdx],
+                ai: data.aiCurve[clampedIdx]
+            };
+        }
+
+        /* ============================================
+           LABEL COLLISION AVOIDANCE
+           Staggers overlapping labels to different heights
+           with leader lines connecting them to their dots
+           ============================================ */
+        function computeLabelLayout(evts, yearToX, getLaneY, ctx) {
+            ctx.save();
+            ctx.font = '10px ui-sans-serif, sans-serif';
+
+            const cos45 = Math.cos(Math.PI / 4);
+            const sin45 = Math.sin(Math.PI / 4);
+            const textHeight = 12;       // approximate rendered text height
+            const labelPad = 3;          // padding around labels for clearance
+            const baseOffset = 18;       // base vertical offset from dot
+            const levelStep = 30;        // additional vertical offset per level
+            const maxLevel = 7;          // max stagger levels
+
+            // True 2D overlap check for two parallel rotated (-45°) label bounding boxes.
+            // Uses separating axis theorem on the text direction and its perpendicular.
+            function labelsOverlap(a, aLevel, b) {
+                const ax = a.x;
+                const ay = a.y - (baseOffset + aLevel * levelStep);
+                const bx = b.x;
+                const by = b.y - (baseOffset + b.level * levelStep);
+
+                // Project onto text direction (cos45, -sin45)
+                const aAlong = ax * cos45 - ay * sin45;
+                const bAlong = bx * cos45 - by * sin45;
+                const aAlongEnd = aAlong + a.textWidth + labelPad;
+                const bAlongEnd = bAlong + b.textWidth + labelPad;
+
+                if (aAlong >= bAlongEnd || bAlong >= aAlongEnd) return false;
+
+                // Project onto perpendicular direction (sin45, cos45)
+                const aPerp = ax * sin45 + ay * cos45;
+                const bPerp = bx * sin45 + by * cos45;
+                const half = textHeight / 2 + labelPad;
+
+                if (aPerp - half >= bPerp + half || bPerp - half >= aPerp + half) return false;
+
+                return true;
+            }
+
+            // Group events by provider lane
+            const byProvider = {};
+            for (const evt of evts) {
+                const eventYear = dateToYear(evt.date);
+                if (eventYear > state.currentYear) continue;
+
+                if (!byProvider[evt.provider]) byProvider[evt.provider] = [];
+
+                const x = yearToX(eventYear);
+                const y = getLaneY(evt.provider);
+                let label = evt.label;
+                if (label.length > 25) label = label.substring(0, 23) + '...';
+                const textWidth = ctx.measureText(label).width;
+
+                byProvider[evt.provider].push({ event: evt, x, y, label, textWidth, level: 0 });
+            }
+
+            // For each lane, sort by x and assign levels with full 2D collision detection.
+            // Each new label is checked against ALL previously placed labels (not just same-level).
+            for (const provider in byProvider) {
+                const items = byProvider[provider];
+                items.sort((a, b) => a.x - b.x);
+
+                const placed = [];
+
+                for (const item of items) {
+                    let level = 0;
+                    while (level <= maxLevel) {
+                        let hasOverlap = false;
+                        for (const other of placed) {
+                            if (labelsOverlap(item, level, other)) {
+                                hasOverlap = true;
+                                break;
+                            }
+                        }
+                        if (!hasOverlap) break;
+                        level++;
+                    }
+                    item.level = Math.min(level, maxLevel);
+                    placed.push(item);
+                }
+            }
+
+            // Build lookup map
+            const layout = new Map();
+            for (const provider in byProvider) {
+                for (const item of byProvider[provider]) {
+                    layout.set(item.event, {
+                        label: item.label,
+                        level: item.level,
+                        offset: baseOffset + item.level * levelStep
+                    });
+                }
+            }
+
+            ctx.restore();
+            return layout;
+        }
+
+        /* ============================================
+           TIMELINE RENDERING
+           ============================================ */
+        function drawTimeline() {
+            const canvas = timelineCanvas;
+            const ctx = timelineCtx;
+            const rect = canvas.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            
+            // Clear
+            ctx.clearRect(0, 0, width, height);
+            
+            // Dimensions – proportional padding, +40px bottom to align X-axis with productivity chart
+            const padV = Math.round(Math.max(20, height * 0.04));
+            const padH = Math.round(Math.max(35, width * 0.06));
+            const padding = { top: padV, right: padH, bottom: padV + 40, left: padH + 25 };
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            
+            const startYear = 2015;
+            const endYear = 2026;
+            
+            // Helpers - exponential time axis transformation
+            // When expTimeline is enabled, early years are compressed and recent years are expanded
+            // This reflects the accelerating pace of AI development
+            const yearToX = (year) => {
+                const normalizedYear = (year - startYear) / (endYear - startYear); // 0 to 1
+                
+                if (state.expTimeline) {
+                    // Power function: raises normalized value to power > 1 to compress early, expand late
+                    // Using power of 3.0 for strong effect - much more space for 2023-2026
+                    const expFactor = 3.0;
+                    const transformed = Math.pow(normalizedYear, expFactor);
+                    return padding.left + transformed * chartWidth;
+                } else {
+                    return padding.left + normalizedYear * chartWidth;
+                }
+            };
+            
+            // Inverse function for year labels positioning
+            const xToYear = (x) => {
+                const normalizedX = (x - padding.left) / chartWidth;
+                if (state.expTimeline) {
+                    const expFactor = 3.0;
+                    return startYear + Math.pow(normalizedX, 1 / expFactor) * (endYear - startYear);
+                } else {
+                    return startYear + normalizedX * (endYear - startYear);
+                }
+            };
+            
+            // Lane setup (3 lanes)
+            const lanes = ['OpenAI', 'Anthropic', 'Microsoft'];
+            const visibleLanes = lanes.filter(l => {
+                if (l === 'OpenAI') return state.showOpenAI;
+                if (l === 'Anthropic') return state.showAnthropic;
+                if (l === 'Microsoft') return state.showMicrosoft;
+                return true;
+            });
+            
+            const laneHeight = chartHeight / 3;
+            const getLaneY = (provider) => {
+                const idx = lanes.indexOf(provider);
+                return padding.top + (idx + 1) * laneHeight - 20;
+            };
+            
+            // Draw grid lines (vertical - years)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let year = startYear; year <= endYear; year++) {
+                const x = yearToX(year);
+                ctx.beginPath();
+                ctx.moveTo(x, padding.top);
+                ctx.lineTo(x, height - padding.bottom);
+                ctx.stroke();
+            }
+            
+            // Draw lane separators
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.setLineDash([5, 5]);
+            for (let i = 1; i < lanes.length; i++) {
+                const y = padding.top + i * laneHeight;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(width - padding.right, y);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            
+            // Draw lane labels (vertically centered in each lane)
+            ctx.font = '12px ui-sans-serif, sans-serif';
+            ctx.textAlign = 'right';
+            for (let i = 0; i < lanes.length; i++) {
+                const y = padding.top + i * laneHeight + laneHeight / 2;
+                ctx.fillStyle = getProviderColor(lanes[i], 0.8);
+                ctx.fillText(lanes[i], padding.left - 8, y + 4);
+            }
+            
+            // Draw year labels
+            // In exponential mode, skip some early years to avoid overlap
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.textAlign = 'center';
+            ctx.font = '11px ui-sans-serif, sans-serif';
+            for (let year = startYear; year <= endYear; year++) {
+                // In exp mode, only show 2015, 2019, then every year from 2020
+                if (state.expTimeline) {
+                    if (year >= 2016 && year <= 2018) continue;  // skip 2016, 2017, 2018
+                }
+                const x = yearToX(year);
+                ctx.fillText(year.toString(), x, height - padding.bottom + 20);
+            }
+            
+            // Draw current year cursor — round-capped neon line with glow
+            const cursorX = yearToX(state.currentYear);
+            const lineTop = padding.top + 8;
+            const lineBot = height - padding.bottom - 8;
+
+            ctx.lineCap = 'round';
+            // Soft glow pass — wide, low-alpha, big shadow wraps around round caps
+            ctx.strokeStyle = 'rgba(0, 245, 255, 0.15)';
+            ctx.lineWidth = 8;
+            ctx.shadowColor = 'rgba(0, 245, 255, 0.5)';
+            ctx.shadowBlur = 30;
+            ctx.beginPath();
+            ctx.moveTo(cursorX, lineTop);
+            ctx.lineTo(cursorX, lineBot);
+            ctx.stroke();
+
+            // Bright core — solid, shadow gives inner glow
+            ctx.strokeStyle = 'rgba(0, 245, 255, 0.9)';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = 'rgba(0, 245, 255, 0.8)';
+            ctx.shadowBlur = 12;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.lineCap = 'butt';
+            
+            // Draw events
+            const filteredEvents = events.filter(e => {
+                if (e.provider === 'OpenAI' && !state.showOpenAI) return false;
+                if (e.provider === 'Anthropic' && !state.showAnthropic) return false;
+                if (e.provider === 'Microsoft' && !state.showMicrosoft) return false;
+                return true;
+            });
+            
+            // Store event positions for hit testing
+            const eventPositions = [];
+
+            // Compute label layout with collision avoidance
+            const labelLayout = computeLabelLayout(filteredEvents, yearToX, getLaneY, ctx);
+
+            for (const event of filteredEvents) {
+                const eventYear = dateToYear(event.date);
+                const x = yearToX(eventYear);
+                const y = getLaneY(event.provider);
+                
+                const isPast = eventYear <= state.currentYear;
+                const alpha = isPast ? 1 : 0.3;
+                const isHovered = state.hoveredEvent === event;
+                const isPinned = state.pinnedEvent === event;
+                
+                // Draw vertical tick
+                ctx.strokeStyle = getProviderColor(event.provider, alpha * 0.5);
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x, y - 15);
+                ctx.lineTo(x, y + 15);
+                ctx.stroke();
+                
+                // Draw dot
+                const radius = isHovered || isPinned ? 8 : 6;
+                
+                if (isHovered || isPinned) {
+                    // Glow
+                    ctx.shadowColor = getProviderGlow(event.provider);
+                    ctx.shadowBlur = 20;
+                }
+                
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = getProviderColor(event.provider, alpha);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // Draw short label - rotated diagonally with collision avoidance
+                if (isPast || isHovered || isPinned) {
+                    const layoutInfo = labelLayout.get(event);
+                    const label = layoutInfo ? layoutInfo.label : (event.label.length > 25 ? event.label.substring(0, 23) + '...' : event.label);
+                    const totalOffset = layoutInfo ? layoutInfo.offset : 18;
+                    const level = layoutInfo ? layoutInfo.level : 0;
+
+                    ctx.save();
+                    ctx.font = '10px ui-sans-serif, sans-serif';
+                    ctx.fillStyle = getProviderColor(event.provider, alpha * 0.9);
+
+                    const labelX = x;
+                    const labelY = y - totalOffset;
+
+                    // Draw leader line with glowing round endpoints for staggered labels
+                    if (level > 0) {
+                        const dotR = 3;
+                        const lineTop = labelY + 10;
+                        const lineBot = y - 20;
+
+                        // Dashed line between the two dots
+                        ctx.strokeStyle = getProviderColor(event.provider, alpha * 0.2);
+                        ctx.lineWidth = 1;
+                        ctx.lineCap = 'round';
+                        ctx.setLineDash([2, 3]);
+                        ctx.beginPath();
+                        ctx.moveTo(x, lineBot + dotR);
+                        ctx.lineTo(x, lineTop - dotR);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        ctx.lineCap = 'butt';
+
+                        // Glowing round endpoint at bottom (near event dot)
+                        ctx.shadowColor = getProviderGlow(event.provider);
+                        ctx.shadowBlur = 10;
+                        ctx.fillStyle = getProviderColor(event.provider, alpha * 0.7);
+                        ctx.beginPath();
+                        ctx.arc(x, lineBot, dotR, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Glowing round endpoint at top (near label)
+                        ctx.beginPath();
+                        ctx.arc(x, lineTop, dotR, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    }
+
+                    ctx.translate(labelX, labelY);
+                    ctx.rotate(-Math.PI / 4); // -45 degrees
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(label, 0, 0);
+                    ctx.restore();
+                }
+                
+                // Store position for hit testing
+                eventPositions.push({ event, x, y, radius: 12 });
+            }
+            
+            // Store for mouse interaction
+            timelineCanvas._eventPositions = eventPositions;
+        }
+
+        /* ============================================
+           PRODUCTIVITY CHART RENDERING
+           ============================================ */
+        function drawProductivityChart() {
+            const canvas = chartCanvas;
+            const ctx = chartCtx;
+            const rect = canvas.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            
+            // Clear
+            ctx.clearRect(0, 0, width, height);
+            
+            // Get productivity data
+            const data = productivityCache || calculateProductivity();
+            
+            // Dimensions – proportional padding
+            const padV = Math.round(Math.max(20, height * 0.04));
+            const padH = Math.round(Math.max(30, width * 0.05));
+            const padding = { top: padV, right: padH, bottom: padV + 20, left: padH + 35 };
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            
+            const startYear = 2015;
+            const endYear = 2026;
+            
+            // Find max value for scaling
+            const currentIdx = Math.round((state.currentYear - startYear) * 12);
+            const maxBaselineVisible = Math.max(...data.baseline.slice(0, currentIdx + 1));
+            const maxAIVisible = Math.max(...data.aiCurve.slice(0, currentIdx + 1));
+            const maxValue = Math.max(maxBaselineVisible, maxAIVisible, 110) * 1.1;
+            
+            // IMPORTANT: Y-axis starts at 100 (baseline), not 0
+            // This ensures the baseline curve is always at the same position
+            const minValue = 100;
+            
+            // Scale functions
+            const yearToX = (year) => padding.left + ((year - startYear) / (endYear - startYear)) * chartWidth;
+            
+            let valueToY;
+            if (state.logScale) {
+                const logMin = Math.log10(minValue);
+                const logMax = Math.log10(Math.max(maxValue, 101));
+                valueToY = (val) => {
+                    const logVal = Math.log10(Math.max(val, minValue));
+                    return padding.top + chartHeight - ((logVal - logMin) / (logMax - logMin)) * chartHeight;
+                };
+            } else {
+                // Linear scale starting from minValue (100), not 0
+                valueToY = (val) => padding.top + chartHeight - ((val - minValue) / (maxValue - minValue)) * chartHeight;
+            }
+            
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            
+            // Vertical grid (years)
+            for (let year = startYear; year <= endYear; year++) {
+                const x = yearToX(year);
+                ctx.beginPath();
+                ctx.moveTo(x, padding.top);
+                ctx.lineTo(x, height - padding.bottom);
+                ctx.stroke();
+            }
+            
+            // Horizontal grid (values) — dynamically generated, evenly distributed
+            let gridValues = [];
+
+            if (state.logScale) {
+                // Log scale: place labels at powers of 10 within the visible range
+                const logMin = Math.floor(Math.log10(minValue));   // 2 (for 100)
+                const logMax = Math.ceil(Math.log10(maxValue));
+                for (let exp = logMin; exp <= logMax; exp++) {
+                    gridValues.push(Math.pow(10, exp));
+                }
+                // If too few labels (< 4), add intermediate values (×3)
+                if (gridValues.length < 4) {
+                    const extra = [];
+                    for (let exp = logMin; exp < logMax; exp++) {
+                        extra.push(3 * Math.pow(10, exp));
+                    }
+                    gridValues = gridValues.concat(extra);
+                    gridValues.sort((a, b) => a - b);
+                }
+            } else {
+                // Linear scale: compute nice round intervals for ~5-7 labels
+                const range = maxValue - minValue;
+                const targetLabels = 6;
+                const roughStep = range / targetLabels;
+                // Find "nice" step: 1, 2, 5, 10, 20, 50, 100, ...
+                const magnitude = Math.pow(10, Math.floor(Math.log10(roughStep)));
+                const residual = roughStep / magnitude;
+                let niceStep;
+                if (residual <= 1.5) niceStep = magnitude;
+                else if (residual <= 3) niceStep = 2 * magnitude;
+                else if (residual <= 7) niceStep = 5 * magnitude;
+                else niceStep = 10 * magnitude;
+
+                const firstLabel = Math.ceil(minValue / niceStep) * niceStep;
+                for (let val = firstLabel; val <= maxValue; val += niceStep) {
+                    gridValues.push(val);
+                }
+                // Always include baseline (100)
+                if (!gridValues.includes(minValue)) {
+                    gridValues.unshift(minValue);
+                }
+            }
+
+            ctx.font = '10px ui-sans-serif, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+
+            // Render labels with minimum spacing to prevent overlap
+            const minLabelSpacing = 28; // minimum pixels between labels
+            let lastLabelY = -999;
+
+            for (const val of gridValues) {
+                const y = valueToY(val);
+                if (y < padding.top - 5 || y > height - padding.bottom + 5) continue;
+
+                // Skip if too close to previous label
+                if (Math.abs(y - lastLabelY) < minLabelSpacing) continue;
+                lastLabelY = y;
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(width - padding.right, y);
+                ctx.stroke();
+
+                // Format: show multiplier (e.g. "1x", "10x", "1K x") instead of percentage
+                const multiplier = val / 100;
+                let label;
+                if (multiplier >= 1e6) label = (multiplier / 1e6).toFixed(0) + 'Mx';
+                else if (multiplier >= 1e3) label = (multiplier / 1e3).toFixed(0) + 'Kx';
+                else if (multiplier >= 10) label = multiplier.toFixed(0) + 'x';
+                else if (multiplier >= 1) label = multiplier.toFixed(1) + 'x';
+                else label = multiplier.toFixed(2) + 'x';
+
+                ctx.fillText(label, padding.left - 8, y + 4);
+            }
+            
+            // Year labels
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            for (let year = startYear; year <= endYear; year++) {
+                const x = yearToX(year);
+                ctx.fillText(year.toString(), x, height - padding.bottom + 20);
+            }
+            
+            // Draw baseline curve (yellow)
+            ctx.strokeStyle = 'rgba(255, 220, 50, 0.7)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < data.years.length && data.years[i] <= state.currentYear; i++) {
+                const x = yearToX(data.years[i]);
+                const y = valueToY(data.baseline[i]);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Draw AI curve (neon cyan with glow)
+            ctx.strokeStyle = 'rgba(0, 245, 255, 1)';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = 'rgba(0, 245, 255, 0.6)';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            for (let i = 0; i < data.years.length && data.years[i] <= state.currentYear; i++) {
+                const x = yearToX(data.years[i]);
+                const y = valueToY(data.aiCurve[i]);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            
+            // Draw current year cursor — round-capped neon line with glow
+            const cursorX = yearToX(state.currentYear);
+            const lineTop = padding.top + 8;
+            const lineBot = height - padding.bottom - 8;
+
+            ctx.lineCap = 'round';
+            // Soft glow pass — wide, low-alpha, big shadow wraps around round caps
+            ctx.strokeStyle = 'rgba(255, 43, 214, 0.15)';
+            ctx.lineWidth = 8;
+            ctx.shadowColor = 'rgba(255, 43, 214, 0.5)';
+            ctx.shadowBlur = 30;
+            ctx.beginPath();
+            ctx.moveTo(cursorX, lineTop);
+            ctx.lineTo(cursorX, lineBot);
+            ctx.stroke();
+
+            // Bright core — solid, shadow gives inner glow
+            ctx.strokeStyle = 'rgba(255, 43, 214, 0.9)';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = 'rgba(255, 43, 214, 0.8)';
+            ctx.shadowBlur = 12;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.lineCap = 'butt';
+            
+            // Draw value dots at cursor
+            const values = getProductivityAtYear(state.currentYear);
+            
+            // Baseline dot
+            const baselineY = valueToY(values.baseline);
+            ctx.shadowColor = 'rgba(255, 220, 50, 0.6)';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(cursorX, baselineY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 220, 50, 0.9)';
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // AI dot
+            const aiY = valueToY(values.ai);
+            ctx.shadowColor = 'rgba(0, 245, 255, 0.8)';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(cursorX, aiY, 6, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 245, 255, 1)';
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // Store for mouse interaction
+            chartCanvas._chartData = {
+                data,
+                yearToX,
+                valueToY,
+                padding,
+                chartWidth,
+                chartHeight
+            };
+        }
+
+        /* ============================================
+           MAIN RENDER FUNCTION
+           ============================================ */
+        function render() {
+            drawTimeline();
+            drawProductivityChart();
+            updateValueDisplays();
+        }
+
+        function formatMultiplier(m) {
+            if (m >= 10000) return formatNumber(m) + 'x';
+            if (m >= 100) return Math.round(m).toLocaleString() + 'x';
+            if (m >= 10) return m.toFixed(1) + 'x';
+            return m.toFixed(2) + 'x';
+        }
+
+        function updateValueDisplays() {
+            const values = getProductivityAtYear(state.currentYear);
+
+            // Baseline: show as multiplier
+            const baselineMultiplier = values.baseline / 100;
+            baselineValueEl.textContent = formatMultiplier(baselineMultiplier);
+
+            // Multiplier: the only number that matters
+            const multiplier = values.ai / values.baseline;
+            multiplierValueEl.textContent = formatMultiplier(multiplier);
+            
+            // Find nearest event
+            const visibleEvents = events.filter(e => {
+                if (e.provider === 'OpenAI' && !state.showOpenAI) return false;
+                if (e.provider === 'Anthropic' && !state.showAnthropic) return false;
+                if (e.provider === 'Microsoft' && !state.showMicrosoft) return false;
+                return true;
+            });
+            
+            let nearestEvent = null;
+            let nearestDist = Infinity;
+            for (const event of visibleEvents) {
+                const eventYear = dateToYear(event.date);
+                const dist = Math.abs(eventYear - state.currentYear);
+                if (dist < nearestDist) {
+                    nearestDist = dist;
+                    nearestEvent = event;
+                }
+            }
+            
+            if (nearestEvent && nearestDist < 0.5) {
+                nearestEventDisplay.textContent = `Nearest: ${nearestEvent.label} (${formatDate(nearestEvent.date)})`;
+            } else {
+                nearestEventDisplay.textContent = 'Nearest: —';
+            }
+        }
+
+        /* ============================================
+           EVENT HANDLERS
+           ============================================ */
+        
+        // Year slider
+        yearSlider.addEventListener('input', (e) => {
+            state.currentYear = parseFloat(e.target.value);
+            yearDisplay.textContent = formatYear(state.currentYear);
+            productivityCache = null;
+            saveSettings();
+            requestAnimationFrame(render);
+        });
+
+        // Role selector
+        roleSelector.addEventListener('change', (e) => {
+            state.aiDependenceByRole[state.role] = state.aiDependence;
+            state.role = e.target.value;
+            state.aiDependence = state.aiDependenceByRole[state.role];
+            dependenceSlider.value = state.aiDependence;
+            dependenceDisplay.textContent = state.aiDependence;
+            productivityCache = null;
+            saveSettings();
+            requestAnimationFrame(render);
+        });
+
+        // AI Dependence slider
+        dependenceSlider.addEventListener('input', (e) => {
+            state.aiDependence = parseInt(e.target.value);
+            state.aiDependenceByRole[state.role] = state.aiDependence;
+            dependenceDisplay.textContent = state.aiDependence;
+            productivityCache = null;
+            saveSettings();
+            requestAnimationFrame(render);
+        });
+
+        // Baseline growth slider
+        growthSlider.addEventListener('input', (e) => {
+            state.baselineGrowth = parseFloat(e.target.value);
+            growthDisplay.textContent = state.baselineGrowth.toFixed(1);
+            productivityCache = null;
+            saveSettings();
+            requestAnimationFrame(render);
+        });
+
+        // Log scale toggle
+        logScaleToggle.addEventListener('change', (e) => {
+            state.logScale = e.target.checked;
+            saveSettings();
+            requestAnimationFrame(render);
+        });
+
+        // Exponential timeline toggle
+        expTimelineToggle.addEventListener('change', (e) => {
+            state.expTimeline = e.target.checked;
+            saveSettings();
+            requestAnimationFrame(render);
+        });
+
+        // Provider toggles
+        showOpenAI.addEventListener('change', (e) => {
+            state.showOpenAI = e.target.checked;
+            saveSettings();
+            requestAnimationFrame(render);
+        });
+
+        showAnthropic.addEventListener('change', (e) => {
+            state.showAnthropic = e.target.checked;
+            saveSettings();
+            requestAnimationFrame(render);
+        });
+
+        showMicrosoft.addEventListener('change', (e) => {
+            state.showMicrosoft = e.target.checked;
+            saveSettings();
+            requestAnimationFrame(render);
+        });
+
+        // Reset to defaults
+        resetDefaultsBtn.addEventListener('click', () => {
+            localStorage.removeItem(SETTINGS_KEY);
+            location.reload();
+        });
+
+        // Timeline mouse interaction
+        timelineCanvas.addEventListener('mousemove', (e) => {
+            const rect = timelineCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const positions = timelineCanvas._eventPositions || [];
+            let hoveredEvent = null;
+            
+            for (const pos of positions) {
+                const dist = Math.sqrt((x - pos.x) ** 2 + (y - pos.y) ** 2);
+                if (dist <= pos.radius) {
+                    hoveredEvent = pos.event;
+                    break;
+                }
+            }
+            
+            if (hoveredEvent !== state.hoveredEvent) {
+                state.hoveredEvent = hoveredEvent;
+                requestAnimationFrame(render);
+            }
+            
+            // Show/hide tooltip
+            if (hoveredEvent) {
+                tooltipProvider.textContent = hoveredEvent.provider;
+                tooltipProvider.className = 'tooltip-provider ' + hoveredEvent.provider.toLowerCase();
+                tooltipLabel.textContent = hoveredEvent.label;
+                tooltipDate.textContent = formatDate(hoveredEvent.date);
+                tooltipValue.textContent = '';
+                
+                positionTooltip(e);
+                tooltip.classList.add('visible');
+            } else {
+                tooltip.classList.remove('visible');
+            }
+        });
+
+        timelineCanvas.addEventListener('mouseleave', () => {
+            state.hoveredEvent = null;
+            tooltip.classList.remove('visible');
+            requestAnimationFrame(render);
+        });
+
+        timelineCanvas.addEventListener('click', (e) => {
+            if (state.hoveredEvent) {
+                state.pinnedEvent = state.hoveredEvent;
+                
+                // Show info panel
+                infoPanelProvider.textContent = state.pinnedEvent.provider;
+                infoPanelProvider.className = 'tooltip-provider ' + state.pinnedEvent.provider.toLowerCase();
+                infoPanelLabel.textContent = state.pinnedEvent.label;
+                infoPanelDate.textContent = formatDate(state.pinnedEvent.date);
+                infoPanel.classList.add('visible');
+                
+                requestAnimationFrame(render);
+            }
+        });
+
+        function positionTooltip(e) {
+            const gap = 15;
+            const tw = tooltip.offsetWidth || 200;
+            const th = tooltip.offsetHeight || 100;
+            // Flip to left if tooltip would overflow right edge
+            const left = (e.clientX + gap + tw > window.innerWidth)
+                ? e.clientX - gap - tw
+                : e.clientX + gap;
+            // Flip up if tooltip would overflow bottom edge
+            const top = (e.clientY + th > window.innerHeight)
+                ? e.clientY - th
+                : e.clientY - 10;
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+
+        function closeInfoPanel() {
+            state.pinnedEvent = null;
+            infoPanel.classList.remove('visible');
+            requestAnimationFrame(render);
+        }
+
+        // Chart mouse interaction
+        chartCanvas.addEventListener('mousemove', (e) => {
+            const rect = chartCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            
+            const chartData = chartCanvas._chartData;
+            if (!chartData) return;
+            
+            const { data, yearToX, valueToY, padding, chartWidth } = chartData;
+            
+            // Check if within chart area
+            if (x < padding.left || x > padding.left + chartWidth) {
+                tooltip.classList.remove('visible');
+                return;
+            }
+            
+            // Find year from x position
+            const yearFraction = (x - padding.left) / chartWidth;
+            const year = 2015 + yearFraction * 11;
+            
+            if (year > state.currentYear) {
+                tooltip.classList.remove('visible');
+                return;
+            }
+            
+            const values = getProductivityAtYear(year);
+            
+            tooltipProvider.textContent = '';
+            tooltipLabel.textContent = `Year ${year.toFixed(1)}`;
+            const multiplier = values.ai / values.baseline;
+            const baselineMultiplier = values.baseline / 100;
+            tooltipDate.textContent = `No AI: ${formatMultiplier(baselineMultiplier)}`;
+            tooltipValue.textContent = `With AI: ${formatMultiplier(multiplier)}`;
+            
+            positionTooltip(e);
+            tooltip.classList.add('visible');
+        });
+
+        chartCanvas.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('visible');
+        });
+
+        // Window resize
+        window.addEventListener('resize', () => {
+            resizeCanvases();
+        });
+
+        /* ============================================
+           DRAGGABLE PANEL SPLITTER
+           ============================================ */
+        const panelSplitter = document.getElementById('panelSplitter');
+        const mainContent = document.querySelector('.main-content');
+        const SPLITTER_STORAGE_KEY = 'ai-timeline-splitter-ratio';
+
+        function applySplitRatio(ratio) {
+            // ratio = fraction of width for left panel (0.2 to 0.8)
+            const clamped = Math.max(0.2, Math.min(0.8, ratio));
+            const leftFr = clamped;
+            const rightFr = 1 - clamped;
+            mainContent.style.gridTemplateColumns = `${leftFr}fr 15px ${rightFr}fr`;
+        }
+
+        function loadSplitRatio() {
+            const stored = localStorage.getItem(SPLITTER_STORAGE_KEY);
+            if (stored !== null) {
+                const ratio = parseFloat(stored);
+                if (!isNaN(ratio)) {
+                    applySplitRatio(ratio);
+                    return;
+                }
+            }
+            // Default: equal split
+            applySplitRatio(0.5);
+        }
+
+        (function initSplitter() {
+            let isDragging = false;
+
+            panelSplitter.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                panelSplitter.classList.add('dragging');
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const rect = mainContent.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const ratio = x / rect.width;
+                applySplitRatio(ratio);
+                // Resize canvases live while dragging
+                resizeCanvases();
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (!isDragging) return;
+                isDragging = false;
+                panelSplitter.classList.remove('dragging');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                // Persist to localStorage
+                const cols = mainContent.style.gridTemplateColumns;
+                const match = cols.match(/([\d.]+)fr/);
+                if (match) {
+                    localStorage.setItem(SPLITTER_STORAGE_KEY, match[1]);
+                }
+            });
+        })();
+
+        /* ============================================
+           SETTINGS PERSISTENCE (localStorage)
+           ============================================ */
+        const SETTINGS_KEY = 'ai-timeline-settings';
+
+        const SETTINGS_VERSION = 2; // v2: evidence-based ceiling model
+
+        function saveSettings() {
+            const settings = {
+                version: SETTINGS_VERSION,
+                currentYear: state.currentYear,
+                role: state.role,
+                aiDependence: state.aiDependence,
+                aiDependenceByRole: state.aiDependenceByRole,
+                baselineGrowth: state.baselineGrowth,
+                logScale: state.logScale,
+                expTimeline: state.expTimeline,
+                showOpenAI: state.showOpenAI,
+                showAnthropic: state.showAnthropic,
+                showMicrosoft: state.showMicrosoft
+            };
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const stored = localStorage.getItem(SETTINGS_KEY);
+            if (!stored) return;
+            try {
+                const s = JSON.parse(stored);
+
+                // Migrate from v1 (multiplicative model) to v2 (ceiling model):
+                // Reset warp factor defaults since the old values produce very different results
+                if (!s.version || s.version < SETTINGS_VERSION) {
+                    s.aiDependence = 3;
+                    s.aiDependenceByRole = { developer: 3, office: 3 };
+                    // Save migrated version immediately
+                    s.version = SETTINGS_VERSION;
+                    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+                }
+
+                if (s.currentYear != null)    { state.currentYear = s.currentYear;       yearSlider.value = s.currentYear; }
+                if (s.role != null)           { state.role = s.role;                     roleSelector.value = s.role; }
+                if (s.aiDependenceByRole != null) { state.aiDependenceByRole = s.aiDependenceByRole; }
+                if (s.aiDependence != null)   { state.aiDependence = s.aiDependence;     dependenceSlider.value = s.aiDependence; }
+                if (s.baselineGrowth != null) { state.baselineGrowth = s.baselineGrowth; growthSlider.value = s.baselineGrowth; }
+                if (s.logScale != null)       { state.logScale = s.logScale;             logScaleToggle.checked = s.logScale; }
+                if (s.expTimeline != null)    { state.expTimeline = s.expTimeline;       expTimelineToggle.checked = s.expTimeline; }
+                if (s.showOpenAI != null)     { state.showOpenAI = s.showOpenAI;         showOpenAI.checked = s.showOpenAI; }
+                if (s.showAnthropic != null)  { state.showAnthropic = s.showAnthropic;   showAnthropic.checked = s.showAnthropic; }
+                if (s.showMicrosoft != null)  { state.showMicrosoft = s.showMicrosoft;    showMicrosoft.checked = s.showMicrosoft; }
+            } catch (e) { /* ignore corrupt data */ }
+        }
+
+        /* ============================================
+           INITIALIZATION
+           ============================================ */
+        function init() {
+            // Restore all settings from localStorage
+            loadSettings();
+            loadSplitRatio();
+
+            resizeCanvases();
+
+            // Set display values from (possibly restored) state
+            yearDisplay.textContent = formatYear(state.currentYear);
+            dependenceDisplay.textContent = state.aiDependence;
+            growthDisplay.textContent = state.baselineGrowth.toFixed(1);
+
+            // Initial render
+            calculateProductivity();
+            render();
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
