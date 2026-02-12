@@ -1061,16 +1061,15 @@ function positionImpactOverlay(){
   const gap=Math.max(40,Math.min(100,r*0.3));
   const margin=10;
 
-  // Measure one card to calculate overlay widths for different column counts
   const sampleCard=overlay.children[0];
   const cardW=sampleCard.offsetWidth||120;
   const gridGap=8;
 
-  // Available space to the right of the sphere (sphere center already shifted by previous _overlayRightInset)
+  // Current sphere right edge (may already be shifted by _overlayRightInset)
   const sphereRight=c.x+r;
   const availRight=innerWidth-sphereRight-gap-margin;
 
-  // Find max columns that fit to the right (try 4,3,2,1)
+  // Determine columns that fit in current available space
   let cols=Math.min(4,activeCount);
   for(;cols>1;cols--){
     if(cols*cardW+(cols-1)*gridGap<=availRight)break;
@@ -1087,7 +1086,10 @@ function positionImpactOverlay(){
     y=Math.min(innerHeight-oh-margin,Math.max(margin,y));
     overlay.style.left=Math.round(x)+'px';
     overlay.style.top=Math.round(y)+'px';
-    targetInset=ow+gap;
+    // Only shift sphere when overlay doesn't fit at its natural (unshifted) position
+    const naturalSphereRight=sphereRight+_overlayRightInset*0.5;
+    const deficit=(gap+ow+margin)-(innerWidth-naturalSphereRight);
+    targetInset=deficit>0?deficit*2:0;
   }else{
     // Not enough horizontal space — position below the sphere
     overlay.style.gridTemplateColumns='repeat('+Math.min(4,activeCount)+',auto)';
@@ -1101,7 +1103,7 @@ function positionImpactOverlay(){
     targetInset=0;
   }
   // Smooth transition so sphere doesn't jump when cards appear/disappear
-  _overlayRightInset+=( targetInset-_overlayRightInset)*0.15;
+  _overlayRightInset+=(targetInset-_overlayRightInset)*0.15;
 }
 
 function makeImpactCard(patKey,num){
