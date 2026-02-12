@@ -549,7 +549,7 @@ _skullCtx.shadowBlur=0;_skullCtx.fillStyle='rgba(255,245,255,0.85)';_skullCtx.fi
 const wipeCursor='url('+_skullCvs.toDataURL()+') 20 20, crosshair';
 
 // Dynamic centering: offset projection so sphere is centered in visible area
-let _rw=0,_rh=0;
+let _rw=0,_rh=0,_overlayRightInset=0;
 function updateCameraCenter(){
   // Sync renderer size if viewport changed (handles deferred layout/scrollbar shifts)
   const w=innerWidth,h=innerHeight;
@@ -572,7 +572,8 @@ function updateCameraCenter(){
     }
   }
 
-  const usableW=Math.max(1,innerWidth-leftInset);
+  const rightInset=_overlayRightInset;
+  const usableW=Math.max(1,innerWidth-leftInset-rightInset);
   const usableH=Math.max(1,innerHeight-topInset-bottomInset);
   const centerX=leftInset+usableW*0.5;
   const centerY=topInset+usableH*0.5;
@@ -1050,17 +1051,57 @@ function worldToScreen(v){
 
 function positionImpactOverlay(){
   const overlay=document.getElementById('impactOverlay');
-  if(!overlay)return;
+  if(!overlay||!overlay.children.length)return;
+  const activeCount=impactSlots.filter(s=>s).length;
+  if(!activeCount)return;
+
   const c=worldToScreen(new THREE.Vector3(0,0,0));
   const e=worldToScreen(new THREE.Vector3(1,0,0));
   const r=Math.max(80,Math.hypot(e.x-c.x,e.y-c.y));
-  const gap=Math.max(60,Math.min(140,r*0.5));
-  let x=c.x+r+gap;
-  let y=c.y-overlay.offsetHeight*0.5;
-  x=Math.min(innerWidth-overlay.offsetWidth-10,Math.max(10,x));
-  y=Math.min(innerHeight-overlay.offsetHeight-10,Math.max(10,y));
-  overlay.style.left=Math.round(x)+'px';
-  overlay.style.top=Math.round(y)+'px';
+  const gap=Math.max(40,Math.min(100,r*0.3));
+  const margin=10;
+
+  // Measure one card to calculate overlay widths for different column counts
+  const sampleCard=overlay.children[0];
+  const cardW=sampleCard.offsetWidth||120;
+  const gridGap=8;
+
+  // Available space to the right of the sphere (sphere center already shifted by previous _overlayRightInset)
+  const sphereRight=c.x+r;
+  const availRight=innerWidth-sphereRight-gap-margin;
+
+  // Find max columns that fit to the right (try 4,3,2,1)
+  let cols=Math.min(4,activeCount);
+  for(;cols>1;cols--){
+    if(cols*cardW+(cols-1)*gridGap<=availRight)break;
+  }
+  const fitsRight=cardW<=availRight;
+
+  let targetInset;
+  if(fitsRight){
+    overlay.style.gridTemplateColumns='repeat('+cols+',auto)';
+    const ow=overlay.offsetWidth,oh=overlay.offsetHeight;
+    let x=sphereRight+gap;
+    let y=c.y-oh*0.5;
+    x=Math.min(innerWidth-ow-margin,Math.max(margin,x));
+    y=Math.min(innerHeight-oh-margin,Math.max(margin,y));
+    overlay.style.left=Math.round(x)+'px';
+    overlay.style.top=Math.round(y)+'px';
+    targetInset=ow+gap;
+  }else{
+    // Not enough horizontal space — position below the sphere
+    overlay.style.gridTemplateColumns='repeat('+Math.min(4,activeCount)+',auto)';
+    const ow=overlay.offsetWidth,oh=overlay.offsetHeight;
+    let x=c.x-ow*0.5;
+    let y=c.y+r+gap*0.5;
+    x=Math.min(innerWidth-ow-margin,Math.max(margin,x));
+    y=Math.min(innerHeight-oh-margin,Math.max(margin,y));
+    overlay.style.left=Math.round(x)+'px';
+    overlay.style.top=Math.round(y)+'px';
+    targetInset=0;
+  }
+  // Smooth transition so sphere doesn't jump when cards appear/disappear
+  _overlayRightInset+=( targetInset-_overlayRightInset)*0.15;
 }
 
 function makeImpactCard(patKey,num){
@@ -1114,7 +1155,12 @@ function trimOverlay(){
     impactSlots.pop();
     if(overlay.lastChild)overlay.removeChild(overlay.lastChild);
   }
-  overlay.style.display=impactSlots.length>0?'grid':'none';
+  if(impactSlots.length>0){
+    overlay.style.display='grid';
+  }else{
+    overlay.style.display='none';
+    _overlayRightInset=0;
+  }
 }
 
 function showImpactOverlay(patKey,keepTimer=false){
