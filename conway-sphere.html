@@ -3,27 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-<title>Conway's Game of Life — Sphere Edition</title>
+<title>Conway's Game of Life &mdash; Sphere Edition</title>
+<link rel="icon" href="data:,">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0f;--panel:rgba(12,12,22,0.94);--bdr:rgba(0,255,200,0.12);--cyan:#00ffc8;--mag:#ff00aa;--yel:#e6ff00;--txt:#d8e4f0;--txt2:#6a7a8a;--gcyan:0 0 10px rgba(0,255,200,0.35)}
+:root{--bg:#0a0a0f;--panel:rgba(12,12,22,0.30);--bdr:rgba(0,255,200,0.22);--cyan:#00ffc8;--mag:#ff00aa;--yel:#e6ff00;--txt:#d8e4f0;--txt2:#92a4b8;--gcyan:0 0 10px rgba(0,255,200,0.35)}
 html,body{width:100%;height:100dvh;background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
 canvas{display:block;touch-action:none}
 
-#topbar{position:fixed;top:0;left:0;right:0;height:52px;background:var(--panel);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100}
-#topbar h1{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;letter-spacing:3px;background:linear-gradient(90deg,var(--cyan),var(--mag));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-#stats{display:flex;gap:18px;font-size:12px;font-weight:500;color:var(--txt2)}
+#topbar{position:fixed;top:0;left:0;right:0;height:78px;background:var(--panel);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100}
+#topbar h1{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;background:linear-gradient(90deg,var(--cyan),var(--mag));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#stats{display:flex;gap:18px;font-size:18px;font-weight:500;color:var(--txt2)}
 #stats div{white-space:nowrap;display:flex;align-items:center;gap:2px}
-#stats .stat-label{min-width:38px;text-align:right}
-#stats em{font-style:normal;color:var(--cyan);font-weight:700;display:inline-block;min-width:62px;text-align:right;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
-#mStats{display:flex;gap:12px;font-size:11px;font-weight:500;color:#4488ff;flex-wrap:wrap;max-width:45vw;justify-content:flex-end}
+#stats .stat-label{min-width:57px;text-align:right}
+#stats em{font-style:normal;color:var(--cyan);font-weight:700;display:inline-block;min-width:93px;text-align:right;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
+#mStats{display:flex;gap:12px;font-size:16.5px;font-weight:500;color:#4488ff;flex-wrap:wrap;max-width:45vw;justify-content:flex-end}
 #mStats span{white-space:nowrap;display:inline-flex;align-items:baseline;gap:2px}
-#mStats .ml{min-width:52px;text-align:right}
-#mStats .mc{color:#66aaff;font-weight:700;min-width:24px;display:inline-block;text-align:right;font-variant-numeric:tabular-nums}
+#mStats .ml{min-width:78px;text-align:right}
+#mStats .mc{color:#66aaff;font-weight:700;min-width:36px;display:inline-block;text-align:right;font-variant-numeric:tabular-nums}
 
-#panel{position:fixed;top:62px;left:10px;width:272px;max-height:calc(100dvh - 76px);overflow-y:auto;background:var(--panel);backdrop-filter:blur(16px);border:1px solid var(--bdr);border-radius:10px;padding:14px;z-index:100;display:flex;flex-direction:column;gap:12px}
+#panel{position:fixed;top:88px;left:10px;width:272px;max-height:calc(100dvh - 102px);overflow-y:auto;overflow-x:hidden;background:var(--panel);backdrop-filter:blur(16px);border:1px solid var(--bdr);border-radius:10px;padding:14px;z-index:100;display:flex;flex-direction:column;gap:12px}
 #panel::-webkit-scrollbar{width:3px}
 #panel::-webkit-scrollbar-track{background:transparent}
 #panel::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
@@ -40,6 +41,8 @@ canvas{display:block;touch-action:none}
 .btn.p:hover{background:rgba(0,255,200,0.2);box-shadow:0 0 16px rgba(0,255,200,0.4)}
 .btn.d{border-color:rgba(255,0,170,0.2);color:var(--mag);background:rgba(255,0,170,0.04)}
 .btn.d:hover{background:rgba(255,0,170,0.12);border-color:var(--mag)}
+.sim-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.sim-actions .btn{min-width:0;padding:6px 8px;font-size:11px;line-height:1.1}
 
 select{width:100%;padding:7px 30px 7px 10px;border:1px solid var(--bdr);border-radius:5px;background:rgba(0,255,200,0.04);color:var(--txt);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:500;cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 5 5-5' stroke='%2300ffc8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
 select:hover{border-color:var(--cyan)}
@@ -71,8 +74,8 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 .cpr input[type=range]{flex:1}
 .cpr .iv{font-size:10px;color:var(--yel);font-weight:700;min-width:28px;text-align:right}
 
-#foot{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);background:var(--panel);backdrop-filter:blur(16px);border:1px solid var(--bdr);border-radius:6px;padding:6px 14px;font-size:10px;color:var(--txt2);z-index:100;text-align:center}
-#foot kbd{background:rgba(0,255,200,0.08);border:1px solid var(--bdr);border-radius:2px;padding:1px 4px;font-family:'Rajdhani',sans-serif;color:var(--cyan);font-size:10px}
+#foot{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);background:var(--panel);backdrop-filter:blur(16px);border:1px solid var(--bdr);border-radius:6px;padding:6px 14px;font-size:15px;color:var(--txt2);z-index:100;text-align:center}
+#foot kbd{background:rgba(0,255,200,0.08);border:1px solid var(--bdr);border-radius:2px;padding:1px 4px;font-family:'Rajdhani',sans-serif;color:var(--cyan);font-size:15px}
 
 /* Context menu */
 #ctxMenu{position:fixed;z-index:200;background:var(--panel);backdrop-filter:blur(20px);border:1px solid var(--cyan);border-radius:8px;padding:6px 0;min-width:180px;max-height:70vh;overflow-y:auto;box-shadow:0 0 20px rgba(0,255,200,0.15),0 8px 32px rgba(0,0,0,0.6)}
@@ -84,22 +87,22 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 .ctx-sym{font-size:13px;letter-spacing:1px;opacity:0.8;vertical-align:middle;margin-right:3px}
 .imp-sym{font-size:11px;letter-spacing:1px;opacity:0.7;margin-left:4px}
 
-/* Impact overlay — fixed position right side */
+/* Impact overlay &mdash; fixed position right side */
 #impactOverlay{position:fixed;right:10px;z-index:150;pointer-events:none;display:none;grid-template-columns:repeat(4,auto);gap:8px}
-.imp-card{display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(8,12,28,0.88);border:1px solid rgba(68,102,255,0.3);border-radius:8px;padding:8px 10px;backdrop-filter:blur(12px)}
+.imp-card{display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(8,12,28,0.30);border:1px solid rgba(68,102,255,0.36);border-radius:8px;padding:8px 10px;backdrop-filter:blur(14px)}
 .imp-card canvas{image-rendering:pixelated;border-radius:4px}
 .imp-num{font-family:'Orbitron',sans-serif;font-size:10px;opacity:0.5;letter-spacing:1px}
 .imp-label{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;white-space:nowrap}
-#golRules{position:fixed;right:10px;bottom:10px;z-index:149;pointer-events:none;max-width:520px;padding:10px 16px;background:rgba(8,12,28,0.75);border:1px solid var(--bdr);border-radius:8px;backdrop-filter:blur(10px);font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--txt2);line-height:1.5;opacity:0;visibility:hidden}
-#golRules .rules-title{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--cyan);opacity:0.7;margin-bottom:5px}
+#golRules{position:fixed;right:10px;bottom:10px;z-index:149;pointer-events:none;max-width:520px;padding:10px 16px;background:rgba(8,12,28,0.30);border:1px solid var(--bdr);border-radius:8px;backdrop-filter:blur(14px);font-family:'Rajdhani',sans-serif;font-size:16.5px;color:var(--txt2);line-height:1.5;opacity:0;visibility:hidden}
+#golRules .rules-title{font-family:'Orbitron',sans-serif;font-size:13.5px;font-weight:700;letter-spacing:2px;color:var(--cyan);opacity:0.7;margin-bottom:5px}
 #golRules .rule{margin-bottom:3px}
 #golRules .rule em{font-style:normal;color:var(--cyan);font-weight:600}
 
 @media(max-width:768px){
   #panel{width:calc(100% - 20px);max-height:40dvh;top:auto;bottom:10px;left:10px;right:10px}
   #foot{display:none}
-  #topbar h1{font-size:12px;letter-spacing:1px}
-  #stats{gap:10px;font-size:11px}
+  #topbar h1{font-size:18px;letter-spacing:1px}
+  #stats{gap:10px;font-size:16.5px}
   #mStats{display:none}
 }
 </style>
@@ -107,12 +110,12 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 <body>
 
 <div id="topbar">
-  <h1>CONWAY'S LIFE · SPHERE</h1>
-  <div id="mStats" title="Meteor impact history — shows total impacts and per-pattern breakdown of all meteor strikes on the sphere"></div>
+  <h1>CONWAY'S LIFE &middot; SPHERE</h1>
+  <div id="mStats" title="Meteor impact history &mdash; shows total impacts and per-pattern breakdown of all meteor strikes on the sphere"></div>
   <div id="stats">
-    <div title="Generation counter — the number of simulation steps (ticks) that have been computed since the last reset"><span class="stat-label">Gen:</span> <em id="sGen">0</em></div>
-    <div title="Population — total count of currently living cells on the sphere surface"><span class="stat-label">Pop:</span> <em id="sPop">0</em></div>
-    <div title="Alive percentage — fraction of all cells on the sphere that are currently alive"><span class="stat-label">Alive:</span> <em id="sPct">0%</em></div>
+    <div title="Generation counter &mdash; the number of simulation steps (ticks) that have been computed since the last reset"><span class="stat-label">Gen:</span> <em id="sGen">0</em></div>
+    <div title="Population &mdash; total count of currently living cells on the sphere surface"><span class="stat-label">Pop:</span> <em id="sPop">0</em></div>
+    <div title="Alive percentage &mdash; fraction of all cells on the sphere that are currently alive"><span class="stat-label">Alive:</span> <em id="sPct">0%</em></div>
   </div>
 </div>
 
@@ -121,35 +124,35 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
   <!-- SIMULATION -->
   <div class="sec">
     <div class="sec-t">Simulation</div>
-    <div class="row" style="flex-wrap:nowrap">
-      <button class="btn p" id="bPlay" title="Play / Pause — start or pause the cellular automaton simulation. Each tick computes one generation using Conway's B3/S23 rules on the sphere" style="flex:1">▶ Play</button>
-      <button class="btn" id="bStep" title="Step — advance the simulation by exactly one generation. Useful for observing how patterns evolve frame by frame" style="flex:1">⏭ Step</button>
-      <button class="btn d" id="bClear" title="Clear — kill all living cells, reset the generation counter to zero, and stop the simulation" style="flex:1">✕ Clear</button>
-      <button class="btn" id="bWipe" title="Wipe mode — toggle eraser brush. While active, click-drag on the sphere surface to erase cells within the wipe radius" style="flex:1">◯ Wipe</button>
+    <div class="row sim-actions">
+      <button class="btn p" id="bPlay" title="Play / Pause &mdash; start or pause the cellular automaton simulation. Each tick computes one generation using Conway's B3/S23 rules on the sphere">&#9654; Play</button>
+      <button class="btn" id="bStep" title="Step &mdash; advance the simulation by exactly one generation. Useful for observing how patterns evolve frame by frame">&#9197; Step</button>
+      <button class="btn d" id="bClear" title="Clear &mdash; kill all living cells, reset the generation counter to zero, and stop the simulation">&#10005; Clear</button>
+      <button class="btn" id="bWipe" title="Wipe mode &mdash; toggle eraser brush. While active, click-drag on the sphere surface to erase cells within the wipe radius">&#9711; Wipe</button>
     </div>
     <div style="height:5px"></div>
     <div class="sg">
-      <div class="sl"><span title="Wipe Radius — diameter of the circular eraser brush used in wipe mode. Larger values erase bigger areas per stroke">Wipe Radius</span><span class="v" id="vWipeR">10</span></div>
+      <div class="sl"><span title="Wipe Radius &mdash; diameter of the circular eraser brush used in wipe mode. Larger values erase bigger areas per stroke">Wipe Radius</span><span class="v" id="vWipeR">10</span></div>
       <input type="range" id="rWipeR" min="3" max="40" value="10">
     </div>
     <div style="height:8px"></div>
     <div class="sg">
-      <div class="sl"><span title="Speed — how many generations per second the simulation computes when playing. Higher values make evolution faster">Speed</span><span class="v" id="vSpd">5 gen/s</span></div>
+      <div class="sl"><span title="Speed &mdash; how many generations per second the simulation computes when playing. Higher values make evolution faster">Speed</span><span class="v" id="vSpd">5 gen/s</span></div>
       <input type="range" id="rSpd" min="1" max="60" value="5">
     </div>
     <div style="height:8px"></div>
     <div class="trow">
-      <span title="Meteor Rain — when enabled, random Game of Life patterns are launched as meteors from deep space toward the sphere at randomised intervals, impacting the surface and seeding new life">Meteor Rain</span>
+      <span title="Meteor Rain &mdash; when enabled, random Game of Life patterns are launched as meteors from deep space toward the sphere at randomised intervals, impacting the surface and seeding new life">Meteor Rain</span>
       <label class="tog"><input type="checkbox" id="tMeteor" checked><span class="tog-s"></span></label>
     </div>
     <div style="height:5px"></div>
     <div class="sg">
-      <div class="sl"><span title="Meteor Interval — average time in seconds between meteor spawns. The actual timing is randomised around this value for organic variety">Meteor Interval</span><span class="v" id="vMInt">1s</span></div>
+      <div class="sl"><span title="Meteor Interval &mdash; average time in seconds between meteor spawns. The actual timing is randomised around this value for organic variety">Meteor Interval</span><span class="v" id="vMInt">1s</span></div>
       <input type="range" id="rMInt" min="1" max="15" value="1">
     </div>
     <div style="height:5px"></div>
     <div class="sg">
-      <div class="sl"><span title="Meteor Speed — controls how fast meteors travel through space toward the sphere. Higher values make them arrive more quickly">Meteor Speed</span><span class="v" id="vMSpd">0.1</span></div>
+      <div class="sl"><span title="Meteor Speed &mdash; controls how fast meteors travel through space toward the sphere. Higher values make them arrive more quickly">Meteor Speed</span><span class="v" id="vMSpd">0.1</span></div>
       <input type="range" id="rMSpd" min="10" max="150" value="10">
     </div>
   </div>
@@ -157,13 +160,13 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
   <!-- PATTERNS -->
   <div class="sec">
     <div class="sec-t">Initial State</div>
-    <select id="selPat" title="Pattern selector — choose a Game of Life pattern to place on the sphere. Random seeds fill the entire surface; named patterns are placed at random positions based on the Pattern Copies count">
-      <optgroup label="─── Random Seeds ───">
+    <select id="selPat" title="Pattern selector &mdash; choose a Game of Life pattern to place on the sphere. Random seeds fill the entire surface; named patterns are placed at random positions based on the Pattern Copies count">
+      <optgroup label="--- Random Seeds ---">
         <option value="rnd-15">Random Sparse (15%)</option>
         <option value="rnd-30">Random Medium (30%)</option>
         <option value="rnd-50">Random Dense (50%)</option>
       </optgroup>
-      <optgroup label="─── Still Lifes ───">
+      <optgroup label="--- Still Lifes ---">
         <option value="block">Block</option>
         <option value="beehive">Beehive</option>
         <option value="loaf">Loaf</option>
@@ -172,7 +175,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
         <option value="ship">Ship</option>
         <option value="pond">Pond</option>
       </optgroup>
-      <optgroup label="─── Oscillators ───">
+      <optgroup label="--- Oscillators ---">
         <option value="blinker">Blinker (p2)</option>
         <option value="toad">Toad (p2)</option>
         <option value="beacon">Beacon (p2)</option>
@@ -182,17 +185,17 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
         <option value="figureEight">Figure Eight (p8)</option>
         <option value="tumbler">Tumbler (p14)</option>
       </optgroup>
-      <optgroup label="─── Spaceships ───">
+      <optgroup label="--- Spaceships ---">
         <option value="glider">Glider (c/4 diagonal)</option>
         <option value="lwss">Lightweight Spaceship</option>
         <option value="mwss">Middleweight Spaceship</option>
         <option value="hwss">Heavyweight Spaceship</option>
         <option value="copperhead">Copperhead (c/10)</option>
       </optgroup>
-      <optgroup label="─── Guns / Factories ───">
+      <optgroup label="--- Guns / Factories ---">
         <option value="gosper">Gosper Glider Gun (Factory)</option>
       </optgroup>
-      <optgroup label="─── Methuselahs ───">
+      <optgroup label="--- Methuselahs ---">
         <option value="rpent">R-Pentomino (1103 gen)</option>
         <option value="acorn">Acorn (5206 gen)</option>
         <option value="diehard">Diehard (130 gen)</option>
@@ -200,19 +203,19 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
         <option value="piHept">&pi;-Heptomino</option>
         <option value="bhept">B-Heptomino</option>
       </optgroup>
-      <optgroup label="─── Infinite Growth ───">
+      <optgroup label="--- Infinite Growth ---">
         <option value="inf1">Infinite Growth I</option>
         <option value="inf2">Infinite Growth II</option>
       </optgroup>
     </select>
     <div style="height:6px"></div>
     <div class="row">
-      <button class="btn p" id="bApply" title="Apply — clear the sphere and place the selected pattern. Random seeds fill the whole surface; named patterns are scattered as copies at random locations">Apply</button>
-      <button class="btn" id="bRand" title="Randomize — clear the sphere and fill it with a random density of living cells (12–40%). Quick way to get unpredictable starting conditions">🎲 Randomize</button>
+      <button class="btn p" id="bApply" title="Apply &mdash; clear the sphere and place the selected pattern. Random seeds fill the whole surface; named patterns are scattered as copies at random locations">Apply</button>
+      <button class="btn" id="bRand" title="Randomize &mdash; clear the sphere and fill it with a random density of living cells (12&ndash;40%). Quick way to get unpredictable starting conditions">&#127922; Randomize</button>
     </div>
     <div style="height:6px"></div>
     <div class="sg">
-      <div class="sl"><span title="Pattern Copies — how many copies of the selected pattern are scattered across the sphere when Apply is pressed. Only used for named patterns, not for random seeds">Pattern Copies</span><span class="v" id="vScat">8</span></div>
+      <div class="sl"><span title="Pattern Copies &mdash; how many copies of the selected pattern are scattered across the sphere when Apply is pressed. Only used for named patterns, not for random seeds">Pattern Copies</span><span class="v" id="vScat">8</span></div>
       <input type="range" id="rScat" min="1" max="40" value="8">
     </div>
   </div>
@@ -221,17 +224,17 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
   <div class="sec">
     <div class="sec-t">Camera</div>
     <div class="sg">
-      <div class="sl"><span title="Zoom Distance — how far the camera is from the sphere. Lower values zoom in closer, higher values zoom out for a wider field of view">Zoom Distance</span><span class="v" id="vZoom">4.0</span></div>
+      <div class="sl"><span title="Zoom Distance &mdash; how far the camera is from the sphere. Lower values zoom in closer, higher values zoom out for a wider field of view">Zoom Distance</span><span class="v" id="vZoom">4.0</span></div>
       <input type="range" id="rZoom" min="15" max="80" value="40">
     </div>
     <div style="height:8px"></div>
     <div class="trow">
-      <span title="Auto-Rotate — slowly and randomly rotate the sphere so all areas are visible over time. The rotation axis drifts organically for a cinematic effect">Auto-Rotate</span>
+      <span title="Auto-Rotate &mdash; slowly and randomly rotate the sphere so all areas are visible over time. The rotation axis drifts organically for a cinematic effect">Auto-Rotate</span>
       <label class="tog"><input type="checkbox" id="tRot" checked><span class="tog-s"></span></label>
     </div>
     <div style="height:5px"></div>
     <div class="sg">
-      <div class="sl"><span title="Rotation Speed — how fast the sphere auto-rotates. Higher values spin the sphere faster">Rotation Speed</span><span class="v" id="vRSpd">0.1</span></div>
+      <div class="sl"><span title="Rotation Speed &mdash; how fast the sphere auto-rotates. Higher values spin the sphere faster">Rotation Speed</span><span class="v" id="vRSpd">0.1</span></div>
       <input type="range" id="rRSpd" min="1" max="30" value="1">
     </div>
   </div>
@@ -240,52 +243,57 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
   <div class="sec">
     <div class="sec-t">Appearance</div>
     <div class="sg">
-      <div class="sl"><span title="Emissive Glow — overall self-illumination intensity of the sphere. At 0 the sphere is only lit by scene lights; at max it glows brightly from within">Emissive Glow</span><span class="v" id="vGlow">1.0</span></div>
+      <div class="sl"><span title="Emissive Glow &mdash; overall self-illumination intensity of the sphere. At 0 the sphere is only lit by scene lights; at max it glows brightly from within">Emissive Glow</span><span class="v" id="vGlow">1.0</span></div>
       <input type="range" id="rGlow" min="0" max="100" value="100">
     </div>
     <div style="height:6px"></div>
     <div class="trow">
-      <span title="Grid Dots — toggle small circular reference dots on the sphere surface. These dots show the underlying cell grid structure on dead cells">Grid Dots</span>
+      <span title="Grid Dots &mdash; toggle small circular reference dots on the sphere surface. These dots show the underlying cell grid structure on dead cells">Grid Dots</span>
       <label class="tog"><input type="checkbox" id="tGrid" checked><span class="tog-s"></span></label>
     </div>
     <div style="height:5px"></div>
     <div class="sg">
-      <div class="sl"><span title="Dot Size — radius of the grid reference dots on the sphere. Larger dots make the grid structure more visible">Dot Size</span><span class="v" id="vDotR">0.8</span></div>
+      <div class="sl"><span title="Dot Size &mdash; radius of the grid reference dots on the sphere. Larger dots make the grid structure more visible">Dot Size</span><span class="v" id="vDotR">0.8</span></div>
       <input type="range" id="rDotR" min="3" max="25" value="8">
     </div>
     <div style="height:6px"></div>
     <div class="sg">
-      <div class="sl"><span title="Cell Exposure — brightens or darkens living cells. Positive values boost brightness and contrast, negative values dim them. Works like camera exposure compensation">Cell Exposure</span><span class="v" id="vExposure">+100</span></div>
+      <div class="sl"><span title="Cell Exposure &mdash; brightens or darkens living cells. Positive values boost brightness and contrast, negative values dim them. Works like camera exposure compensation">Cell Exposure</span><span class="v" id="vExposure">+100</span></div>
       <input type="range" id="rExposure" min="-100" max="100" value="100">
     </div>
     <div style="height:4px"></div>
     <div class="sg">
-      <div class="sl"><span title="Cell Saturation — adjusts colour richness of living cells. Positive values make colours more vivid, negative values desaturate toward greyscale">Cell Saturation</span><span class="v" id="vSaturation">+100</span></div>
+      <div class="sl"><span title="Cell Saturation &mdash; adjusts colour richness of living cells. Positive values make colours more vivid, negative values desaturate toward greyscale">Cell Saturation</span><span class="v" id="vSaturation">+100</span></div>
       <input type="range" id="rSaturation" min="-100" max="100" value="100">
+    </div>
+    <div style="height:4px"></div>
+    <div class="sg">
+      <div class="sl"><span title="Day/Night Strength &mdash; controls the invisible top-right side light. 0 disables hemisphere shading, higher values increase bright-side milkiness and dark-side shading">Day/Night Strength</span><span class="v" id="vDayNight">50%</span></div>
+      <input type="range" id="rDayNight" min="0" max="200" value="100">
     </div>
     <div style="height:6px"></div>
     <div class="trow">
-      <span title="Cell Glow — adds a soft bloom aura around living cells. Creates a neon-like glow effect whose radius and intensity can be fine-tuned below">Cell Glow</span>
+      <span title="Cell Glow &mdash; adds a soft bloom aura around living cells. Creates a neon-like glow effect whose radius and intensity can be fine-tuned below">Cell Glow</span>
       <label class="tog"><input type="checkbox" id="tCGlow" checked><span class="tog-s"></span></label>
     </div>
     <div style="height:5px"></div>
     <div class="sg">
-      <div class="sl"><span title="Glow Radius — blur radius of the cell glow aura. Larger values create a wider, softer bloom around living cells">Glow Radius</span><span class="v" id="vCGR">5</span></div>
+      <div class="sl"><span title="Glow Radius &mdash; blur radius of the cell glow aura. Larger values create a wider, softer bloom around living cells">Glow Radius</span><span class="v" id="vCGR">5</span></div>
       <input type="range" id="rCGR" min="1" max="20" value="5">
     </div>
     <div style="height:3px"></div>
     <div class="sg">
-      <div class="sl"><span title="Glow Intensity — brightness of the cell glow aura. Higher values produce a more visible bloom effect">Glow Intensity</span><span class="v" id="vCGI">0.1</span></div>
+      <div class="sl"><span title="Glow Intensity &mdash; brightness of the cell glow aura. Higher values produce a more visible bloom effect">Glow Intensity</span><span class="v" id="vCGI">0.1</span></div>
       <input type="range" id="rCGI" min="10" max="100" value="10">
     </div>
     <div style="height:6px"></div>
     <div class="trow">
-      <span title="Wireframe — overlay a geometric wireframe grid on the sphere surface. Fades based on viewing angle: bright on front-facing areas, transparent on edges">Wireframe</span>
+      <span title="Wireframe &mdash; overlay a geometric wireframe grid on the sphere surface. Fades based on viewing angle: bright on front-facing areas, transparent on edges">Wireframe</span>
       <label class="tog"><input type="checkbox" id="tWire" checked><span class="tog-s"></span></label>
     </div>
     <div style="height:4px"></div>
     <div class="sg">
-      <div class="sl"><span title="Wire Exposure — brightness of the wireframe overlay. Higher values make the wireframe more visible against the sphere texture">Wire Exposure</span><span class="v" id="vWireExp">30</span></div>
+      <div class="sl"><span title="Wire Exposure &mdash; brightness of the wireframe overlay. Higher values make the wireframe more visible against the sphere texture">Wire Exposure</span><span class="v" id="vWireExp">30</span></div>
       <input type="range" id="rWireExp" min="1" max="80" value="30">
     </div>
   </div>
@@ -294,35 +302,35 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
   <div class="sec">
     <div class="sec-t">Colors</div>
 
-    <div class="cpr" title="Alive colour — the base colour and brightness of living cells that have survived at least a few generations. This is the dominant colour visible on the sphere">
+    <div class="cpr" title="Alive colour &mdash; the base colour and brightness of living cells that have survived at least a few generations. This is the dominant colour visible on the sphere">
       <label>Alive</label>
       <input type="color" id="cAlive" value="#00ffc8">
       <input type="range" id="iAlive" min="10" max="100" value="100">
       <span class="iv" id="ivAlive">100%</span>
     </div>
 
-    <div class="cpr" title="Born colour — the flash colour of cells in their first few generations of life. They transition from this colour to the Alive colour over ~3 ticks">
+    <div class="cpr" title="Born colour &mdash; the flash colour of cells in their first few generations of life. They transition from this colour to the Alive colour over ~3 ticks">
       <label>Born</label>
       <input type="color" id="cBorn" value="#ff00aa">
       <input type="range" id="iBorn" min="10" max="100" value="100">
       <span class="iv" id="ivBorn">100%</span>
     </div>
 
-    <div class="cpr" title="Dead / Background colour — the colour of cells that are currently dead. Also serves as the sphere's background colour in areas with no activity">
+    <div class="cpr" title="Dead / Background colour &mdash; the colour of cells that are currently dead. Also serves as the sphere's background colour in areas with no activity">
       <label>Dead / BG</label>
       <input type="color" id="cDead" value="#0a0a14">
       <input type="range" id="iDead" min="10" max="100" value="100">
       <span class="iv" id="ivDead">100%</span>
     </div>
 
-    <div class="cpr" title="Grid Dots colour — the colour and brightness of the small reference dots overlaid on the sphere surface. Only visible when Grid Dots is enabled">
+    <div class="cpr" title="Grid Dots colour &mdash; the colour and brightness of the small reference dots overlaid on the sphere surface. Only visible when Grid Dots is enabled">
       <label>Grid Dots</label>
       <input type="color" id="cDots" value="#0066ff">
       <input type="range" id="iDots" min="0" max="100" value="60">
       <span class="iv" id="ivDots">60%</span>
     </div>
 
-    <div class="cpr" title="Impact colour — the colour used for meteor shockwave rings, the impact overlay cards, and the meteor statistics in the top bar">
+    <div class="cpr" title="Impact colour &mdash; the colour used for meteor shockwave rings, the impact overlay cards, and the meteor statistics in the top bar">
       <label>Impact</label>
       <input type="color" id="cImpact" value="#4488ff">
       <input type="range" id="iImpact" min="10" max="100" value="100">
@@ -330,8 +338,8 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
     </div>
 
     <div style="height:4px"></div>
-    <div class="sl" style="margin-bottom:4px"><span title="Preset Themes — one-click colour schemes that set all five colour channels at once. You can further fine-tune individual colours after selecting a theme">Preset Themes</span></div>
-    <select id="selTheme" title="Preset Themes — load a pre-configured colour scheme. Each preset changes Alive, Born, Dead, Grid Dots colours simultaneously">
+    <div class="sl" style="margin-bottom:4px"><span title="Preset Themes &mdash; one-click colour schemes that set all five colour channels at once. You can further fine-tune individual colours after selecting a theme">Preset Themes</span></div>
+    <select id="selTheme" title="Preset Themes &mdash; load a pre-configured colour scheme. Each preset changes Alive, Born, Dead, Grid Dots colours simultaneously">
       <option value="cm">Cyan & Magenta</option>
       <option value="go">Green & Orange</option>
       <option value="by">Blue & Yellow</option>
@@ -347,32 +355,41 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 <div id="ctxMenu" style="display:none"></div>
 <div id="impactOverlay"></div>
 <div id="golRules">
-  <div class="rules-title">Conway's Game of Life — Rules</div>
+  <div class="rules-title">Conway's Game of Life &mdash; Rules</div>
   <div class="rule"><em>1. Birth:</em> A dead cell with exactly <em>3</em> living neighbours becomes alive.</div>
   <div class="rule"><em>2. Survival:</em> A living cell with <em>2</em> or <em>3</em> living neighbours stays alive.</div>
-  <div class="rule"><em>3. Death:</em> All other living cells die — by underpopulation (&lt;2) or overcrowding (&gt;3).</div>
+  <div class="rule"><em>3. Death:</em> All other living cells die &mdash; by underpopulation (&lt;2) or overcrowding (&gt;3).</div>
 </div>
 
 <div id="foot">
-  <kbd>Drag</kbd> Rotate · <kbd>Scroll</kbd> Zoom · <kbd>Right-click</kbd> Place Pattern · <kbd>Wipe</kbd> Erase Region · Spherical Game of Life
+  <kbd>Drag</kbd> Rotate &middot; <kbd>Scroll</kbd> Zoom &middot; <kbd>Right-click</kbd> Place Pattern &middot; <kbd>Wipe</kbd> Erase Region &middot; Spherical Game of Life
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// ════════════════════════════════════════
+
+// ========================================
 // ENGINE
-// ════════════════════════════════════════
+// ========================================
 const W=400, H=200, TOTAL=W*H, HW=W>>1;
 let grid=new Uint8Array(TOTAL), buf=new Uint8Array(TOTAL), age=new Float32Array(TOTAL);
 let gen=0, pop=0, running=false, speed=5, lastTick=0;
 let meteorMode=true, meteorInterval=1, meteorTimer=0, nextMeteorTime=1;
 let meteorSpeed=0.1;
 let meteorAge=new Float32Array(TOTAL);
+const meteorFlashMark=new Uint8Array(TOTAL);
+const meteorFlashIdx=[];
 let activeMeteors=[];
 let meteorStats={};
+const MAX_ACTIVE_METEORS=24;
+let meteorsSinceLastNuke=100;
 
 // Appearance state
 let dotRadius=0.8, cellGlow=true, glowRadius=5, glowIntensity=0.1, cellExposure=16, cellSaturation=1;
+let dayNightStrength=1.0;
+const CELL_GLOSS_HI_STRENGTH=0.12;  // subtle local glint (not point-like)
+const CELL_GLOSS_SH_STRENGTH=0.05;  // subtle opposite-side shading
+const cellGlossCache=[];
 
 // Wipe mode
 let wipeMode=false, wipeRadius=10, wiping=false;
@@ -382,13 +399,57 @@ let impactRings=[];
 
 // Texture upscale for pole distortion correction
 const TEX_SCALE=10, TW=W*TEX_SCALE, TH=H*TEX_SCALE;
+const hemiLightDir={x:0.70,y:0.60,z:0.38}; // invisible light from top-right
+const HEMI_MILK_STRENGTH=0.08; // lit hemisphere -> slightly milkier
+const HEMI_DARK_STRENGTH=0.06; // opposite hemisphere -> slightly darker
+const USE_TEXTURE_HEMI=false; // Day/Night is handled in sphere shader for visible, stable effect.
 const poleStretch=new Float32Array(H);
 const poleCellH=new Uint8Array(H);
+const rowSinTh=new Float32Array(H);
+const rowCosTh=new Float32Array(H);
+const colCosPh=new Float32Array(W);
+const colSinPh=new Float32Array(W);
 for(let y=0;y<H;y++){
   const th=(y+0.5)/H*Math.PI;
-  const sinTh=Math.max(0.06,Math.sin(th));
+  const sinRaw=Math.sin(th);
+  const sinTh=Math.max(0.06,sinRaw);
+  rowSinTh[y]=sinRaw;
+  rowCosTh[y]=Math.cos(th);
   poleStretch[y]=Math.min(12,1/sinTh);
   poleCellH[y]=Math.max(1,Math.round(TEX_SCALE*sinTh));
+}
+for(let x=0;x<W;x++){
+  const ph=(x+0.5)/W*Math.PI*2;
+  colCosPh[x]=Math.cos(ph);
+  colSinPh[x]=Math.sin(ph);
+}
+
+function getCellGlossMask(cellH){
+  let m=cellGlossCache[cellH];
+  if(m)return m;
+  const len=TEX_SCALE*cellH;
+  const hi=new Float32Array(len);
+  const sh=new Float32Array(len);
+  for(let py=0;py<cellH;py++){
+    const v=(py+0.5)/cellH;
+    for(let px=0;px<TEX_SCALE;px++){
+      const u=(px+0.5)/TEX_SCALE;
+      // Broad top-right highlight, like a soft side light.
+      const hdx=(u-0.74)/0.95, hdy=(v-0.30)/0.78;
+      let hv=1-(hdx*hdx+hdy*hdy);
+      if(hv<0)hv=0;
+      // Opposite-side soft shading to preserve spherical depth.
+      const sdx=(u-0.28)/0.98, sdy=(v-0.76)/0.88;
+      let sv=1-(sdx*sdx+sdy*sdy);
+      if(sv<0)sv=0;
+      const gi=py*TEX_SCALE+px;
+      hi[gi]=hv*hv*hv*CELL_GLOSS_HI_STRENGTH;
+      sh[gi]=sv*sv*CELL_GLOSS_SH_STRENGTH;
+    }
+  }
+  m={hi,sh};
+  cellGlossCache[cellH]=m;
+  return m;
 }
 
 // Spherical polar topology: reflect at poles with x+W/2 offset
@@ -412,7 +473,12 @@ function step(){
   [grid,buf]=[buf,grid]; gen++;
 }
 
-function clear(){grid.fill(0);buf.fill(0);age.fill(-15);meteorAge.fill(0);gen=0;pop=0;running=false;updPlayBtn()}
+function clear(){
+  grid.fill(0);buf.fill(0);age.fill(-15);meteorAge.fill(0);
+  meteorFlashMark.fill(0);meteorFlashIdx.length=0;
+  meteorsSinceLastNuke=100;
+  gen=0;pop=0;running=false;updPlayBtn();
+}
 
 // Patterns
 const PAT={
@@ -455,7 +521,7 @@ const PAT_NAMES={
   glider:'Glider',lwss:'LWSS',mwss:'MWSS',hwss:'HWSS',copperhead:'Copperhead',
   gosper:'Gosper Gun',rpent:'R-Pento',acorn:'Acorn',diehard:'Diehard',
   thunderbird:'Thunder',piHept:'\u03C0-Hept',bhept:'B-Hept',
-  inf1:'Inf.I',inf2:'Inf.II',
+  inf1:'Inf.I',inf2:'Inf.II',nuke:'Nuke',
 };
 
 // Braille pattern symbol generator (renders pattern as Unicode braille art)
@@ -492,6 +558,7 @@ function patternToBraille(patKey){
 }
 const PAT_BRAILLE={};
 Object.keys(PAT).forEach(k=>{PAT_BRAILLE[k]=patternToBraille(k)});
+PAT_BRAILLE.nuke='\u2620';
 
 function initPatternSymbols(){
   document.querySelectorAll('#selPat option').forEach(opt=>{
@@ -537,11 +604,11 @@ function rotatePatternOffsets(pat,angleRad){
   }
   return out;
 }
-function placeRandomOriented(k,cx,cy,angleRad){
+function placeRandomOriented(k,cx,cy,angleRad,spawnAge=0){
   const p=PAT[k];if(!p)return null;
   const a=angleRad===undefined?Math.random()*Math.PI*2:angleRad;
   const rp=rotatePatternOffsets(p,a);
-  rp.forEach(([dx,dy])=>{const i=ix(cx+dx,cy+dy);grid[i]=1;age[i]=0});
+  rp.forEach(([dx,dy])=>{const i=ix(cx+dx,cy+dy);grid[i]=1;age[i]=spawnAge});
   return rp;
 }
 function applyPat(){
@@ -554,9 +621,9 @@ function applyPat(){
 function randomize(){clear();const d=.12+Math.random()*.28;for(let i=0;i<TOTAL;i++){grid[i]=Math.random()<d?1:0;age[i]=grid[i]?Math.random()*40:-15}cntPop();updTex();updStats()}
 function cntPop(){pop=0;for(let i=0;i<TOTAL;i++)if(grid[i])pop++}
 
-// ════════════════════════════════════════
+// ========================================
 // COLOR SYSTEM
-// ════════════════════════════════════════
+// ========================================
 function hex2rgb(h){const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return[r,g,b]}
 function rgb2hex(r,g,b){return'#'+[r,g,b].map(v=>Math.round(v).toString(16).padStart(2,'0')).join('')}
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
@@ -570,6 +637,18 @@ function getImpactColorData(){
   return{
     rgb,intensity,r,g,b,
     three:new THREE.Color(r/255,g/255,b/255),
+    css:'rgb('+Math.round(r)+','+Math.round(g)+','+Math.round(b)+')'
+  };
+}
+
+function getBornColorData(){
+  const rgb=hex2rgb($('cBorn').value);
+  const intensity=+$('iBorn').value/100;
+  const r=clamp(rgb[0]*intensity,0,255);
+  const g=clamp(rgb[1]*intensity,0,255);
+  const b=clamp(rgb[2]*intensity,0,255);
+  return{
+    rgb,intensity,r,g,b,
     css:'rgb('+Math.round(r)+','+Math.round(g)+','+Math.round(b)+')'
   };
 }
@@ -606,14 +685,28 @@ function applyPreset(key){
   updTex(); save();
 }
 
-// ════════════════════════════════════════
+// ========================================
 // THREE.JS SCENE
-// ════════════════════════════════════════
+// ========================================
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,0.1,100);
 camera.position.set(0,0,3);
 
-const renderer=new THREE.WebGLRenderer({antialias:true});
+function createStableRenderer(){
+  const attempts=[
+    {antialias:true,powerPreference:'high-performance'},
+    {antialias:false,powerPreference:'high-performance'},
+    {antialias:false,powerPreference:'low-power'}
+  ];
+  let lastErr=null;
+  for(let i=0;i<attempts.length;i++){
+    try{return new THREE.WebGLRenderer(attempts[i])}
+    catch(err){lastErr=err}
+  }
+  throw lastErr||new Error('WebGL renderer initialization failed');
+}
+
+const renderer=createStableRenderer();
 renderer.setSize(innerWidth,innerHeight);
 const MAX_PIXEL_RATIO=1.5;
 renderer.setPixelRatio(Math.min(devicePixelRatio,MAX_PIXEL_RATIO));
@@ -621,6 +714,15 @@ renderer.setClearColor(0x0a0a0f);
 document.body.appendChild(renderer.domElement);
 renderer.domElement.style.cssText='position:fixed;top:0;left:0;z-index:0';
 let glContextLost=false;
+let wasRunningBeforeContextLost=false;
+let pageVisible=!document.hidden;
+let rafId=0;
+let disposed=false;
+let pendingTexUpdate=false;
+const WIPE_VISUAL_INTERVAL=1000/30;
+const OVERLAY_LAYOUT_INTERVAL=1000/30;
+let lastWipeVisualUpdate=0;
+let lastOverlayLayout=0;
 
 // Mystical skull cursor for wipe mode (canvas-rendered with arcane glow)
 const _skullCvs=document.createElement('canvas');_skullCvs.width=40;_skullCvs.height=40;
@@ -638,7 +740,7 @@ _skullCtx.shadowBlur=0;_skullCtx.fillStyle='rgba(255,245,255,0.85)';_skullCtx.fi
 const wipeCursor='url('+_skullCvs.toDataURL()+') 20 20, crosshair';
 
 // Dynamic centering: offset projection so sphere is centered in visible area
-let _rw=0,_rh=0,_overlayRightInset=0;
+let _rw=0,_rh=0;
 function updateCameraCenter(){
   // Sync renderer size if viewport changed (handles deferred layout/scrollbar shifts)
   const w=innerWidth,h=innerHeight;
@@ -648,20 +750,41 @@ function updateCameraCenter(){
 
   const topbar=document.getElementById('topbar');
   const panel=document.getElementById('panel');
+  const overlay=document.getElementById('impactOverlay');
+  const rules=document.getElementById('golRules');
   const topInset=topbar?topbar.getBoundingClientRect().height:0;
-  let leftInset=0,bottomInset=0;
+  let leftBlock=0,rightBlock=0,bottomInset=0;
 
   if(panel){
     const pr=panel.getBoundingClientRect();
     if(innerWidth>768){
-      leftInset=Math.max(0,pr.right);
+      leftBlock=Math.max(0,pr.right+12);
     }else{
       const panelFromBottom=Math.max(0,innerHeight-pr.top);
       bottomInset=Math.max(0,Math.min(innerHeight*0.5,panelFromBottom));
     }
   }
 
-  const rightInset=0;
+  if(overlay&&overlay.offsetParent!==null){
+    const or=overlay.getBoundingClientRect();
+    if(or.width>0&&or.height>0){
+      rightBlock=Math.max(rightBlock,Math.max(0,innerWidth-or.left)+12);
+    }
+  }
+  if(rules&&rules.offsetParent!==null){
+    const rr=rules.getBoundingClientRect();
+    const rs=getComputedStyle(rules);
+    const isVisible=rs.visibility!=='hidden'&&parseFloat(rs.opacity||'0')>0.01;
+    if(isVisible&&rr.width>0&&rr.height>0){
+      rightBlock=Math.max(rightBlock,Math.max(0,innerWidth-rr.left)+12);
+    }
+  }
+
+  // Keep sphere centered until side UI actually intrudes into the center region.
+  const halfW=innerWidth*0.5;
+  const leftInset=Math.max(0,leftBlock-halfW);
+  const rightInset=Math.max(0,rightBlock-halfW);
+
   const usableW=Math.max(1,innerWidth-leftInset-rightInset);
   const usableH=Math.max(1,innerHeight-topInset-bottomInset);
   const centerX=leftInset+usableW*0.5;
@@ -697,6 +820,31 @@ lifeTex.minFilter=THREE.LinearFilter;lifeTex.magFilter=THREE.LinearFilter;lifeTe
 const sphGeo=new THREE.SphereGeometry(1,64,32);
 
 const sphMat=new THREE.MeshStandardMaterial({map:lifeTex,emissiveMap:lifeTex,emissive:new THREE.Color(1,1,1),emissiveIntensity:1.0,roughness:.55,metalness:.15,transparent:true,opacity:.84,depthWrite:false});
+const DAY_NIGHT_DAY_GAIN=0.42;
+const DAY_NIGHT_NIGHT_GAIN=0.34;
+const DAY_LIGHT_VIEW_DIR=new THREE.Vector3(0.62,0.54,0.57).normalize(); // top-right/front in view space
+let sphMatShaderRef=null;
+sphMat.onBeforeCompile=(shader)=>{
+  shader.uniforms.uDayNightStrength={value:dayNightStrength};
+  shader.uniforms.uDayLightDir={value:DAY_LIGHT_VIEW_DIR.clone()};
+  shader.uniforms.uDayGain={value:DAY_NIGHT_DAY_GAIN};
+  shader.uniforms.uNightGain={value:DAY_NIGHT_NIGHT_GAIN};
+  shader.fragmentShader=shader.fragmentShader.replace(
+    'varying vec3 vViewPosition;',
+    'varying vec3 vViewPosition;\nuniform float uDayNightStrength;\nuniform vec3 uDayLightDir;\nuniform float uDayGain;\nuniform float uNightGain;'
+  );
+  shader.fragmentShader=shader.fragmentShader.replace(
+    'gl_FragColor = vec4( outgoingLight, diffuseColor.a );',
+    'vec3 _dnColor=outgoingLight;\nfloat _dnH=dot(normalize(normal),normalize(uDayLightDir));\nfloat _dnDay=max(_dnH,0.0)*uDayGain*uDayNightStrength;\nfloat _dnNight=max(-_dnH,0.0)*uNightGain*uDayNightStrength;\n_dnColor=_dnColor*(1.0-_dnNight)+(vec3(1.0)-_dnColor)*_dnDay;\ngl_FragColor = vec4( _dnColor, diffuseColor.a );'
+  );
+  sphMatShaderRef=shader;
+};
+function syncDayNightUniform(){
+  if(sphMatShaderRef&&sphMatShaderRef.uniforms&&sphMatShaderRef.uniforms.uDayNightStrength){
+    sphMatShaderRef.uniforms.uDayNightStrength.value=dayNightStrength;
+  }
+}
+sphMat.needsUpdate=true;
 const sph=new THREE.Mesh(sphGeo,sphMat);
 scene.add(sph);
 
@@ -772,11 +920,13 @@ const l3=new THREE.PointLight(0x4444ff,.3,12);l3.position.set(0,3,-2);scene.add(
 // Background stars
 const stGeo=new THREE.BufferGeometry();const stPos=new Float32Array(4500);for(let i=0;i<4500;i++)stPos[i]=(Math.random()-.5)*60;
 stGeo.setAttribute('position',new THREE.BufferAttribute(stPos,3));
-scene.add(new THREE.Points(stGeo,new THREE.PointsMaterial({color:0x334455,size:.04})));
+const stMat=new THREE.PointsMaterial({color:0x334455,size:.04});
+const stPts=new THREE.Points(stGeo,stMat);
+scene.add(stPts);
 
-// ════════════════════════════════════════
+// ========================================
 // ROTATION & ZOOM
-// ════════════════════════════════════════
+// ========================================
 let dragging=false,pmx=0,pmy=0;
 let axisDrag=false,axmx=0,axmy=0;
 let rotQ=new THREE.Quaternion();
@@ -812,7 +962,17 @@ window.addEventListener('pointermove',e=>{
   rotQ.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),dy));
   pmx=e.clientX;pmy=e.clientY;
 });
-window.addEventListener('pointerup',()=>{dragging=false;axisDrag=false;wiping=false});
+function commitWipeVisuals(now){
+  cntPop();updTex();updStats();
+  pendingTexUpdate=false;
+  lastWipeVisualUpdate=now;
+}
+
+window.addEventListener('pointerup',()=>{
+  dragging=false;axisDrag=false;
+  if(wiping)commitWipeVisuals(performance.now());
+  wiping=false;
+});
 
 // Wipe: erase cells in radius at raycasted sphere position
 function doWipe(cx,cy){
@@ -827,11 +987,13 @@ function doWipe(cx,cy){
       for(let dx=-wipeRadius;dx<=wipeRadius;dx++){
         if(dx*dx+dy*dy<=r2){
           const i=ix(g.x+dx,g.y+dy);
-          grid[i]=0;age[i]=Math.min(age[i],-1);meteorAge[i]=0;
+          grid[i]=0;age[i]=Math.min(age[i],-1);meteorAge[i]=0;meteorFlashMark[i]=0;
         }
       }
     }
-    cntPop();updTex();updStats();
+    pendingTexUpdate=true;
+    const now=performance.now();
+    if(now-lastWipeVisualUpdate>=WIPE_VISUAL_INTERVAL)commitWipeVisuals(now);
   }
 }
 
@@ -840,9 +1002,9 @@ renderer.domElement.addEventListener('touchstart',e=>{if(e.touches.length===2)pi
 renderer.domElement.addEventListener('touchmove',e=>{if(e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);zoom+=(pinchD-d)*.01;zoom=Math.max(1.5,Math.min(8,zoom));pinchD=d;$('rZoom').value=zoom*10;$('vZoom').textContent=zoom.toFixed(1)}},{passive:true});
 renderer.domElement.addEventListener('wheel',e=>{zoom+=e.deltaY*.002;zoom=Math.max(1.5,Math.min(8,zoom));$('rZoom').value=zoom*10;$('vZoom').textContent=zoom.toFixed(1);save()},{passive:true});
 
-// ════════════════════════════════════════
+// ========================================
 // RIGHT-CLICK CONTEXT MENU
-// ════════════════════════════════════════
+// ========================================
 const raycaster=new THREE.Raycaster();
 const rcMouse=new THREE.Vector2();
 let ctxTarget={x:0,y:0};
@@ -897,10 +1059,44 @@ window.addEventListener('pointerdown',e=>{
 });
 window.addEventListener('keydown',e=>{if(e.key==='Escape')hideCtxMenu()});
 
-// ════════════════════════════════════════
+// ========================================
 // METEOR SYSTEM
-// ════════════════════════════════════════
+// ========================================
 const METEOR_PATS=['glider','blinker','toad','beacon','clock','lwss','rpent','acorn','thunderbird','piHept','bhept','boat','ship','block','beehive','pulsar','figureEight'];
+const NUKE_PAT_KEY='nuke';
+const NUKE_SPAWN_CHANCE=0.01;
+const NUKE_MIN_METEORS_BETWEEN=100;
+const NUKE_WIPE_RADIUS=24;
+const METEOR_ENABLE_POINT_LIGHT=false; // Keep sphere cell colours independent from Meteor toggle.
+const NUKE_COLOR_RGB=[255,56,0];
+const NUKE_COLOR_CSS='rgb('+NUKE_COLOR_RGB[0]+','+NUKE_COLOR_RGB[1]+','+NUKE_COLOR_RGB[2]+')';
+const NUKE_COLOR_THREE=new THREE.Color(NUKE_COLOR_RGB[0]/255,NUKE_COLOR_RGB[1]/255,NUKE_COLOR_RGB[2]/255);
+
+function getMeteorColorData(isNuke){
+  if(isNuke){
+    return{
+      r:NUKE_COLOR_RGB[0],g:NUKE_COLOR_RGB[1],b:NUKE_COLOR_RGB[2],
+      three:NUKE_COLOR_THREE,
+      css:NUKE_COLOR_CSS
+    };
+  }
+  return getImpactColorData();
+}
+
+function applyNukeWipe(cx,cy,radius){
+  const r2=radius*radius;
+  for(let dy=-radius;dy<=radius;dy++){
+    const y2=dy*dy;
+    for(let dx=-radius;dx<=radius;dx++){
+      if(dx*dx+y2>r2)continue;
+      const i=ix(cx+dx,cy+dy);
+      grid[i]=0;
+      age[i]=Math.min(age[i],-1);
+      meteorAge[i]=0;
+      meteorFlashMark[i]=0;
+    }
+  }
+}
 
 // Glow sprite texture for meteor head (created once, shared)
 const meteorGlowCvs=document.createElement('canvas');meteorGlowCvs.width=meteorGlowCvs.height=64;
@@ -911,16 +1107,30 @@ _mgg.addColorStop(0.3,'rgba(120,170,255,0.35)');_mgg.addColorStop(0.6,'rgba(50,1
 _mgg.addColorStop(1,'rgba(0,0,0,0)');
 _mgx.fillStyle=_mgg;_mgx.fillRect(0,0,64,64);
 const meteorGlowTex=new THREE.CanvasTexture(meteorGlowCvs);
-const meteorHeadGeo=new THREE.SphereGeometry(0.008,6,4);
+const meteorHeadGeo=new THREE.SphereGeometry(0.008,16,12);
+const _whiteColor=new THREE.Color(1,1,1);
+
+function getMeteorCoreColor(threeColor){
+  // Blend toward white to create a smoother transition from white core to colored glow.
+  return threeColor.clone().lerp(_whiteColor,0.42);
+}
 
 renderer.domElement.addEventListener('webglcontextlost',e=>{
   e.preventDefault();
   glContextLost=true;
+  wasRunningBeforeContextLost=running;
+  running=false;
+  updPlayBtn();
 });
 renderer.domElement.addEventListener('webglcontextrestored',()=>{
   glContextLost=false;
   lifeTex.needsUpdate=true;
   meteorGlowTex.needsUpdate=true;
+  pendingTexUpdate=true;
+  if(wasRunningBeforeContextLost){
+    running=true;
+    updPlayBtn();
+  }
 });
 
 function gridToSurface(gx,gy){
@@ -937,7 +1147,7 @@ function gridToSurface(gx,gy){
   return pt;
 }
 
-// Inverse: world-space point on sphere → grid coordinates (matches Three.js UV mapping)
+// Inverse: world-space point on sphere -> grid coordinates (matches Three.js UV mapping)
 function surfaceToGrid(worldPt){
   const p=worldPt.clone().normalize().applyQuaternion(rotQ.clone().invert());
   const theta=Math.acos(Math.max(-1,Math.min(1,p.y)));
@@ -966,25 +1176,90 @@ function scheduleNextMeteor(){
   nextMeteorTime=minI+Math.random()*(maxI-minI);
 }
 
-function syncActiveMeteorColors(){
-  const imp=getImpactColorData();
-  const ir=imp.r/255,ig=imp.g/255,ib=imp.b/255;
-  for(const m of activeMeteors){
-    m.glowMat.color.copy(imp.three);
-    m.light.color.copy(imp.three);
-    for(let i=0;i<m.trailLen;i++){
-      const hm=Math.max(0,1-i/6);
-      m.trailColors[i*3]=hm+(1-hm)*ir;
-      m.trailColors[i*3+1]=hm+(1-hm)*ig;
-      m.trailColors[i*3+2]=hm+(1-hm)*ib;
+function syncTrailRibbonColor(m,threeColor){
+  if(m.trailMat&&m.trailMat.uniforms&&m.trailMat.uniforms.uColor){
+    m.trailMat.uniforms.uColor.value.copy(threeColor);
+  }
+}
+
+function updateTrailRibbon(m,headX,headY,headZ,visFactor,camX,camY,camZ){
+  const len=m.trailLen;
+  const tp=m.trailPositions;
+  const vp=m.trailVerts;
+  const offX=headX-m.pos.x,offY=headY-m.pos.y,offZ=headZ-m.pos.z;
+  m.trail.position.set(offX,offY,offZ);
+  const widthBase=0.052*(0.9+0.2*visFactor);
+  let lastSx=1,lastSy=0,lastSz=0;
+
+  for(let i=0;i<len;i++){
+    const bi=i*3;
+    const px=tp[bi],py=tp[bi+1],pz=tp[bi+2];
+
+    let tx,ty,tz;
+    if(i===0){
+      tx=tp[0]-tp[3];ty=tp[1]-tp[4];tz=tp[2]-tp[5];
+    }else if(i===len-1){
+      const pi=(len-2)*3;
+      tx=tp[pi]-tp[bi];ty=tp[pi+1]-tp[bi+1];tz=tp[pi+2]-tp[bi+2];
+    }else{
+      const pi=(i-1)*3,ni=(i+1)*3;
+      tx=tp[pi]-tp[ni];ty=tp[pi+1]-tp[ni+1];tz=tp[pi+2]-tp[ni+2];
     }
-    m.trailGeo.attributes.color.needsUpdate=true;
+
+    let tLen=Math.hypot(tx,ty,tz);
+    if(tLen<1e-6){tx=0;ty=0;tz=1;tLen=1;}
+    tx/=tLen;ty/=tLen;tz/=tLen;
+
+    const wx=px+offX,wy=py+offY,wz=pz+offZ;
+    let vx=camX-wx,vy=camY-wy,vz=camZ-wz;
+    let vLen=Math.hypot(vx,vy,vz);
+    if(vLen<1e-6){vx=0;vy=0;vz=1;vLen=1;}
+    vx/=vLen;vy/=vLen;vz/=vLen;
+
+    let sx=vy*tz-vz*ty;
+    let sy=vz*tx-vx*tz;
+    let sz=vx*ty-vy*tx;
+    let sLen=Math.hypot(sx,sy,sz);
+    if(sLen<1e-6){
+      sx=lastSx;sy=lastSy;sz=lastSz;
+    }else{
+      sx/=sLen;sy/=sLen;sz/=sLen;
+      lastSx=sx;lastSy=sy;lastSz=sz;
+    }
+
+    const f=i/(len-1);
+    let w=widthBase*(0.18+0.82*Math.pow(1-f,0.58));
+    if(i===0)w*=0.45; // protect bright head core from overbloom
+    sx*=w;sy*=w;sz*=w;
+
+    const vi=i*6;
+    vp[vi]=px+sx;vp[vi+1]=py+sy;vp[vi+2]=pz+sz;
+    vp[vi+3]=px-sx;vp[vi+4]=py-sy;vp[vi+5]=pz-sz;
+  }
+
+  m.trailPosAttr.needsUpdate=true;
+  m.trailMat.uniforms.uOpacity.value=0.95*Math.max(0,Math.min(1,visFactor));
+}
+
+function syncActiveMeteorColors(){
+  const imp=getMeteorColorData(false);
+  for(const m of activeMeteors){
+    const c=m.isNuke?getMeteorColorData(true):imp;
+    m.glowMat.color.copy(c.three);
+    if(m.coreMat)m.coreMat.color.copy(getMeteorCoreColor(c.three));
+    if(m.light)m.light.color.copy(c.three);
+    syncTrailRibbonColor(m,c.three);
   }
 }
 
 function spawnMeteor(){
-  const patKey=METEOR_PATS[Math.floor(Math.random()*METEOR_PATS.length)];
-  const imp=getImpactColorData();
+  if(activeMeteors.length>=MAX_ACTIVE_METEORS)return;
+  const canSpawnNuke=meteorsSinceLastNuke>=NUKE_MIN_METEORS_BETWEEN;
+  const isNuke=canSpawnNuke&&Math.random()<NUKE_SPAWN_CHANCE;
+  if(isNuke)meteorsSinceLastNuke=0;
+  else meteorsSinceLastNuke++;
+  const patKey=isNuke?NUKE_PAT_KEY:METEOR_PATS[Math.floor(Math.random()*METEOR_PATS.length)];
+  const imp=getMeteorColorData(isNuke);
 
   // Bias 70% of meteors toward camera-visible hemisphere
   const camDir=camera.position.clone().normalize();
@@ -998,146 +1273,275 @@ function spawnMeteor(){
 
   // Initial velocity: toward sphere center (gravity), small perpendicular deviation
   const toCenter=origin.clone().negate().normalize();
-  const baseSpeed=Math.sqrt(2.5/originDist)*0.8; // below escape velocity → always captured
+  const baseSpeed=Math.sqrt(2.5/originDist)*0.8; // below escape velocity -> always captured
   const dev=new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5);
   dev.sub(toCenter.clone().multiplyScalar(dev.dot(toCenter))).normalize();
   const vel=toCenter.clone().multiplyScalar(baseSpeed).add(dev.multiplyScalar(baseSpeed*0.1));
 
   // White-hot core
-  const headMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:1.0,depthWrite:false});
+  const headMat=new THREE.MeshBasicMaterial({color:0xfcfdff,transparent:true,opacity:0.92,depthWrite:false});
   const head=new THREE.Mesh(meteorHeadGeo,headMat);
   head.position.copy(origin);
   head.renderOrder=8;
   scene.add(head);
 
   // Bright tip point (small intense white sprite)
-  const tipMat=new THREE.SpriteMaterial({map:meteorGlowTex,color:0xffffff,transparent:true,opacity:1.0,depthWrite:false});
+  const tipMat=new THREE.SpriteMaterial({map:meteorGlowTex,color:0xffffff,transparent:true,opacity:0.92,depthWrite:false});
   const tip=new THREE.Sprite(tipMat);
-  tip.scale.set(0.03,0.03,1);
+  tip.scale.set(0.026,0.026,1);
   tip.renderOrder=9;
   head.add(tip);
 
+  // Mid halo smooths the white-to-color transition around the head core.
+  const coreMat=new THREE.SpriteMaterial({
+    map:meteorGlowTex,
+    color:getMeteorCoreColor(imp.three),
+    transparent:true,
+    opacity:0.78,
+    depthWrite:false,
+    blending:THREE.AdditiveBlending
+  });
+  const core=new THREE.Sprite(coreMat);
+  core.scale.set(0.082,0.082,1);
+  core.renderOrder=8;
+  head.add(core);
+
   // Soft radial glow sprite (NormalBlending: consistent against any background)
-  const glowMat=new THREE.SpriteMaterial({map:meteorGlowTex,color:imp.three,transparent:true,opacity:0.7,depthWrite:false});
+  const glowMat=new THREE.SpriteMaterial({map:meteorGlowTex,color:imp.three,transparent:true,opacity:0.76,depthWrite:false});
   const glow=new THREE.Sprite(glowMat);
-  glow.scale.set(0.3,0.3,1);
+  glow.scale.set(0.32,0.32,1);
   glow.renderOrder=7;
   head.add(glow);
 
-  // Trail with per-vertex alpha shader (NormalBlending: no washout against bright sphere)
-  const trailLen=80;
+  // Continuous ribbon trail: no dotted points, lateral fade via shader
+  const trailLen=72;
   const trailPositions=new Float32Array(trailLen*3);
-  for(let i=0;i<trailLen;i++){trailPositions[i*3]=origin.x;trailPositions[i*3+1]=origin.y;trailPositions[i*3+2]=origin.z}
-  const trailGeo=new THREE.BufferGeometry();
-  trailGeo.setAttribute('position',new THREE.BufferAttribute(trailPositions,3));
-  const trailColors=new Float32Array(trailLen*3);
-  const trailAlphas=new Float32Array(trailLen);
-  const ir=imp.r/255,ig=imp.g/255,ib=imp.b/255;
+  const trailVerts=new Float32Array(trailLen*6);
+  const trailUVs=new Float32Array(trailLen*4);
+  const trailIdx=new Uint16Array((trailLen-1)*6);
   for(let i=0;i<trailLen;i++){
-    const f=1-i/trailLen,hm=Math.max(0,1-i/6);
-    trailColors[i*3]=hm+(1-hm)*ir;
-    trailColors[i*3+1]=hm+(1-hm)*ig;
-    trailColors[i*3+2]=hm+(1-hm)*ib;
-    trailAlphas[i]=Math.pow(f,1.1);
+    const pi=i*3;
+    trailPositions[pi]=origin.x;trailPositions[pi+1]=origin.y;trailPositions[pi+2]=origin.z;
+    const vi=i*6;
+    trailVerts[vi]=origin.x;trailVerts[vi+1]=origin.y;trailVerts[vi+2]=origin.z;
+    trailVerts[vi+3]=origin.x;trailVerts[vi+4]=origin.y;trailVerts[vi+5]=origin.z;
+    const ui=i*4;
+    const v=i/(trailLen-1);
+    trailUVs[ui]=0;trailUVs[ui+1]=v;
+    trailUVs[ui+2]=1;trailUVs[ui+3]=v;
+    if(i<trailLen-1){
+      const ii=i*6,vi2=i*2;
+      trailIdx[ii]=vi2;
+      trailIdx[ii+1]=vi2+1;
+      trailIdx[ii+2]=vi2+2;
+      trailIdx[ii+3]=vi2+1;
+      trailIdx[ii+4]=vi2+3;
+      trailIdx[ii+5]=vi2+2;
+    }
   }
-  trailGeo.setAttribute('color',new THREE.BufferAttribute(trailColors,3));
-  trailGeo.setAttribute('alpha',new THREE.BufferAttribute(trailAlphas,1));
+
+  const trailGeo=new THREE.BufferGeometry();
+  const trailPosAttr=new THREE.BufferAttribute(trailVerts,3);
+  trailPosAttr.setUsage(THREE.DynamicDrawUsage);
+  trailGeo.setAttribute('position',trailPosAttr);
+  trailGeo.setAttribute('uv',new THREE.BufferAttribute(trailUVs,2));
+  trailGeo.setIndex(new THREE.BufferAttribute(trailIdx,1));
   const trailMat=new THREE.ShaderMaterial({
-    uniforms:{map:{value:meteorGlowTex},uOpacity:{value:1.0}},
-    vertexShader:'attribute vec3 color;attribute float alpha;varying vec3 vC;varying float vA;void main(){vC=color;vA=alpha;vec4 mv=modelViewMatrix*vec4(position,1.0);gl_PointSize=max(1.0,50.0/ -mv.z);gl_Position=projectionMatrix*mv;}',
-    fragmentShader:'uniform sampler2D map;uniform float uOpacity;varying vec3 vC;varying float vA;void main(){vec4 t=texture2D(map,gl_PointCoord);float a=t.a*vA*uOpacity;if(a<0.01)discard;gl_FragColor=vec4(vC*t.rgb,a);}',
-    transparent:true,depthWrite:false
+    uniforms:{
+      map:{value:meteorGlowTex},
+      uColor:{value:imp.three.clone()},
+      uOpacity:{value:0.95}
+    },
+    vertexShader:[
+      'varying vec2 vUv;',
+      'void main(){',
+      '  vUv=uv;',
+      '  gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);',
+      '}'
+    ].join('\n'),
+    fragmentShader:[
+      'uniform sampler2D map;',
+      'uniform vec3 uColor;',
+      'uniform float uOpacity;',
+      'varying vec2 vUv;',
+      'void main(){',
+      '  vec4 tex=texture2D(map,vec2(vUv.x,0.5));',
+      '  float side=max(0.0,1.0-abs(vUv.x*2.0-1.0));',
+      '  float sideFade=pow(side,1.55);',
+      '  float along=pow(max(0.0,1.0-vUv.y),1.22);',
+      '  float alpha=tex.a*sideFade*along*uOpacity;',
+      '  if(alpha<0.003) discard;',
+      '  float core=pow(side,4.0)*pow(max(0.0,1.0-vUv.y),1.6);',
+      '  vec3 col=mix(uColor,vec3(1.0),0.24*core);',
+      '  gl_FragColor=vec4(col*tex.rgb,alpha);',
+      '}'
+    ].join('\n'),
+    transparent:true,
+    depthWrite:false,
+    side:THREE.DoubleSide,
+    blending:THREE.AdditiveBlending
   });
-  const trail=new THREE.Points(trailGeo,trailMat);
-  trail.renderOrder=5;
-  trail.frustumCulled=false; // bounding sphere is stale after spawn — never cull trails
+  const trail=new THREE.Mesh(trailGeo,trailMat);
+  trail.renderOrder=4;
+  trail.frustumCulled=false;
   scene.add(trail);
 
-  const light=new THREE.PointLight(imp.three,2.0,6);
-  light.position.copy(origin);
-  scene.add(light);
+  let light=null;
+  if(METEOR_ENABLE_POINT_LIGHT){
+    light=new THREE.PointLight(imp.three,2.0,6);
+    light.position.copy(origin);
+    scene.add(light);
+  }
 
-  activeMeteors.push({
-    head,tip,tipMat,trail,glow,glowMat,trailGeo,trailPositions,trailColors,trailLen,light,
-    pos:origin.clone(),vel:vel.clone(),
-    patKey, age:0,
-    history:[origin.clone()]
-  });
+  const meteor={
+    head,tip,tipMat,core,coreMat,trail,trailGeo,trailMat,trailPosAttr,trailVerts,glow,glowMat,trailPositions,trailLen,light,
+    pos:origin.clone(),prevPos:origin.clone(),renderPos:origin.clone(),vel:vel.clone(),
+    patKey,isNuke, age:0
+  };
+  syncTrailRibbonColor(meteor,imp.three);
+  updateTrailRibbon(meteor,origin.x,origin.y,origin.z,1.0,camera.position.x,camera.position.y,camera.position.z);
+  activeMeteors.push(meteor);
+}
+
+function disposeMeteorVisuals(m){
+  if(!m)return;
+  scene.remove(m.head);
+  if(m.light)scene.remove(m.light);
+  if(m.trail)scene.remove(m.trail);
+  if(m.head&&m.head.material)m.head.material.dispose();
+  if(m.tipMat)m.tipMat.dispose();
+  if(m.coreMat)m.coreMat.dispose();
+  if(m.glowMat)m.glowMat.dispose();
+  if(m.trailGeo)m.trailGeo.dispose();
+  if(m.trailMat)m.trailMat.dispose();
+}
+
+const _impactWorldPt=new THREE.Vector3();
+const METEOR_TRAIL_POINT_STEP=0.01;
+const METEOR_TRAIL_MAX_INSERTS=12;
+
+function updateMeteorVisuals(interp,frameDt){
+  const a=Math.max(0,Math.min(1,interp));
+  const camX=camera.position.x,camY=camera.position.y,camZ=camera.position.z;
+  const camLen=Math.hypot(camX,camY,camZ)||1;
+  const camNx=camX/camLen,camNy=camY/camLen,camNz=camZ/camLen;
+
+  for(let i=0;i<activeMeteors.length;i++){
+    const m=activeMeteors[i];
+    const tx=m.prevPos.x+(m.pos.x-m.prevPos.x)*a;
+    const ty=m.prevPos.y+(m.pos.y-m.prevPos.y)*a;
+    const tz=m.prevPos.z+(m.pos.z-m.prevPos.z)*a;
+    m.renderPos.x=tx;
+    m.renderPos.y=ty;
+    m.renderPos.z=tz;
+    const px=m.renderPos.x,py=m.renderPos.y,pz=m.renderPos.z;
+    m.head.position.set(px,py,pz);
+    if(m.light)m.light.position.set(px,py,pz);
+
+    const r=Math.hypot(px,py,pz)||1;
+    const facing=camNx*(px/r)+camNy*(py/r)+camNz*(pz/r); // +1=facing camera, -1=behind sphere
+    const visFactor=facing>0?1.0:Math.max(0.08,0.3+facing*0.5); // behind: 8%-30%
+    m.glow.scale.set(0.32,0.32,1);
+    m.glowMat.opacity=0.78*visFactor;
+    m.head.material.opacity=0.92*visFactor;
+    m.tipMat.opacity=0.88*visFactor;
+    if(m.core){
+      m.core.scale.set(0.082,0.082,1);
+      m.coreMat.opacity=0.74*visFactor;
+    }
+    updateTrailRibbon(m,px,py,pz,visFactor,camX,camY,camZ);
+    if(m.light)m.light.intensity=2.0*visFactor;
+  }
 }
 
 function updateMeteors(dt){
   const G=2.5; // gravitational constant
+  const sDt=dt*meteorSpeed*3.0;
+
   for(let mi=activeMeteors.length-1;mi>=0;mi--){
     const m=activeMeteors[mi];
-    const sDt=dt*meteorSpeed*3.0;
+    const pos=m.pos,prevPos=m.prevPos,vel=m.vel;
     m.age+=dt;
 
     // Gravitational acceleration toward sphere center
-    const rGrav=Math.max(0.1,m.pos.length());
-    const prevPos=m.pos.clone();
-    const acc=m.pos.clone().normalize().multiplyScalar(-G/(rGrav*rGrav));
+    prevPos.copy(pos);
+    const prevX=prevPos.x,prevY=prevPos.y,prevZ=prevPos.z;
+    const rPrev=Math.hypot(prevX,prevY,prevZ);
+    const rGrav=Math.max(0.1,rPrev);
+    const invR=1/rGrav;
+    const accScale=-G/(rGrav*rGrav);
     // Symplectic Euler: update velocity, then position
-    m.vel.add(acc.multiplyScalar(sDt));
-    m.pos.add(m.vel.clone().multiplyScalar(sDt));
-    const r=m.pos.length(); // post-update distance for impact check
+    vel.x+=prevX*invR*accScale*sDt;
+    vel.y+=prevY*invR*accScale*sDt;
+    vel.z+=prevZ*invR*accScale*sDt;
+    pos.x+=vel.x*sDt;
+    pos.y+=vel.y*sDt;
+    pos.z+=vel.z*sDt;
+    const r=Math.hypot(pos.x,pos.y,pos.z); // post-update distance for impact check
 
-    m.head.position.copy(m.pos);
-    m.light.position.copy(m.pos);
-
-    // Update trail from position history
-    m.history.unshift(m.pos.clone());
-    if(m.history.length>m.trailLen)m.history.length=m.trailLen;
-    for(let i=0;i<m.trailLen;i++){
-      const p=i<m.history.length?m.history[i]:m.history[m.history.length-1];
-      m.trailPositions[i*3]=p.x;m.trailPositions[i*3+1]=p.y;m.trailPositions[i*3+2]=p.z;
+    // Densify trail samples to avoid dotted look at higher meteor speeds
+    const dx=pos.x-prevX,dy=pos.y-prevY,dz=pos.z-prevZ;
+    const travel=Math.hypot(dx,dy,dz);
+    let inserts=Math.ceil(travel/METEOR_TRAIL_POINT_STEP);
+    if(!Number.isFinite(inserts)||inserts<1)inserts=1;
+    if(inserts>METEOR_TRAIL_MAX_INSERTS)inserts=METEOR_TRAIL_MAX_INSERTS;
+    const shift=inserts*3;
+    for(let ti=m.trailLen*3-1;ti>=shift;ti--)m.trailPositions[ti]=m.trailPositions[ti-shift];
+    if(inserts===1){
+      m.trailPositions[0]=pos.x;
+      m.trailPositions[1]=pos.y;
+      m.trailPositions[2]=pos.z;
+    }else{
+      for(let j=0;j<inserts;j++){
+        const f=1-j/(inserts-1);
+        const bi=j*3;
+        m.trailPositions[bi]=prevX+dx*f;
+        m.trailPositions[bi+1]=prevY+dy*f;
+        m.trailPositions[bi+2]=prevZ+dz*f;
+      }
     }
-    m.trailGeo.attributes.position.needsUpdate=true;
-
-    // Front/back fade: meteors behind the sphere are drawn much fainter
-    const camDir=camera.position.clone().normalize();
-    const mDir=m.pos.clone().normalize();
-    const facing=camDir.dot(mDir); // +1=facing camera, -1=behind sphere
-    const visFactor=facing>0?1.0:Math.max(0.08,0.3+facing*0.5); // behind: 8%-30%
-    m.glow.scale.set(0.3,0.3,1);
-    m.glowMat.opacity=0.85*visFactor;
-    m.head.material.opacity=1.0*visFactor;
-    m.tipMat.opacity=1.0*visFactor;
-    m.trail.material.uniforms.uOpacity.value=visFactor;
-    m.light.intensity=2.0*visFactor;
-
     // Impact: meteor reached sphere surface (or timeout safety)
     if(r<=1.005||m.age>15){
       // Interpolate to find exact surface crossing point
-      const rPrev=prevPos.length();
-      let impactPt;
-      if(rPrev>1.0&&r<1.0){
+      let ipx,ipy,ipz;
+      if(rPrev>1.0&&r<1.0&&rPrev!==r){
         const t=(rPrev-1.0)/(rPrev-r);
-        impactPt=prevPos.clone().lerp(m.pos,t).normalize();
+        ipx=prevX+(pos.x-prevX)*t;
+        ipy=prevY+(pos.y-prevY)*t;
+        ipz=prevZ+(pos.z-prevZ)*t;
       }else{
-        impactPt=m.pos.clone().normalize();
+        ipx=pos.x;ipy=pos.y;ipz=pos.z;
       }
-      const grid=surfaceToGrid(impactPt);
-      const placed=placeRandomOriented(m.patKey,grid.x,grid.y);
-      if(placed)placed.forEach(([dx,dy])=>{const i=ix(grid.x+dx,grid.y+dy);meteorAge[i]=1.0});
-      cntPop();updTex();updStats();
-      impactRings.push({cx:grid.x,cy:grid.y,t:0});
+      const il=Math.hypot(ipx,ipy,ipz)||1;
+      _impactWorldPt.set(ipx/il,ipy/il,ipz/il);
+      const grid=surfaceToGrid(_impactWorldPt);
+      if(m.isNuke){
+        applyNukeWipe(grid.x,grid.y,NUKE_WIPE_RADIUS);
+      }else{
+        // Keep Alive/Born color settings independent from Meteor toggle:
+        // impact-seeded cells start "mature" so they use Alive color immediately.
+        const placed=placeRandomOriented(m.patKey,grid.x,grid.y,undefined,4);
+        if(placed)placed.forEach(([dx,dy])=>{
+          const i=ix(grid.x+dx,grid.y+dy);
+          meteorAge[i]=1.0;
+          if(!meteorFlashMark[i]){meteorFlashMark[i]=1;meteorFlashIdx.push(i);}
+        });
+      }
+      cntPop();pendingTexUpdate=true;updStats();
+      impactRings.push({cx:grid.x,cy:grid.y,t:0,color:m.isNuke?NUKE_COLOR_RGB:null,bornBeat:1});
       meteorStats[m.patKey]=(meteorStats[m.patKey]||0)+1;
       updMeteorStats();
       showImpactOverlay(m.patKey);
       // Cleanup
-      scene.remove(m.head);scene.remove(m.trail);scene.remove(m.light);
-      m.head.material.dispose();
-      m.tipMat.dispose();
-      m.glowMat.dispose();
-      m.trailGeo.dispose();m.trail.material.dispose();
+      disposeMeteorVisuals(m);
       activeMeteors.splice(mi,1);
     }
   }
 }
 
-// ════════════════════════════════════════
-// IMPACT OVERLAY — multi-frame with per-slot fade
-// ════════════════════════════════════════
+// ========================================
+// IMPACT OVERLAY &mdash; multi-frame with per-slot fade
+// ========================================
 let impactSlots=[]; // each: {patKey,timer,num,el} or null
 let impactNum=0;
 let _rulesVisible=false, _rulesShowLock=0;
@@ -1167,36 +1571,61 @@ function estimateMeteorImpactSeconds(m,maxAhead=2.0){
   const timeoutLeft=Math.max(0,15-(m.age||0));
   const horizon=Math.min(maxAhead,timeoutLeft);
   if(horizon<=0)return 0.1;
-  const pos=m.pos.clone();
-  const vel=m.vel.clone();
+  let px=m.pos.x,py=m.pos.y,pz=m.pos.z;
+  let vx=m.vel.x,vy=m.vel.y,vz=m.vel.z;
+  const sDt=step*meteorSpeed*3.0;
   for(let t=step;t<=horizon+1e-6;t+=step){
-    const sDt=step*meteorSpeed*3.0;
-    const rGrav=Math.max(0.1,pos.length());
-    const acc=pos.clone().normalize().multiplyScalar(-G/(rGrav*rGrav));
-    vel.add(acc.multiplyScalar(sDt));
-    pos.add(vel.clone().multiplyScalar(sDt));
-    if(pos.length()<=1.005)return t;
+    const rGrav=Math.max(0.1,Math.hypot(px,py,pz));
+    const invR=1/rGrav;
+    const accScale=-G/(rGrav*rGrav);
+    vx+=px*invR*accScale*sDt;
+    vy+=py*invR*accScale*sDt;
+    vz+=pz*invR*accScale*sDt;
+    px+=vx*sDt;
+    py+=vy*sDt;
+    pz+=vz*sDt;
+    if(Math.hypot(px,py,pz)<=1.005)return t;
   }
   return Infinity;
 }
 
+let _spacePressureCacheT=0;
+let _spacePressureCacheVal=Infinity;
+let _spacePressureCacheMeteorCount=-1;
+let _spacePressureCacheActiveCount=-1;
 function predictSpacePressure(){
   // Predict if incoming meteors will cause overlap with rules box.
   if(!meteorMode||activeMeteors.length===0)return Infinity;
   const activeCount=impactSlots.filter(s=>s).length;
+  const now=performance.now();
+  if(now-_spacePressureCacheT<180&&
+     _spacePressureCacheMeteorCount===activeMeteors.length&&
+     _spacePressureCacheActiveCount===activeCount){
+    return _spacePressureCacheVal;
+  }
   const cap=computeOverlayCapacity();
   if(cap.cols<=0)return Infinity;
   // After each in-flight meteor lands, how many rows?
   const futureRows=Math.ceil((activeCount+activeMeteors.length)/Math.max(1,cap.cols));
   const futureOverlayBottom=cap.topY+(futureRows*(cap.cardH+cap.gridGap)-cap.gridGap)+8;
   const rulesTop=innerHeight-RULES_MARGIN-RULES_H;
-  if(futureOverlayBottom<=rulesTop)return Infinity;
+  if(futureOverlayBottom<=rulesTop){
+    _spacePressureCacheT=now;
+    _spacePressureCacheVal=Infinity;
+    _spacePressureCacheMeteorCount=activeMeteors.length;
+    _spacePressureCacheActiveCount=activeCount;
+    return Infinity;
+  }
   // Overlap predicted: estimate earliest impact time.
   let soonest=Infinity;
   for(let i=0;i<activeMeteors.length;i++){
     const eta=estimateMeteorImpactSeconds(activeMeteors[i],2.0);
     if(eta<soonest)soonest=eta;
   }
+  _spacePressureCacheT=now;
+  _spacePressureCacheVal=soonest;
+  _spacePressureCacheMeteorCount=activeMeteors.length;
+  _spacePressureCacheActiveCount=activeCount;
   return soonest;
 }
 
@@ -1204,9 +1633,13 @@ function predictSpacePressure(){
 let _impMaxW=0,_impMaxH=0;
 METEOR_PATS.forEach(k=>{const p=PAT[k];if(!p)return;let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;p.forEach(([x,y])=>{if(x<x0)x0=x;if(y<y0)y0=y;if(x>x1)x1=x;if(y>y1)y1=y});_impMaxW=Math.max(_impMaxW,x1-x0+1);_impMaxH=Math.max(_impMaxH,y1-y0+1)});
 const IMP_CELL=6,IMP_PAD=2,IMP_CVS_W=(_impMaxW+IMP_PAD*2)*IMP_CELL,IMP_CVS_H=(_impMaxH+IMP_PAD*2)*IMP_CELL;
+const IMPACT_BORN_BEAT_SEC=0.22;
+const _w2sOrigin=new THREE.Vector3(0,0,0);
+const _w2sX=new THREE.Vector3(1,0,0);
+const _w2sTmp=new THREE.Vector3();
 
 function worldToScreen(v){
-  const p=v.clone().project(camera);
+  const p=_w2sTmp.copy(v).project(camera);
   return{
     x:(p.x*0.5+0.5)*innerWidth,
     y:(-p.y*0.5+0.5)*innerHeight
@@ -1234,8 +1667,8 @@ function computeOverlayCapacity(){
   }
 
   // Compute where the sphere's right edge is on screen
-  const sc=worldToScreen(new THREE.Vector3(0,0,0));
-  const se=worldToScreen(new THREE.Vector3(1,0,0));
+  const sc=worldToScreen(_w2sOrigin);
+  const se=worldToScreen(_w2sX);
   const sphereR=Math.max(80,Math.hypot(se.x-sc.x,se.y-sc.y));
   const sphereRightEdge=sc.x+sphereR;
 
@@ -1243,7 +1676,7 @@ function computeOverlayCapacity(){
   const availW=Math.max(0,innerWidth-sphereRightEdge-gap-margin);
   const availH=Math.max(0,botY-topY);
 
-  // Determine how many columns fit (4→3→2→1→0)
+  // Determine how many columns fit (4->3->2->1->0)
   let cols=4;
   while(cols>0){
     const neededW=cols*cardW+(cols-1)*gridGap;
@@ -1290,8 +1723,8 @@ function positionImpactOverlay(){
     const rBottom=innerHeight-RULES_MARGIN;
 
     // Sphere circle on screen
-    const sc=worldToScreen(new THREE.Vector3(0,0,0));
-    const se=worldToScreen(new THREE.Vector3(1,0,0));
+    const sc=worldToScreen(_w2sOrigin);
+    const se=worldToScreen(_w2sX);
     const sphereR=Math.max(80,Math.hypot(se.x-sc.x,se.y-sc.y));
     // Check circle-rect overlap
     const closestX=Math.max(rLeft,Math.min(sc.x,rRight));
@@ -1366,27 +1799,42 @@ function positionImpactOverlay(){
   overlay.style.display='grid';
 }
 
-function makeImpactCard(patKey,num){
-  const imp=getImpactColorData();
+function makeImpactCard(patKey,num,useBorn=false){
+  const isNuke=patKey===NUKE_PAT_KEY;
+  const imp=isNuke?getMeteorColorData(true):(useBorn?getBornColorData():getImpactColorData());
   const icR=imp.r,icG=imp.g,icB=imp.b;
   const colStr='rgb('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+')';
   const glowStr='rgba('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+',0.6)';
-  const pat=PAT[patKey];if(!pat)return null;
+  const pat=PAT[patKey];
+  if(!pat&&!isNuke)return null;
   const card=document.createElement('div');card.className='imp-card';
   const numEl=document.createElement('div');numEl.className='imp-num';numEl.textContent=''+num;numEl.style.color=colStr;
   card.appendChild(numEl);
   const cvs=document.createElement('canvas');cvs.width=IMP_CVS_W;cvs.height=IMP_CVS_H;
   const ctx=cvs.getContext('2d');
-  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
-  pat.forEach(([x,y])=>{if(x<x0)x0=x;if(y<y0)y0=y;if(x>x1)x1=x;if(y>y1)y1=y});
-  const offX=Math.floor((IMP_CVS_W-(x1-x0+1)*IMP_CELL)/2),offY=Math.floor((IMP_CVS_H-(y1-y0+1)*IMP_CELL)/2);
-  pat.forEach(([x,y])=>{
-    const px=offX+(x-x0)*IMP_CELL,py=offY+(y-y0)*IMP_CELL;
-    ctx.fillStyle='rgba('+Math.round(icR*0.4)+','+Math.round(icG*0.4)+','+Math.round(icB*0.4)+',0.5)';
-    ctx.fillRect(px-1,py-1,IMP_CELL+2,IMP_CELL+2);
-    ctx.fillStyle='rgba('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+',0.95)';
-    ctx.fillRect(px+1,py+1,IMP_CELL-2,IMP_CELL-2);
-  });
+  if(isNuke){
+    ctx.fillStyle='rgba('+Math.round(icR*0.35)+','+Math.round(icG*0.35)+','+Math.round(icB*0.35)+',0.5)';
+    ctx.fillRect(2,2,IMP_CVS_W-4,IMP_CVS_H-4);
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.shadowColor='rgba('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+',0.85)';
+    ctx.shadowBlur=18;
+    ctx.font='700 '+Math.floor(IMP_CVS_H*0.62)+'px Segoe UI Symbol, Noto Sans Symbols, sans-serif';
+    ctx.fillStyle='rgba('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+',0.98)';
+    ctx.fillText('\u2620',Math.floor(IMP_CVS_W*0.5),Math.floor(IMP_CVS_H*0.56));
+    ctx.shadowBlur=0;
+  }else{
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    pat.forEach(([x,y])=>{if(x<x0)x0=x;if(y<y0)y0=y;if(x>x1)x1=x;if(y>y1)y1=y});
+    const offX=Math.floor((IMP_CVS_W-(x1-x0+1)*IMP_CELL)/2),offY=Math.floor((IMP_CVS_H-(y1-y0+1)*IMP_CELL)/2);
+    pat.forEach(([x,y])=>{
+      const px=offX+(x-x0)*IMP_CELL,py=offY+(y-y0)*IMP_CELL;
+      ctx.fillStyle='rgba('+Math.round(icR*0.4)+','+Math.round(icG*0.4)+','+Math.round(icB*0.4)+',0.5)';
+      ctx.fillRect(px-1,py-1,IMP_CELL+2,IMP_CELL+2);
+      ctx.fillStyle='rgba('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+',0.95)';
+      ctx.fillRect(px+1,py+1,IMP_CELL-2,IMP_CELL-2);
+    });
+  }
   card.appendChild(cvs);
   const lbl=document.createElement('div');lbl.className='imp-label';
   const _brl=PAT_BRAILLE[patKey]||'';
@@ -1431,7 +1879,7 @@ function showImpactOverlay(patKey,keepTimer=false){
     // Recolor existing cards in-place (e.g. when impact color changes)
     for(let i=0;i<impactSlots.length;i++){
       const s=impactSlots[i];if(!s)continue;
-      const newEl=makeImpactCard(s.patKey,s.num);
+      const newEl=makeImpactCard(s.patKey,s.num,s.bornBeat>0);
       if(newEl){newEl.style.opacity=s.el.style.opacity||'1';s.el=newEl;syncOverlayChild(i)}
     }
     return;
@@ -1439,41 +1887,51 @@ function showImpactOverlay(patKey,keepTimer=false){
   // Check if there's any space at all before creating a new card
   const cap=computeOverlayCapacity();
   if(cap.maxSlots<=0){
-    // No space — don't create the card, just count the stat
+    // No space &mdash; don't create the card, just count the stat
     return;
   }
   impactNum++;
   let idx=impactSlots.findIndex(s=>!s);
   if(idx<0)idx=impactSlots.length;
-  const el=makeImpactCard(patKey,impactNum);
+  const bornBeat=IMPACT_BORN_BEAT_SEC;
+  const el=makeImpactCard(patKey,impactNum,bornBeat>0);
   if(!el)return;
   // Adapt timer: shorter lifetime when space is tight
   const activeCount=impactSlots.filter(s=>s).length;
   const slotsLeft=cap.maxSlots-activeCount;
   const timer=slotsLeft>2?7.0:slotsLeft>0?4.0:2.0;
-  impactSlots[idx]={patKey,timer:timer,num:impactNum,el};
+  impactSlots[idx]={patKey,timer:timer,num:impactNum,el,bornBeat};
   syncOverlayChild(idx);
   overlay.style.display='grid';
   positionImpactOverlay();
 }
 
-// ════════════════════════════════════════
+// ========================================
 // METEOR STATS
-// ════════════════════════════════════════
+// ========================================
 function updMeteorStats(){
   const el=document.getElementById('mStats');
   const entries=Object.entries(meteorStats).sort((a,b)=>b[1]-a[1]);
   if(entries.length===0){el.innerHTML='';return}
   const total=entries.reduce((s,e)=>s+e[1],0);
+  const nukeEntry=entries.find(([k])=>k===NUKE_PAT_KEY);
+  const displayEntries=nukeEntry
+    ? [nukeEntry,...entries.filter(([k])=>k!==NUKE_PAT_KEY).slice(0,5)]
+    : entries.slice(0,6);
   const imp=getImpactColorData();
   const soft='rgba('+Math.round(imp.r)+','+Math.round(imp.g)+','+Math.round(imp.b)+',0.72)';
   el.innerHTML='<span style="color:'+soft+'" title="Total meteor impacts since last clear"><span class="ml">Impacts:</span> <span class="mc" style="color:'+imp.css+'">'+total+'</span></span> '+
-    entries.slice(0,6).map(([k,v])=>'<span style="color:'+soft+'" title="Number of '+((PAT_NAMES[k]||k))+' patterns delivered by meteor"><span class="ml">'+(PAT_BRAILLE[k]||'')+' '+(PAT_NAMES[k]||k)+':</span> <span class="mc" style="color:'+imp.css+'">'+v+'</span></span>').join(' ');
+    displayEntries.map(([k,v])=>{
+      const isNuke=k===NUKE_PAT_KEY;
+      const kSoft=isNuke?'rgba('+NUKE_COLOR_RGB[0]+','+NUKE_COLOR_RGB[1]+','+NUKE_COLOR_RGB[2]+',0.82)':soft;
+      const kColor=isNuke?NUKE_COLOR_CSS:imp.css;
+      return '<span style="color:'+kSoft+'" title="Number of '+((PAT_NAMES[k]||k))+' impacts delivered by meteor"><span class="ml">'+(PAT_BRAILLE[k]||'')+' '+(PAT_NAMES[k]||k)+':</span> <span class="mc" style="color:'+kColor+'">'+v+'</span></span>';
+    }).join(' ');
 }
 
-// ════════════════════════════════════════
+// ========================================
 // TEXTURE RENDERING
-// ════════════════════════════════════════
+// ========================================
 
 
 function updTex(){
@@ -1488,7 +1946,10 @@ function updTex(){
   const gR=c.dots[0]*c.iDots, gG=c.dots[1]*c.iDots, gB=c.dots[2]*c.iDots;
   // Block-paint with pole correction (reduced height near poles for square cells)
   for(let y=0;y<H;y++){
+    const sinTh=rowSinTh[y], cosTh=rowCosTh[y];
     const cellH=poleCellH[y];
+    const glossMask=getCellGlossMask(cellH);
+    const glossHi=glossMask.hi, glossSh=glossMask.sh;
     const yOff=(TEX_SCALE-cellH)>>1;
     for(let x=0;x<W;x++){
       const i=y*W+x;
@@ -1497,6 +1958,14 @@ function updTex(){
       if(alive){
         if(age[i]===0){cr=bR;cg=bG;cb=bB}
         else{cr=aR;cg=aG;cb=aB}
+        // Meteor impact flash: spawned impact cells start in Born tint, then fade to Alive.
+        if(meteorAge[i]>0){
+          const mf=Math.min(1,meteorAge[i]);
+          const inv=1-mf;
+          cr=cr*inv+bR*mf;
+          cg=cg*inv+bG*mf;
+          cb=cb*inv+bB*mf;
+        }
         if(cellExposure!==0){
           let L=(cr+cg+cb)/3;
           if(L>0.5){
@@ -1515,6 +1984,18 @@ function updTex(){
           cg=Math.max(0,Math.min(255,L+(cg-L)*f));
           cb=Math.max(0,Math.min(255,L+(cb-L)*f));
         }
+        // Hemisphere side-light: top-right side looks slightly milkier,
+        // opposite side slightly darker. Independent from meteor system.
+        const nx=-colCosPh[x]*sinTh, ny=cosTh, nz=colSinPh[x]*sinTh;
+        const hemi=nx*hemiLightDir.x+ny*hemiLightDir.y+nz*hemiLightDir.z;
+        if(USE_TEXTURE_HEMI&&hemi!==0&&dayNightStrength>0){
+          const milk=hemi>0?hemi*HEMI_MILK_STRENGTH*dayNightStrength:0;
+          const dark=hemi<0?-hemi*HEMI_DARK_STRENGTH*dayNightStrength:0;
+          const keep=1-dark;
+          cr=cr*keep+(255-cr)*milk;
+          cg=cg*keep+(255-cg)*milk;
+          cb=cb*keep+(255-cb)*milk;
+        }
       } else {
         cr=dR;cg=dG;cb=dB;
       }
@@ -1524,12 +2005,19 @@ function updTex(){
         const br=Math.min(255,cr+35),bgr=Math.min(255,cg+35),bbr=Math.min(255,cb+35);
         for(let py=0;py<cellH;py++){
           const rowOff=(tyT+py)*TW;
+          const glossOff=py*TEX_SCALE;
           const borderY=(py===0||py===cellH-1);
           for(let px=0;px<TEX_SCALE;px++){
             const tp=(rowOff+((txL+px)%TW+TW)%TW)<<2;
             const border=borderY||(px===0||px===TEX_SCALE-1);
-            if(border){d[tp]=br;d[tp+1]=bgr;d[tp+2]=bbr}
-            else{d[tp]=cr;d[tp+1]=cg;d[tp+2]=cb}
+            let pr,pg,pb;
+            if(border){pr=br;pg=bgr;pb=bbr}
+            else{pr=cr;pg=cg;pb=cb}
+            let sh=glossSh[glossOff+px], hi=glossHi[glossOff+px];
+            if(border){sh*=0.72;hi*=0.70}
+            pr*=1-sh;pg*=1-sh;pb*=1-sh;
+            pr=pr+(255-pr)*hi;pg=pg+(255-pg)*hi;pb=pb+(255-pb)*hi;
+            d[tp]=pr;d[tp+1]=pg;d[tp+2]=pb;
             d[tp+3]=255;
           }
         }
@@ -1578,39 +2066,47 @@ function updTex(){
     tx.globalCompositeOperation='source-over';
   }
 
-  // Impact shockwave rings (scaled to TW×TH texture)
+  // Impact shockwave rings (scaled to TWxTH texture)
   if(impactRings.length>0){
+    const bornC=hex2rgb($('cBorn').value);
+    const bornI=+$('iBorn').value/100;
     const impC=hex2rgb($('cImpact').value);
     const impI=+$('iImpact').value/100;
     const S=TEX_SCALE;
     for(const ring of impactRings){
+      const firstBeat=(ring.bornBeat===1)||ring.t<0.12;
+      const ringC=firstBeat?bornC:(ring.color||impC);
+      const ringI=firstBeat?bornI:(ring.color?1.0:impI);
       const r=ring.t*40*S;
       const rcx=(ring.cx+0.5)*S, rcy=(ring.cy+0.5)*S;
-      const opacity=Math.max(0,1-ring.t/1.5)*impI;
+      const opacity=Math.max(0,1-ring.t/1.5)*ringI;
       if(ring.t<0.6){
         const f=1-ring.t/0.6;
         const flashR=Math.max(3,ring.t*22)*S;
-        tx.fillStyle='rgba(255,255,255,'+(f*f*impI).toFixed(3)+')';
+        tx.fillStyle='rgba(255,255,255,'+(f*f*ringI).toFixed(3)+')';
         for(const ox of[-TW,0,TW]){tx.beginPath();tx.arc(rcx+ox,rcy,flashR*0.4,0,Math.PI*2);tx.fill()}
-        tx.fillStyle='rgba('+impC[0]+','+impC[1]+','+impC[2]+','+(f*impI*0.7).toFixed(3)+')';
+        tx.fillStyle='rgba('+ringC[0]+','+ringC[1]+','+ringC[2]+','+(f*ringI*0.7).toFixed(3)+')';
         for(const ox of[-TW,0,TW]){tx.beginPath();tx.arc(rcx+ox,rcy,flashR,0,Math.PI*2);tx.fill()}
       }
       const w=Math.max(1,4.5-ring.t*2.5)*S;
-      tx.strokeStyle='rgba('+Math.round(impC[0]*opacity)+','+Math.round(impC[1]*opacity)+','+Math.round(impC[2]*opacity)+','+opacity.toFixed(3)+')';
+      tx.strokeStyle='rgba('+Math.round(ringC[0]*opacity)+','+Math.round(ringC[1]*opacity)+','+Math.round(ringC[2]*opacity)+','+opacity.toFixed(3)+')';
       tx.lineWidth=w;
       for(const ox of[-TW,0,TW]){tx.beginPath();tx.arc(rcx+ox,rcy,r,0,Math.PI*2);tx.stroke()}
       if(ring.t>0.12){
         const r2=(ring.t-0.12)*34*S;
-        const op2=Math.max(0,1-(ring.t-0.12)/1.3)*impI*0.45;
-        tx.strokeStyle='rgba('+Math.round(impC[0]*op2)+','+Math.round(impC[1]*op2)+','+Math.round(impC[2]*op2)+','+op2.toFixed(3)+')';
+        const op2=Math.max(0,1-(ring.t-0.12)/1.3)*ringI*0.45;
+        tx.strokeStyle='rgba('+Math.round(ringC[0]*op2)+','+Math.round(ringC[1]*op2)+','+Math.round(ringC[2]*op2)+','+op2.toFixed(3)+')';
         tx.lineWidth=Math.max(0.5,2.5-ring.t*1.5)*S;
         for(const ox of[-TW,0,TW]){tx.beginPath();tx.arc(rcx+ox,rcy,r2,0,Math.PI*2);tx.stroke()}
       }
+      if(firstBeat)ring.bornBeat=0;
     }
   }
 
   // Cross markers at wireframe intersections (fade out from center + bright center dot)
   if(gridOn && c.iDots>0.01){
+    const prevComp=tx.globalCompositeOperation;
+    tx.globalCompositeOperation='destination-over';
     const armLen=Math.max(2,dotRadius*TEX_SCALE);
     const steps=Math.ceil(armLen);
     for(let iy=1;iy<_wSegsH;iy++){
@@ -1645,16 +2141,18 @@ function updTex(){
         }
       }
     }
+    tx.globalCompositeOperation=prevComp;
   }
 
   lifeTex.needsUpdate=true;
+  lastTexUpdate=performance.now();
 }
 
-// ════════════════════════════════════════
+// ========================================
 // UI WIRING
-// ════════════════════════════════════════
+// ========================================
 function $(id){return document.getElementById(id)}
-function updPlayBtn(){const b=$('bPlay');b.textContent=running?'⏸ Pause':'▶ Play';b.classList.toggle('on',running)}
+function updPlayBtn(){const b=$('bPlay');b.innerHTML=running?'&#9208; Pause':'&#9654; Play';b.classList.toggle('on',running)}
 function fmtNum(n){
   if(n<1e6)return n.toLocaleString();
   if(n<1e9)return(n/1e6).toFixed(2)+'M';
@@ -1689,6 +2187,7 @@ $('rDotR').oninput=e=>{dotRadius=+e.target.value/10;$('vDotR').textContent=dotRa
 // Cell glow controls
 $('rExposure').oninput=e=>{cellExposure=+e.target.value/6.25;$('vExposure').textContent=e.target.value>0?'+'+e.target.value:e.target.value;updTex();save()};
 $('rSaturation').oninput=e=>{cellSaturation=+e.target.value/100;$('vSaturation').textContent=e.target.value>0?'+'+e.target.value:e.target.value;updTex();save()};
+$('rDayNight').oninput=e=>{dayNightStrength=+e.target.value/100;$('vDayNight').textContent=Math.round((+e.target.value)/2)+'%';syncDayNightUniform();updTex();save()};
 $('tCGlow').onchange=e=>{cellGlow=e.target.checked;updTex();save()};
 $('rCGR').oninput=e=>{glowRadius=+e.target.value;$('vCGR').textContent=e.target.value;updTex();save()};
 $('rCGI').oninput=e=>{glowIntensity=+e.target.value/100;$('vCGI').textContent=glowIntensity.toFixed(1);updTex();save()};
@@ -1697,7 +2196,7 @@ $('rCGI').oninput=e=>{glowIntensity=+e.target.value/100;$('vCGI').textContent=gl
 // Theme preset dropdown
 $('selTheme').onchange=e=>{applyPreset(e.target.value)};
 
-// Color pickers & intensity sliders → live update
+// Color pickers & intensity sliders -> live update
 ['Alive','Born','Dead','Dots','Impact'].forEach(name=>{
   const cEl=$('c'+name), iEl=$('i'+name), ivEl=$('iv'+name);
   const handler=()=>{
@@ -1714,9 +2213,9 @@ $('selTheme').onchange=e=>{applyPreset(e.target.value)};
   iEl.addEventListener('input',handler);
 });
 
-// ════════════════════════════════════════
+// ========================================
 // LOCAL STORAGE
-// ════════════════════════════════════════
+// ========================================
 function save(){
   try{localStorage.setItem('cl-gol2',JSON.stringify({
     speed,zoom,autoRot,rotSpd,meteorMode,meteorInterval,
@@ -1728,7 +2227,7 @@ function save(){
     cDead:$('cDead').value,cDots:$('cDots').value,cImpact:$('cImpact').value,
     iAlive:$('iAlive').value,iBorn:$('iBorn').value,
     iDead:$('iDead').value,iDots:$('iDots').value,iImpact:$('iImpact').value,
-    dotRadius,cellGlow,glowRadius,glowIntensity,cellExposure,cellSaturation,wipeRadius,meteorSpeed,
+    dotRadius,cellGlow,glowRadius,glowIntensity,cellExposure,cellSaturation,dayNightStrength,wipeRadius,meteorSpeed,
   }))}catch(e){}
 }
 
@@ -1767,34 +2266,68 @@ function load(){
 
     if(s.cellExposure!==undefined){cellExposure=s.cellExposure;$('rExposure').value=cellExposure*6.25;const ev=Math.round(cellExposure*6.25);$('vExposure').textContent=ev>0?'+'+ev:''+ev}
     if(s.cellSaturation!==undefined){cellSaturation=s.cellSaturation;$('rSaturation').value=cellSaturation*100;const cv=Math.round(cellSaturation*100);$('vSaturation').textContent=cv>0?'+'+cv:''+cv}
+    if(s.dayNightStrength!==undefined){dayNightStrength=s.dayNightStrength;$('rDayNight').value=Math.round(dayNightStrength*100);$('vDayNight').textContent=Math.round(dayNightStrength*50)+'%';syncDayNightUniform()}
     if(s.wipeRadius!==undefined){wipeRadius=s.wipeRadius;$('rWipeR').value=wipeRadius;$('vWipeR').textContent=wipeRadius}
     if(s.meteorSpeed!==undefined){meteorSpeed=s.meteorSpeed;$('rMSpd').value=meteorSpeed*100;$('vMSpd').textContent=meteorSpeed.toFixed(1)}
     scheduleNextMeteor();
   }catch(e){}
 }
 
-// ════════════════════════════════════════
+// ========================================
 // MAIN LOOP
-// ════════════════════════════════════════
+// ========================================
 let lastFrame=0;
-const RENDER_INTERVAL=1000/15; // cap GPU rendering at 15 fps
+const RENDER_INTERVAL_IDLE=1000/30; // base GPU cap when no meteors are active
+const RENDER_INTERVAL_METEOR=1000/60; // smoother meteor heads while meteors are in flight
+const TEX_UPDATE_INTERVAL=1000/15; // keep heavy texture rebuilds capped at 15 fps
+const METEOR_UPDATE_INTERVAL=1/60; // meteor physics at fixed 60 Hz
 let lastRender=0;
+let lastTexUpdate=0;
+let meteorAccum=0;
 function animate(t){
-  requestAnimationFrame(animate);
-  const dt=(t-lastFrame)/1000||.016;lastFrame=t;
+  if(disposed)return;
+  rafId=requestAnimationFrame(animate);
+  if(!pageVisible||glContextLost){lastFrame=t;return}
+  const dtRaw=(t-lastFrame)/1000||.016;
+  const dt=Math.min(0.1,dtRaw); // clamp long stalls to avoid visible jumps
+  lastFrame=t;
 
-  if(running&&t-lastTick>=1000/speed){step();updTex();updStats();lastTick=t}
+  if(running&&t-lastTick>=1000/speed){step();pendingTexUpdate=true;updStats();lastTick=t}
 
   // Meteor rain (randomized interval)
   if(meteorMode){
     meteorTimer+=dt;
     if(meteorTimer>=nextMeteorTime){meteorTimer=0;scheduleNextMeteor();spawnMeteor()}
   }
-  if(activeMeteors.length>0)updateMeteors(dt);
+  if(activeMeteors.length>0){
+    meteorAccum=Math.min(0.25,meteorAccum+dt);
+    while(meteorAccum>=METEOR_UPDATE_INTERVAL){
+      updateMeteors(METEOR_UPDATE_INTERVAL);
+      meteorAccum-=METEOR_UPDATE_INTERVAL;
+    }
+  }else{
+    meteorAccum=0;
+  }
+
   // Decay meteor flash
   let hasMeteorFlash=false;
-  for(let i=0;i<TOTAL;i++){if(meteorAge[i]>0){meteorAge[i]-=dt*0.7;if(meteorAge[i]<0)meteorAge[i]=0;hasMeteorFlash=true}}
-  if(hasMeteorFlash&&!running)updTex();
+  if(meteorFlashIdx.length>0){
+    for(let fi=meteorFlashIdx.length-1;fi>=0;fi--){
+      const i=meteorFlashIdx[fi];
+      meteorAge[i]-=dt*0.7;
+      if(meteorAge[i]<=0){
+        meteorAge[i]=0;
+        meteorFlashMark[i]=0;
+        const tail=meteorFlashIdx.length-1;
+        meteorFlashIdx[fi]=meteorFlashIdx[tail];
+        meteorFlashIdx.pop();
+      }else{
+        hasMeteorFlash=true;
+      }
+    }
+  }
+  if(hasMeteorFlash&&!running)pendingTexUpdate=true;
+
   // Advance and cull impact shockwave rings
   let hasRings=false;
   for(let ri=impactRings.length-1;ri>=0;ri--){
@@ -1802,13 +2335,24 @@ function animate(t){
     if(impactRings[ri].t>1.6)impactRings.splice(ri,1);
     else hasRings=true;
   }
-  if(hasRings||hasMeteorFlash)updTex();
+  if(hasRings||hasMeteorFlash)pendingTexUpdate=true;
 
   // Impact overlay per-slot fade (1s fade-out)
   {let _impTrim=false;
   for(let i=0;i<impactSlots.length;i++){
     const s=impactSlots[i];if(!s)continue;
     s.timer-=dt;
+    if(s.bornBeat>0){
+      s.bornBeat=Math.max(0,s.bornBeat-dt);
+      if(s.bornBeat<=0){
+        const newEl=makeImpactCard(s.patKey,s.num,false);
+        if(newEl){
+          newEl.style.opacity=s.el.style.opacity||'1';
+          s.el=newEl;
+          syncOverlayChild(i);
+        }
+      }
+    }
     if(s.timer<=0){
       impactSlots[i]=null;
       syncOverlayChild(i);
@@ -1818,7 +2362,11 @@ function animate(t){
     }
   }
   if(_impTrim)trimOverlay();
-  else if(impactSlots.some(s=>s)||_rulesVisible||_rulesOpacity>0)positionImpactOverlay();}
+  const overlayActive=impactSlots.some(s=>s)||_rulesVisible||_rulesOpacity>0;
+  if(overlayActive&&t-lastOverlayLayout>=OVERLAY_LAYOUT_INTERVAL){
+    positionImpactOverlay();
+    lastOverlayLayout=t;
+  }}
 
   if(autoRot&&!dragging){
     axisTimer+=dt;
@@ -1830,25 +2378,82 @@ function animate(t){
   sph.quaternion.copy(rotQ);sphBack.quaternion.copy(rotQ);wire.quaternion.copy(rotQ);
   camera.position.z+=(zoom-camera.position.z)*.1;
 
-  // Only render to GPU at capped framerate
-  if(t-lastRender>=RENDER_INTERVAL){
-    lastRender=t;
+  // Only render to GPU at capped framerate with stable pacing
+  const renderInterval=(activeMeteors.length>0)?RENDER_INTERVAL_METEOR:RENDER_INTERVAL_IDLE;
+  const renderElapsed=t-lastRender;
+  if(renderElapsed>=renderInterval){
+    lastRender=t-(renderElapsed%renderInterval);
     updateCameraCenter();
-    if(impactSlots.some(s=>s)||_rulesVisible||_rulesOpacity>0)positionImpactOverlay();
-    if(!glContextLost)renderer.render(scene,camera);
+    if(activeMeteors.length>0){
+      updateMeteorVisuals(meteorAccum/METEOR_UPDATE_INTERVAL,dt);
+    }
+    const overlayActive=impactSlots.some(s=>s)||_rulesVisible||_rulesOpacity>0;
+    if(overlayActive&&t-lastOverlayLayout>=OVERLAY_LAYOUT_INTERVAL){
+      positionImpactOverlay();
+      lastOverlayLayout=t;
+    }
+    if(pendingTexUpdate&&t-lastTexUpdate>=TEX_UPDATE_INTERVAL){
+      updTex();
+      pendingTexUpdate=false;
+    }
+    renderer.render(scene,camera);
   }
 }
 
 window.addEventListener('resize',()=>{
+  if(disposed)return;
   renderer.setPixelRatio(Math.min(devicePixelRatio,MAX_PIXEL_RATIO));
   renderer.setSize(innerWidth,innerHeight);
   updateCameraCenter();
   positionImpactOverlay();
 });
 
-// ════════════════════════════════════════
+document.addEventListener('visibilitychange',()=>{
+  pageVisible=!document.hidden;
+  if(pageVisible){
+    lastFrame=performance.now();
+    lastRender=0;
+    lastOverlayLayout=0;
+    updateCameraCenter();
+  }
+});
+
+function disposeScene(){
+  if(disposed)return;
+  disposed=true;
+  running=false;
+  if(rafId)cancelAnimationFrame(rafId);
+
+  for(let i=activeMeteors.length-1;i>=0;i--){
+    disposeMeteorVisuals(activeMeteors[i]);
+  }
+  activeMeteors.length=0;
+  impactRings.length=0;
+  impactSlots.length=0;
+  meteorFlashIdx.length=0;
+  meteorFlashMark.fill(0);
+
+  meteorHeadGeo.dispose();
+  meteorGlowTex.dispose();
+  lifeTex.dispose();
+  sphGeo.dispose();
+  sphMat.dispose();
+  sphBackMat.dispose();
+  _wGeo.dispose();
+  wireShaderMat.dispose();
+  stGeo.dispose();
+  stMat.dispose();
+
+  if(renderer.forceContextLoss)renderer.forceContextLoss();
+  renderer.dispose();
+}
+
+window.addEventListener('pagehide',disposeScene,{once:true});
+window.addEventListener('beforeunload',disposeScene,{once:true});
+
+// ========================================
 // INIT
-// ════════════════════════════════════════
+// ========================================
 load();
 initPatternSymbols();
 scheduleNextMeteor();
@@ -1856,7 +2461,8 @@ randomize();
 updStats();
 animate(0);
 
+
+
 </script>
 </body>
 </html>
-
