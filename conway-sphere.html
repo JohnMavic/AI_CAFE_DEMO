@@ -81,13 +81,19 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 .ctx-cat{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);padding:6px 14px 3px;opacity:.7}
 .ctx-item{padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;color:var(--txt)}
 .ctx-item:hover{background:rgba(0,255,200,0.12);color:var(--cyan);padding-left:18px}
+.ctx-sym{font-size:13px;letter-spacing:1px;opacity:0.8;vertical-align:middle;margin-right:3px}
+.imp-sym{font-size:11px;letter-spacing:1px;opacity:0.7;margin-left:4px}
 
-/* Impact overlay — positioned beside sphere */
-#impactOverlay{position:fixed;left:0;top:0;z-index:150;pointer-events:none;display:none;grid-template-columns:repeat(4,auto);gap:8px}
+/* Impact overlay — fixed position right side */
+#impactOverlay{position:fixed;right:10px;z-index:150;pointer-events:none;display:none;grid-template-columns:repeat(4,auto);gap:8px}
 .imp-card{display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(8,12,28,0.88);border:1px solid rgba(68,102,255,0.3);border-radius:8px;padding:8px 10px;backdrop-filter:blur(12px)}
 .imp-card canvas{image-rendering:pixelated;border-radius:4px}
 .imp-num{font-family:'Orbitron',sans-serif;font-size:10px;opacity:0.5;letter-spacing:1px}
 .imp-label{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;white-space:nowrap}
+#golRules{position:fixed;right:10px;bottom:10px;z-index:149;pointer-events:none;max-width:520px;padding:10px 16px;background:rgba(8,12,28,0.75);border:1px solid var(--bdr);border-radius:8px;backdrop-filter:blur(10px);font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--txt2);line-height:1.5;opacity:0;visibility:hidden}
+#golRules .rules-title{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--cyan);opacity:0.7;margin-bottom:5px}
+#golRules .rule{margin-bottom:3px}
+#golRules .rule em{font-style:normal;color:var(--cyan);font-weight:600}
 
 @media(max-width:768px){
   #panel{width:calc(100% - 20px);max-height:40dvh;top:auto;bottom:10px;left:10px;right:10px}
@@ -340,6 +346,12 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 
 <div id="ctxMenu" style="display:none"></div>
 <div id="impactOverlay"></div>
+<div id="golRules">
+  <div class="rules-title">Conway's Game of Life — Rules</div>
+  <div class="rule"><em>1. Birth:</em> A dead cell with exactly <em>3</em> living neighbours becomes alive.</div>
+  <div class="rule"><em>2. Survival:</em> A living cell with <em>2</em> or <em>3</em> living neighbours stays alive.</div>
+  <div class="rule"><em>3. Death:</em> All other living cells die — by underpopulation (&lt;2) or overcrowding (&gt;3).</div>
+</div>
 
 <div id="foot">
   <kbd>Drag</kbd> Rotate · <kbd>Scroll</kbd> Zoom · <kbd>Right-click</kbd> Place Pattern · <kbd>Wipe</kbd> Erase Region · Spherical Game of Life
@@ -446,6 +458,48 @@ const PAT_NAMES={
   inf1:'Inf.I',inf2:'Inf.II',
 };
 
+// Braille pattern symbol generator (renders pattern as Unicode braille art)
+function patternToBraille(patKey){
+  const pat=PAT[patKey];
+  if(!pat||pat.length===0)return '';
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  pat.forEach(([x,y])=>{x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)});
+  const ow=x1-x0+1,oh=y1-y0+1;
+  const maxW=10,maxH=4;
+  const sc=Math.max(1,ow/maxW,oh/maxH);
+  const ew=Math.min(maxW,Math.ceil(ow/sc)),eh=Math.min(maxH,Math.ceil(oh/sc));
+  const cells=new Set();
+  pat.forEach(([x,y])=>{cells.add((x-x0)+','+(y-y0))});
+  const g=[];
+  for(let y=0;y<eh;y++){g[y]=[];for(let x=0;x<ew;x++){
+    let found=false;
+    const sx=Math.floor(x*sc),sy=Math.floor(y*sc),ex=Math.ceil((x+1)*sc),ey=Math.ceil((y+1)*sc);
+    for(let oy=sy;oy<ey&&!found;oy++)for(let ox=sx;ox<ex&&!found;ox++)if(cells.has(ox+','+oy))found=true;
+    g[y][x]=found;
+  }}
+  const cw=Math.ceil(ew/2);
+  let r='';
+  for(let cx=0;cx<cw;cx++){
+    let c=0x2800;
+    const bits=[[0,0,0x01],[0,1,0x02],[0,2,0x04],[0,3,0x40],[1,0,0x08],[1,1,0x10],[1,2,0x20],[1,3,0x80]];
+    for(const[dx,dy,bit]of bits){
+      const gx=cx*2+dx,gy=dy;
+      if(gx<ew&&gy<eh&&g[gy][gx])c|=bit;
+    }
+    r+=String.fromCharCode(c);
+  }
+  return r;
+}
+const PAT_BRAILLE={};
+Object.keys(PAT).forEach(k=>{PAT_BRAILLE[k]=patternToBraille(k)});
+
+function initPatternSymbols(){
+  document.querySelectorAll('#selPat option').forEach(opt=>{
+    const k=opt.value;
+    if(PAT_BRAILLE[k])opt.textContent=opt.textContent+' '+PAT_BRAILLE[k];
+  });
+}
+
 // Pattern metadata for context menu
 const PAT_MENU=[
   {cat:'Still Lifes',items:[['block','Block'],['beehive','Beehive'],['loaf','Loaf'],['tub','Tub'],['boat','Boat'],['ship','Ship'],['pond','Pond']]},
@@ -457,11 +511,44 @@ const PAT_MENU=[
 ];
 
 function place(k,cx,cy){const p=PAT[k];if(!p)return;p.forEach(([dx,dy])=>{const i=ix(cx+dx,cy+dy);grid[i]=1;age[i]=0})}
+function rotatePatternOffsets(pat,angleRad){
+  // Keep canonical pattern integrity by rotating in 90-degree steps,
+  // while still drawing a random 0..360-degree start angle per placement.
+  const quarter=((Math.round(angleRad/(Math.PI*0.5))%4)+4)%4;
+  if(quarter===0)return pat;
+
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  for(let i=0;i<pat.length;i++){
+    const x=pat[i][0],y=pat[i][1];
+    if(x<minX)minX=x;if(y<minY)minY=y;
+    if(x>maxX)maxX=x;if(y>maxY)maxY=y;
+  }
+  const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+  const out=[],seen=new Set();
+  for(let i=0;i<pat.length;i++){
+    const x=pat[i][0]-cx,y=pat[i][1]-cy;
+    let rx,ry;
+    if(quarter===1){rx=y;ry=-x}
+    else if(quarter===2){rx=-x;ry=-y}
+    else{rx=-y;ry=x}
+    const nx=Math.round(rx+cx),ny=Math.round(ry+cy);
+    const key=nx+','+ny;
+    if(!seen.has(key)){seen.add(key);out.push([nx,ny])}
+  }
+  return out;
+}
+function placeRandomOriented(k,cx,cy,angleRad){
+  const p=PAT[k];if(!p)return null;
+  const a=angleRad===undefined?Math.random()*Math.PI*2:angleRad;
+  const rp=rotatePatternOffsets(p,a);
+  rp.forEach(([dx,dy])=>{const i=ix(cx+dx,cy+dy);grid[i]=1;age[i]=0});
+  return rp;
+}
 function applyPat(){
   const v=$('selPat').value, sc=+$('rScat').value;
   clear();
   if(v.startsWith('rnd-')){const d=parseInt(v.split('-')[1])/100;for(let i=0;i<TOTAL;i++){grid[i]=Math.random()<d?1:0;age[i]=grid[i]?Math.random()*40:-15}}
-  else{for(let s=0;s<sc;s++)place(v,Math.floor(Math.random()*W),Math.floor(Math.random()*H))}
+  else{for(let s=0;s<sc;s++)placeRandomOriented(v,Math.floor(Math.random()*W),Math.floor(Math.random()*H))}
   cntPop();updTex();updStats();
 }
 function randomize(){clear();const d=.12+Math.random()*.28;for(let i=0;i<TOTAL;i++){grid[i]=Math.random()<d?1:0;age[i]=grid[i]?Math.random()*40:-15}cntPop();updTex();updStats()}
@@ -528,10 +615,12 @@ camera.position.set(0,0,3);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const MAX_PIXEL_RATIO=1.5;
+renderer.setPixelRatio(Math.min(devicePixelRatio,MAX_PIXEL_RATIO));
 renderer.setClearColor(0x0a0a0f);
 document.body.appendChild(renderer.domElement);
 renderer.domElement.style.cssText='position:fixed;top:0;left:0;z-index:0';
+let glContextLost=false;
 
 // Mystical skull cursor for wipe mode (canvas-rendered with arcane glow)
 const _skullCvs=document.createElement('canvas');_skullCvs.width=40;_skullCvs.height=40;
@@ -572,7 +661,7 @@ function updateCameraCenter(){
     }
   }
 
-  const rightInset=_overlayRightInset;
+  const rightInset=0;
   const usableW=Math.max(1,innerWidth-leftInset-rightInset);
   const usableH=Math.max(1,innerHeight-topInset-bottomInset);
   const centerX=leftInset+usableW*0.5;
@@ -590,12 +679,16 @@ let zoom=4;
 // Main texture canvas (upscaled for pole distortion correction)
 const tc=document.createElement('canvas');tc.width=TW;tc.height=TH;
 const tx=tc.getContext('2d');
+const texImg=tx.createImageData(TW,TH);
+const texImgData=texImg.data;
 
 // Glow source + destination canvases
 const glowSrc=document.createElement('canvas');glowSrc.width=W;glowSrc.height=H;
 const gsx=glowSrc.getContext('2d');
 const glowDst=document.createElement('canvas');glowDst.width=W;glowDst.height=H;
 const gdx=glowDst.getContext('2d');
+const glowImg=gsx.createImageData(W,H);
+const glowImgData=glowImg.data;
 
 const lifeTex=new THREE.CanvasTexture(tc);
 lifeTex.wrapS=THREE.RepeatWrapping;lifeTex.wrapT=THREE.ClampToEdgeWrapping;
@@ -759,7 +852,10 @@ function showCtxMenu(ex,ey){
   let html='';
   PAT_MENU.forEach(g=>{
     html+='<div class="ctx-cat">'+g.cat+'</div>';
-    g.items.forEach(([k,label])=>{html+='<div class="ctx-item" data-pat="'+k+'">'+label+'</div>'});
+    g.items.forEach(([k,label])=>{
+      const sym=PAT_BRAILLE[k]||'';
+      html+='<div class="ctx-item" data-pat="'+k+'">'+(sym?'<span class="ctx-sym">'+sym+'</span> ':'')+label+'</div>';
+    });
   });
   m.innerHTML=html;
   m.style.display='block';
@@ -769,7 +865,7 @@ function showCtxMenu(ex,ey){
   m.querySelectorAll('.ctx-item').forEach(el=>{
     el.onclick=()=>{
       const k=el.dataset.pat;
-      place(k,ctxTarget.x,ctxTarget.y);
+      placeRandomOriented(k,ctxTarget.x,ctxTarget.y);
       cntPop();updTex();updStats();
       hideCtxMenu();
     };
@@ -815,6 +911,17 @@ _mgg.addColorStop(0.3,'rgba(120,170,255,0.35)');_mgg.addColorStop(0.6,'rgba(50,1
 _mgg.addColorStop(1,'rgba(0,0,0,0)');
 _mgx.fillStyle=_mgg;_mgx.fillRect(0,0,64,64);
 const meteorGlowTex=new THREE.CanvasTexture(meteorGlowCvs);
+const meteorHeadGeo=new THREE.SphereGeometry(0.008,6,4);
+
+renderer.domElement.addEventListener('webglcontextlost',e=>{
+  e.preventDefault();
+  glContextLost=true;
+});
+renderer.domElement.addEventListener('webglcontextrestored',()=>{
+  glContextLost=false;
+  lifeTex.needsUpdate=true;
+  meteorGlowTex.needsUpdate=true;
+});
 
 function gridToSurface(gx,gy){
   const u=((gx+0.5)/W)%1, v=clamp((gy+0.5)/H,0,1);
@@ -897,9 +1004,8 @@ function spawnMeteor(){
   const vel=toCenter.clone().multiplyScalar(baseSpeed).add(dev.multiplyScalar(baseSpeed*0.1));
 
   // White-hot core
-  const headGeo=new THREE.SphereGeometry(0.008,6,4);
   const headMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:1.0,depthWrite:false});
-  const head=new THREE.Mesh(headGeo,headMat);
+  const head=new THREE.Mesh(meteorHeadGeo,headMat);
   head.position.copy(origin);
   head.renderOrder=8;
   scene.add(head);
@@ -1011,9 +1117,8 @@ function updateMeteors(dt){
         impactPt=m.pos.clone().normalize();
       }
       const grid=surfaceToGrid(impactPt);
-      place(m.patKey,grid.x,grid.y);
-      const pat=PAT[m.patKey];
-      if(pat)pat.forEach(([dx,dy])=>{const i=ix(grid.x+dx,grid.y+dy);meteorAge[i]=1.0});
+      const placed=placeRandomOriented(m.patKey,grid.x,grid.y);
+      if(placed)placed.forEach(([dx,dy])=>{const i=ix(grid.x+dx,grid.y+dy);meteorAge[i]=1.0});
       cntPop();updTex();updStats();
       impactRings.push({cx:grid.x,cy:grid.y,t:0});
       meteorStats[m.patKey]=(meteorStats[m.patKey]||0)+1;
@@ -1021,7 +1126,7 @@ function updateMeteors(dt){
       showImpactOverlay(m.patKey);
       // Cleanup
       scene.remove(m.head);scene.remove(m.trail);scene.remove(m.light);
-      m.head.geometry.dispose();m.head.material.dispose();
+      m.head.material.dispose();
       m.tipMat.dispose();
       m.glowMat.dispose();
       m.trailGeo.dispose();m.trail.material.dispose();
@@ -1035,6 +1140,65 @@ function updateMeteors(dt){
 // ════════════════════════════════════════
 let impactSlots=[]; // each: {patKey,timer,num,el} or null
 let impactNum=0;
+let _rulesVisible=false, _rulesShowLock=0;
+let _rulesOpacity=0; // current animated opacity
+let _rulesLastUpdate=performance.now()*0.001;
+// Fixed rules box dimensions (known from static content)
+const RULES_W=340, RULES_H=90, RULES_MARGIN=10;
+
+function setRulesVisible(nextVisible){
+  if(_rulesVisible===nextVisible)return;
+  _rulesVisible=nextVisible;
+  // Anti-flicker: after every state change, delay next possible show.
+  _rulesShowLock=2.0;
+}
+
+function tickRulesLock(){
+  const now=performance.now()*0.001;
+  const dt=Math.max(0,Math.min(0.25,now-_rulesLastUpdate));
+  _rulesLastUpdate=now;
+  if(_rulesShowLock>0)_rulesShowLock=Math.max(0,_rulesShowLock-dt);
+}
+
+function estimateMeteorImpactSeconds(m,maxAhead=2.0){
+  // Short forward simulation: enough to decide "impact in < 1.5s?".
+  const G=2.5;
+  const step=0.05;
+  const timeoutLeft=Math.max(0,15-(m.age||0));
+  const horizon=Math.min(maxAhead,timeoutLeft);
+  if(horizon<=0)return 0.1;
+  const pos=m.pos.clone();
+  const vel=m.vel.clone();
+  for(let t=step;t<=horizon+1e-6;t+=step){
+    const sDt=step*meteorSpeed*3.0;
+    const rGrav=Math.max(0.1,pos.length());
+    const acc=pos.clone().normalize().multiplyScalar(-G/(rGrav*rGrav));
+    vel.add(acc.multiplyScalar(sDt));
+    pos.add(vel.clone().multiplyScalar(sDt));
+    if(pos.length()<=1.005)return t;
+  }
+  return Infinity;
+}
+
+function predictSpacePressure(){
+  // Predict if incoming meteors will cause overlap with rules box.
+  if(!meteorMode||activeMeteors.length===0)return Infinity;
+  const activeCount=impactSlots.filter(s=>s).length;
+  const cap=computeOverlayCapacity();
+  if(cap.cols<=0)return Infinity;
+  // After each in-flight meteor lands, how many rows?
+  const futureRows=Math.ceil((activeCount+activeMeteors.length)/Math.max(1,cap.cols));
+  const futureOverlayBottom=cap.topY+(futureRows*(cap.cardH+cap.gridGap)-cap.gridGap)+8;
+  const rulesTop=innerHeight-RULES_MARGIN-RULES_H;
+  if(futureOverlayBottom<=rulesTop)return Infinity;
+  // Overlap predicted: estimate earliest impact time.
+  let soonest=Infinity;
+  for(let i=0;i<activeMeteors.length;i++){
+    const eta=estimateMeteorImpactSeconds(activeMeteors[i],2.0);
+    if(eta<soonest)soonest=eta;
+  }
+  return soonest;
+}
 
 // Precompute fixed canvas size from largest meteor pattern (all frames same size)
 let _impMaxW=0,_impMaxH=0;
@@ -1049,61 +1213,157 @@ function worldToScreen(v){
   };
 }
 
+function computeOverlayCapacity(){
+  // Collision system: compute how many columns/rows of impact cards fit
+  // in the space RIGHT of the sphere, without overlapping anything.
+  const overlay=document.getElementById('impactOverlay');
+  const topbar=document.getElementById('topbar');
+  const foot=document.getElementById('foot');
+  const rules=document.getElementById('golRules');
+  const margin=10, gridGap=8, gap=16;
+
+  const topY=topbar?(topbar.getBoundingClientRect().bottom+8):60;
+  const botY=foot&&foot.offsetParent!==null?(foot.getBoundingClientRect().top-8):(innerHeight-margin);
+
+  // Measure one card size
+  let cardW=120, cardH=120;
+  if(overlay&&overlay.children.length>0){
+    const sample=overlay.children[0];
+    if(sample.offsetWidth>0)cardW=sample.offsetWidth;
+    if(sample.offsetHeight>0)cardH=sample.offsetHeight;
+  }
+
+  // Compute where the sphere's right edge is on screen
+  const sc=worldToScreen(new THREE.Vector3(0,0,0));
+  const se=worldToScreen(new THREE.Vector3(1,0,0));
+  const sphereR=Math.max(80,Math.hypot(se.x-sc.x,se.y-sc.y));
+  const sphereRightEdge=sc.x+sphereR;
+
+  // Available width = from sphere right edge + gap to viewport right - margin
+  const availW=Math.max(0,innerWidth-sphereRightEdge-gap-margin);
+  const availH=Math.max(0,botY-topY);
+
+  // Determine how many columns fit (4→3→2→1→0)
+  let cols=4;
+  while(cols>0){
+    const neededW=cols*cardW+(cols-1)*gridGap;
+    if(neededW<=availW)break;
+    cols--;
+  }
+
+  // Max rows that fit vertically
+  let maxRows=0;
+  if(cols>0){
+    maxRows=Math.max(0,Math.floor((availH+gridGap)/(cardH+gridGap)));
+  }
+
+  const maxSlots=cols*maxRows;
+
+  // Left edge of the overlay (right-aligned within available space)
+  const overlayW=cols>0?(cols*cardW+(cols-1)*gridGap):0;
+  const overlayLeft=innerWidth-margin-overlayW;
+
+  // Rules height measurement
+  let rulesH=0;
+  if(rules)rulesH=rules.scrollHeight||50;
+
+  return{topY,botY,cols,maxRows,maxSlots,cardW,cardH,rulesH,overlayW,gridGap};
+}
+
 function positionImpactOverlay(){
   const overlay=document.getElementById('impactOverlay');
-  if(!overlay||!overlay.children.length)return;
+  if(!overlay)return;
   const activeCount=impactSlots.filter(s=>s).length;
-  if(!activeCount)return;
+  const rules=document.getElementById('golRules');
+  const cap=computeOverlayCapacity();
 
-  const c=worldToScreen(new THREE.Vector3(0,0,0));
-  const e=worldToScreen(new THREE.Vector3(1,0,0));
-  const r=Math.max(80,Math.hypot(e.x-c.x,e.y-c.y));
-  const gap=Math.max(40,Math.min(100,r*0.3));
-  const margin=10;
+  // Compute actual overlay height based on real active cards, not maxRows
+  const actualRows=cap.cols>0?Math.ceil(activeCount/cap.cols):0;
+  const actualOverlayH=actualRows>0?(actualRows*(cap.cardH+cap.gridGap)-cap.gridGap):0;
 
-  const sampleCard=overlay.children[0];
-  const cardW=sampleCard.offsetWidth||120;
-  const gridGap=8;
+  // Rules: fixed bottom-right. Check collision with sphere and overlay.
+  if(rules){
+    // Rules rect (fixed position)
+    const rLeft=innerWidth-RULES_MARGIN-RULES_W;
+    const rTop=innerHeight-RULES_MARGIN-RULES_H;
+    const rRight=innerWidth-RULES_MARGIN;
+    const rBottom=innerHeight-RULES_MARGIN;
 
-  // Current sphere right edge (may already be shifted by _overlayRightInset)
-  const sphereRight=c.x+r;
-  const availRight=innerWidth-sphereRight-gap-margin;
+    // Sphere circle on screen
+    const sc=worldToScreen(new THREE.Vector3(0,0,0));
+    const se=worldToScreen(new THREE.Vector3(1,0,0));
+    const sphereR=Math.max(80,Math.hypot(se.x-sc.x,se.y-sc.y));
+    // Check circle-rect overlap
+    const closestX=Math.max(rLeft,Math.min(sc.x,rRight));
+    const closestY=Math.max(rTop,Math.min(sc.y,rBottom));
+    const distSq=(closestX-sc.x)**2+(closestY-sc.y)**2;
+    const sphereOverlap=distSq<(sphereR+8)**2;
 
-  // Determine columns that fit in current available space
-  let cols=Math.min(4,activeCount);
-  for(;cols>1;cols--){
-    if(cols*cardW+(cols-1)*gridGap<=availRight)break;
+    // Overlay cards rect
+    const overlayRight=innerWidth-10;
+    const overlayLeft=overlayRight-(cap.cols>0?(cap.cols*cap.cardW+(cap.cols-1)*cap.gridGap):0);
+    const overlayTop=cap.topY;
+    const overlayBot=cap.topY+actualOverlayH;
+    // Rect-rect overlap with rules
+    const overlayOverlap=actualOverlayH>0&&
+      rLeft<overlayRight&&rRight>overlayLeft&&
+      rTop<overlayBot&&rBottom>overlayTop;
+
+    // Predictive: fade out if meteors will force overlap soon.
+    const pressureFadeOut=predictSpacePressure()<1.5;
+    const canShowRules=!sphereOverlap&&!overlayOverlap&&activeCount>0&&cap.cols>0&&!pressureFadeOut;
+
+    tickRulesLock();
+
+    if(canShowRules){
+      if(_rulesShowLock<=0)setRulesVisible(true);
+    }else{
+      // Hide immediately when any prerequisite fails.
+      setRulesVisible(false);
+    }
+
+
+    // Animate opacity
+    const targetOpacity=_rulesVisible?1:0;
+    const fadeSpeed=_rulesVisible?0.025:0.08; // fade in ~0.6s, fade out ~0.2s
+    _rulesOpacity+=(_rulesOpacity<targetOpacity?fadeSpeed:-fadeSpeed);
+    _rulesOpacity=Math.max(0,Math.min(1,_rulesOpacity));
+    rules.style.opacity=_rulesOpacity.toFixed(3);
+    rules.style.visibility=_rulesOpacity<=0?'hidden':'visible';
   }
-  const fitsRight=cardW<=availRight;
 
-  let targetInset;
-  if(fitsRight){
-    overlay.style.gridTemplateColumns='repeat('+cols+',auto)';
-    const ow=overlay.offsetWidth,oh=overlay.offsetHeight;
-    let x=sphereRight+gap;
-    let y=c.y-oh*0.5;
-    x=Math.min(innerWidth-ow-margin,Math.max(margin,x));
-    y=Math.min(innerHeight-oh-margin,Math.max(margin,y));
-    overlay.style.left=Math.round(x)+'px';
-    overlay.style.top=Math.round(y)+'px';
-    // Only shift sphere when overlay doesn't fit at its natural (unshifted) position
-    const naturalSphereRight=sphereRight+_overlayRightInset*0.5;
-    const deficit=(gap+ow+margin)-(innerWidth-naturalSphereRight);
-    targetInset=deficit>0?deficit*2:0;
-  }else{
-    // Not enough horizontal space — position below the sphere
-    overlay.style.gridTemplateColumns='repeat('+Math.min(4,activeCount)+',auto)';
-    const ow=overlay.offsetWidth,oh=overlay.offsetHeight;
-    let x=c.x-ow*0.5;
-    let y=c.y+r+gap*0.5;
-    x=Math.min(innerWidth-ow-margin,Math.max(margin,x));
-    y=Math.min(innerHeight-oh-margin,Math.max(margin,y));
-    overlay.style.left=Math.round(x)+'px';
-    overlay.style.top=Math.round(y)+'px';
-    targetInset=0;
+  if(!activeCount||!overlay.children.length){
+    if(rules)setRulesVisible(false);
+    return;
   }
-  // Smooth transition so sphere doesn't jump when cards appear/disappear
-  _overlayRightInset+=(targetInset-_overlayRightInset)*0.15;
+
+  // If no space at all, hide overlay and rapidly expire all slots
+  if(cap.maxSlots<=0){
+    overlay.style.display='none';
+    if(rules)setRulesVisible(false);
+    // Quickly expire all active slots so they don't pile up
+    for(let i=0;i<impactSlots.length;i++){
+      if(impactSlots[i]&&impactSlots[i].timer>0.15)impactSlots[i].timer=0.15;
+    }
+    return;
+  }
+
+  // Accelerate fade on excess slots (oldest/shortest-lived first)
+  if(activeCount>cap.maxSlots){
+    const active=impactSlots.map((s,i)=>s?{s,i}:null).filter(Boolean)
+      .sort((a,b)=>a.s.timer-b.s.timer);
+    const excess=activeCount-cap.maxSlots;
+    for(let i=0;i<excess&&i<active.length;i++){
+      if(active[i].s.timer>0.2)active[i].s.timer=0.2;
+    }
+  }
+
+  // Position: right-aligned, below topbar, never overlapping sphere
+  overlay.style.gridTemplateColumns='repeat('+cap.cols+',auto)';
+  overlay.style.left='auto';
+  overlay.style.right='10px';
+  overlay.style.top=Math.round(cap.topY)+'px';
+  overlay.style.display='grid';
 }
 
 function makeImpactCard(patKey,num){
@@ -1129,7 +1389,8 @@ function makeImpactCard(patKey,num){
   });
   card.appendChild(cvs);
   const lbl=document.createElement('div');lbl.className='imp-label';
-  lbl.textContent=(PAT_NAMES[patKey]||patKey).toUpperCase();
+  const _brl=PAT_BRAILLE[patKey]||'';
+  lbl.innerHTML=(PAT_NAMES[patKey]||patKey).toUpperCase()+(_brl?' <span class="imp-sym">'+_brl+'</span>':'');
   lbl.style.color=colStr;lbl.style.textShadow='0 0 10px '+glowStr;
   card.appendChild(lbl);
   card.style.borderColor='rgba('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+',0.35)';
@@ -1161,7 +1422,6 @@ function trimOverlay(){
     overlay.style.display='grid';
   }else{
     overlay.style.display='none';
-    _overlayRightInset=0;
   }
 }
 
@@ -1176,12 +1436,22 @@ function showImpactOverlay(patKey,keepTimer=false){
     }
     return;
   }
+  // Check if there's any space at all before creating a new card
+  const cap=computeOverlayCapacity();
+  if(cap.maxSlots<=0){
+    // No space — don't create the card, just count the stat
+    return;
+  }
   impactNum++;
   let idx=impactSlots.findIndex(s=>!s);
   if(idx<0)idx=impactSlots.length;
   const el=makeImpactCard(patKey,impactNum);
   if(!el)return;
-  impactSlots[idx]={patKey,timer:7.0,num:impactNum,el};
+  // Adapt timer: shorter lifetime when space is tight
+  const activeCount=impactSlots.filter(s=>s).length;
+  const slotsLeft=cap.maxSlots-activeCount;
+  const timer=slotsLeft>2?7.0:slotsLeft>0?4.0:2.0;
+  impactSlots[idx]={patKey,timer:timer,num:impactNum,el};
   syncOverlayChild(idx);
   overlay.style.display='grid';
   positionImpactOverlay();
@@ -1198,7 +1468,7 @@ function updMeteorStats(){
   const imp=getImpactColorData();
   const soft='rgba('+Math.round(imp.r)+','+Math.round(imp.g)+','+Math.round(imp.b)+',0.72)';
   el.innerHTML='<span style="color:'+soft+'" title="Total meteor impacts since last clear"><span class="ml">Impacts:</span> <span class="mc" style="color:'+imp.css+'">'+total+'</span></span> '+
-    entries.slice(0,6).map(([k,v])=>'<span style="color:'+soft+'" title="Number of '+((PAT_NAMES[k]||k))+' patterns delivered by meteor"><span class="ml">'+(PAT_NAMES[k]||k)+':</span> <span class="mc" style="color:'+imp.css+'">'+v+'</span></span>').join(' ');
+    entries.slice(0,6).map(([k,v])=>'<span style="color:'+soft+'" title="Number of '+((PAT_NAMES[k]||k))+' patterns delivered by meteor"><span class="ml">'+(PAT_BRAILLE[k]||'')+' '+(PAT_NAMES[k]||k)+':</span> <span class="mc" style="color:'+imp.css+'">'+v+'</span></span>').join(' ');
 }
 
 // ════════════════════════════════════════
@@ -1208,8 +1478,8 @@ function updMeteorStats(){
 
 function updTex(){
   const c=getColors();
-  const img=tx.createImageData(TW,TH);
-  const d=img.data;
+  const d=texImgData;
+  d.fill(0);
   const gridOn=$('tGrid').checked;
 
   const aR=c.alive[0]*c.iAlive, aG=c.alive[1]*c.iAlive, aB=c.alive[2]*c.iAlive;
@@ -1274,12 +1544,11 @@ function updTex(){
       }
     }
   }
-  tx.putImageData(img,0,0);
+  tx.putImageData(texImg,0,0);
 
   // Cell glow aura: computed at base res, scaled up for composite
   if(cellGlow){
-    const gi=gsx.createImageData(W,H);
-    const gd=gi.data;
+    const gd=glowImgData;
     for(let i=0;i<TOTAL;i++){
       const p=i*4;
       if(grid[i]){
@@ -1289,7 +1558,7 @@ function updTex(){
         gd[p]=0;gd[p+1]=0;gd[p+2]=0;gd[p+3]=0;
       }
     }
-    gsx.putImageData(gi,0,0);
+    gsx.putImageData(glowImg,0,0);
     gdx.clearRect(0,0,W,H);
     const blurPx=Math.max(0.6,glowRadius*3.0);
     gdx.filter='blur('+blurPx+'px)';
@@ -1549,7 +1818,7 @@ function animate(t){
     }
   }
   if(_impTrim)trimOverlay();
-  else if(impactSlots.some(s=>s))positionImpactOverlay();}
+  else if(impactSlots.some(s=>s)||_rulesVisible||_rulesOpacity>0)positionImpactOverlay();}
 
   if(autoRot&&!dragging){
     axisTimer+=dt;
@@ -1565,17 +1834,23 @@ function animate(t){
   if(t-lastRender>=RENDER_INTERVAL){
     lastRender=t;
     updateCameraCenter();
-    if(impactSlots.some(s=>s))positionImpactOverlay();
-    renderer.render(scene,camera);
+    if(impactSlots.some(s=>s)||_rulesVisible||_rulesOpacity>0)positionImpactOverlay();
+    if(!glContextLost)renderer.render(scene,camera);
   }
 }
 
-window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);updateCameraCenter();positionImpactOverlay()});
+window.addEventListener('resize',()=>{
+  renderer.setPixelRatio(Math.min(devicePixelRatio,MAX_PIXEL_RATIO));
+  renderer.setSize(innerWidth,innerHeight);
+  updateCameraCenter();
+  positionImpactOverlay();
+});
 
 // ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
 load();
+initPatternSymbols();
 scheduleNextMeteor();
 randomize();
 updStats();
@@ -1584,3 +1859,4 @@ animate(0);
 </script>
 </body>
 </html>
+
