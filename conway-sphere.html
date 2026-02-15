@@ -212,6 +212,9 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
         <option value="inf1">Infinite Growth I</option>
         <option value="inf2">Infinite Growth II</option>
       </optgroup>
+      <optgroup label="--- Superclass ---">
+        <option value="totalAperiodic">Ⓢ Total Aperiodic (182 cells)</option>
+      </optgroup>
     </select>
     <div style="height:6px"></div>
     <div class="row">
@@ -549,6 +552,7 @@ const PAT={
   piHept:[[0,0],[1,0],[2,0],[0,1],[2,1],[0,2],[2,2]],
   bhept:[[1,0],[0,1],[1,1],[2,1],[0,2],[2,2],[1,3]],
   copperhead:[[1,0],[2,0],[4,0],[5,0],[3,1],[4,1],[3,2],[4,2],[0,3],[2,3],[5,3],[7,3],[0,4],[7,4],[0,6],[7,6],[1,7],[2,7],[5,7],[6,7],[2,8],[3,8],[4,8],[5,8],[3,10],[4,10],[3,11],[4,11]],
+  totalAperiodic:[[41,0],[40,1],[41,1],[42,1],[39,2],[40,2],[42,2],[48,2],[39,3],[40,3],[41,3],[47,3],[48,3],[49,3],[40,4],[41,4],[46,4],[49,4],[50,4],[54,4],[55,4],[56,4],[46,5],[47,5],[48,5],[53,5],[56,5],[56,6],[56,7],[56,8],[40,9],[41,9],[42,9],[55,9],[40,10],[43,10],[40,11],[40,12],[41,13],[38,20],[39,20],[40,20],[38,21],[41,21],[53,21],[38,22],[52,22],[53,22],[54,22],[38,23],[51,23],[52,23],[54,23],[38,24],[51,24],[52,24],[53,24],[39,25],[52,25],[53,25],[35,28],[36,28],[37,28],[34,29],[35,29],[36,29],[37,29],[38,29],[34,30],[35,30],[36,30],[38,30],[39,30],[47,30],[48,30],[54,30],[57,30],[37,31],[38,31],[46,31],[47,31],[48,31],[49,31],[58,31],[46,32],[47,32],[49,32],[50,32],[54,32],[58,32],[48,33],[49,33],[55,33],[56,33],[57,33],[58,33],[20,36],[21,37],[1,38],[2,38],[16,38],[21,38],[54,38],[55,38],[56,38],[0,39],[1,39],[2,39],[3,39],[17,39],[18,39],[19,39],[20,39],[21,39],[56,39],[0,40],[1,40],[3,40],[4,40],[56,40],[2,41],[3,41],[55,41],[36,42],[37,43],[21,44],[22,44],[33,44],[37,44],[22,45],[23,45],[34,45],[35,45],[36,45],[37,45],[53,45],[54,45],[21,46],[22,46],[50,46],[51,46],[52,46],[54,46],[55,46],[21,47],[50,47],[51,47],[52,47],[53,47],[54,47],[51,48],[52,48],[53,48],[22,50],[23,50],[13,51],[14,51],[15,51],[16,51],[21,51],[22,51],[23,51],[24,51],[12,52],[16,52],[21,52],[22,52],[24,52],[25,52],[1,53],[2,53],[3,53],[4,53],[5,53],[16,53],[23,53],[24,53],[0,54],[5,54],[15,54],[5,55],[4,56]],
 };
 
 // Pattern display names
@@ -560,6 +564,7 @@ const PAT_NAMES={
   gosper:'Gosper Gun',rpent:'R-Pento',acorn:'Acorn',diehard:'Diehard',
   thunderbird:'Thunder',piHept:'\u03C0-Hept',bhept:'B-Hept',
   inf1:'Inf.I',inf2:'Inf.II',nuke:'Nuke',superNuke:'Super Nuke',
+  totalAperiodic:'Total Aperiodic',
 };
 
 // Braille pattern symbol generator (renders pattern as Unicode braille art)
@@ -598,6 +603,14 @@ const PAT_BRAILLE={};
 Object.keys(PAT).forEach(k=>{PAT_BRAILLE[k]=patternToBraille(k)});
 PAT_BRAILLE.nuke='\u2620';
 PAT_BRAILLE.superNuke='\u2622';
+PAT_BRAILLE.totalAperiodic='\u24C8';
+
+// Superclass keys — patterns too large for cell-by-cell icon rendering
+const SUPERCLASS_KEYS=['totalAperiodic'];
+function isSuperclassKey(patKey){ return SUPERCLASS_KEYS.indexOf(patKey)!==-1; }
+const SUPERCLASS_COLOR_RGB=[0,220,255];
+const SUPERCLASS_COLOR_CSS='rgb('+SUPERCLASS_COLOR_RGB[0]+','+SUPERCLASS_COLOR_RGB[1]+','+SUPERCLASS_COLOR_RGB[2]+')';
+const SUPERCLASS_COLOR_THREE=new THREE.Color(SUPERCLASS_COLOR_RGB[0]/255,SUPERCLASS_COLOR_RGB[1]/255,SUPERCLASS_COLOR_RGB[2]/255);
 
 function initPatternSymbols(){
   document.querySelectorAll('#selPat option').forEach(opt=>{
@@ -614,6 +627,7 @@ const PAT_MENU=[
   {cat:'Guns',items:[['gosper','Gosper Glider Gun']]},
   {cat:'Methuselahs',items:[['rpent','R-Pentomino'],['acorn','Acorn'],['diehard','Diehard'],['thunderbird','Thunderbird'],['piHept','\u03C0-Heptomino'],['bhept','B-Heptomino']]},
   {cat:'Infinite Growth',items:[['inf1','Infinite I'],['inf2','Infinite II']]},
+  {cat:'Superclass',items:[['totalAperiodic','\u24C8 Total Aperiodic']]},
 ];
 
 function place(k,cx,cy){const p=PAT[k];if(!p)return;p.forEach(([dx,dy])=>{const i=ix(cx+dx,cy+dy);grid[i]=1;age[i]=0})}
@@ -1336,13 +1350,13 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape')hideCtxMenu()});
 // ========================================
 // METEOR SYSTEM
 // ========================================
-const METEOR_PATS=['glider','blinker','toad','beacon','clock','lwss','rpent','acorn','thunderbird','piHept','bhept','boat','ship','block','beehive','pulsar','figureEight'];
+const METEOR_PATS=['glider','blinker','toad','beacon','clock','lwss','rpent','acorn','thunderbird','piHept','bhept','boat','ship','block','beehive','pulsar','figureEight','totalAperiodic'];
 const NUKE_PAT_KEY='nuke';
 const SUPER_NUKE_PAT_KEY='superNuke';
 const NUKE_SPAWN_CHANCE=0.01; // Independent per meteor spawn (~1% long-run frequency)
 const SUPER_NUKE_SPAWN_CHANCE=0.005; // Independent per meteor spawn (~0.5% long-run frequency)
 const NUKE_WIPE_RADIUS=24;
-const SUPER_NUKE_KILL_FRACTION=0.60;
+const SUPER_NUKE_KILL_FRACTION=0.90;
 const SUPER_NUKE_SIZE_SCALE=2.0;
 const SUPER_NUKE_SPEED_SCALE=0.5;
 const METEOR_ENABLE_POINT_LIGHT=false; // Keep sphere cell colours independent from Meteor toggle.
@@ -1356,8 +1370,18 @@ const SUPER_NUKE_COLOR_THREE=new THREE.Color(SUPER_NUKE_COLOR_RGB[0]/255,SUPER_N
 function isSpecialNukeKey(patKey){
   return patKey===NUKE_PAT_KEY||patKey===SUPER_NUKE_PAT_KEY;
 }
+function isSpecialIconKey(patKey){
+  return isSpecialNukeKey(patKey)||isSuperclassKey(patKey);
+}
 
 function getMeteorColorData(patKey){
+  if(isSuperclassKey(patKey)){
+    return{
+      r:SUPERCLASS_COLOR_RGB[0],g:SUPERCLASS_COLOR_RGB[1],b:SUPERCLASS_COLOR_RGB[2],
+      three:SUPERCLASS_COLOR_THREE,
+      css:SUPERCLASS_COLOR_CSS
+    };
+  }
   if(patKey===SUPER_NUKE_PAT_KEY){
     return{
       r:SUPER_NUKE_COLOR_RGB[0],g:SUPER_NUKE_COLOR_RGB[1],b:SUPER_NUKE_COLOR_RGB[2],
@@ -1819,7 +1843,8 @@ function spawnMeteor(){
       : METEOR_PATS[Math.floor(Math.random()*METEOR_PATS.length)];
   const isSuperNuke=patKey===SUPER_NUKE_PAT_KEY;
   const isNuke=patKey===NUKE_PAT_KEY;
-  const specialKey=isSpecialNukeKey(patKey)?patKey:null;
+  const isSuperclass=isSuperclassKey(patKey);
+  const specialKey=(isSpecialNukeKey(patKey)||isSuperclass)?patKey:null;
   const imp=getMeteorColorData(specialKey);
 
   // Spawn bias:
@@ -2111,8 +2136,9 @@ function circleRectOverlap(cx,cy,radius,rect,pad=0){
 }
 
 // Precompute fixed canvas size from largest meteor pattern (all frames same size)
+// Superclass patterns are excluded — they use symbol rendering, not cell-by-cell icons
 let _impMaxW=0,_impMaxH=0;
-METEOR_PATS.forEach(k=>{const p=PAT[k];if(!p)return;let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;p.forEach(([x,y])=>{if(x<x0)x0=x;if(y<y0)y0=y;if(x>x1)x1=x;if(y>y1)y1=y});_impMaxW=Math.max(_impMaxW,x1-x0+1);_impMaxH=Math.max(_impMaxH,y1-y0+1)});
+METEOR_PATS.forEach(k=>{if(isSuperclassKey(k))return;const p=PAT[k];if(!p)return;let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;p.forEach(([x,y])=>{if(x<x0)x0=x;if(y<y0)y0=y;if(x>x1)x1=x;if(y>y1)y1=y});_impMaxW=Math.max(_impMaxW,x1-x0+1);_impMaxH=Math.max(_impMaxH,y1-y0+1)});
 const IMP_CELL=6,IMP_PAD=2,IMP_CVS_W=(_impMaxW+IMP_PAD*2)*IMP_CELL,IMP_CVS_H=(_impMaxH+IMP_PAD*2)*IMP_CELL;
 const IMPACT_BORN_BEAT_SEC=0.22;
 const _w2sOrigin=new THREE.Vector3(0,0,0);
@@ -2253,8 +2279,10 @@ function positionImpactOverlay(){
 
 function makeImpactCard(patKey,num,useBorn=false){
   const isSpecialNuke=isSpecialNukeKey(patKey);
+  const isSuperclass=isSuperclassKey(patKey);
+  const isSymbolIcon=isSpecialNuke||isSuperclass;
   const isSuperNuke=patKey===SUPER_NUKE_PAT_KEY;
-  const imp=isSpecialNuke?getMeteorColorData(patKey):(useBorn?getBornColorData():getImpactColorData());
+  const imp=isSymbolIcon?getMeteorColorData(patKey):(useBorn?getBornColorData():getImpactColorData());
   const icR=imp.r,icG=imp.g,icB=imp.b;
   const colStr='rgb('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+')';
   const glowStr='rgba('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+',0.6)';
@@ -2265,7 +2293,7 @@ function makeImpactCard(patKey,num,useBorn=false){
   card.appendChild(numEl);
   const cvs=document.createElement('canvas');cvs.width=IMP_CVS_W;cvs.height=IMP_CVS_H;
   const ctx=cvs.getContext('2d');
-  if(isSpecialNuke){
+  if(isSymbolIcon){
     ctx.fillStyle='rgba('+Math.round(icR*0.35)+','+Math.round(icG*0.35)+','+Math.round(icB*0.35)+',0.5)';
     ctx.fillRect(2,2,IMP_CVS_W-4,IMP_CVS_H-4);
     ctx.textAlign='center';
@@ -2274,7 +2302,8 @@ function makeImpactCard(patKey,num,useBorn=false){
     ctx.shadowBlur=18;
     ctx.font='700 '+Math.floor(IMP_CVS_H*0.62)+'px Segoe UI Symbol, Noto Sans Symbols, sans-serif';
     ctx.fillStyle='rgba('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+',0.98)';
-    ctx.fillText(isSuperNuke?'\u2622':'\u2620',Math.floor(IMP_CVS_W*0.5),Math.floor(IMP_CVS_H*0.56));
+    const sym=isSuperNuke?'\u2622':isSuperclass?'\u24C8':'\u2620';
+    ctx.fillText(sym,Math.floor(IMP_CVS_W*0.5),Math.floor(IMP_CVS_H*0.56));
     ctx.shadowBlur=0;
   }else{
     let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
