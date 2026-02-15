@@ -88,12 +88,12 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 .imp-sym{font-size:11px;letter-spacing:1px;opacity:0.7;margin-left:4px}
 
 /* Impact overlay &mdash; fixed position right side */
-#impactOverlay{position:fixed;right:10px;z-index:150;pointer-events:none;display:none;grid-template-columns:repeat(4,auto);gap:8px}
+#impactOverlay{position:fixed;right:10px;right:max(10px,env(safe-area-inset-right));z-index:150;pointer-events:none;display:none;grid-template-columns:repeat(4,auto);gap:8px}
 .imp-card{display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(8,12,28,0.30);border:1px solid rgba(68,102,255,0.36);border-radius:8px;padding:8px 10px;backdrop-filter:blur(14px)}
 .imp-card canvas{image-rendering:pixelated;border-radius:4px}
 .imp-num{font-family:'Orbitron',sans-serif;font-size:10px;opacity:0.5;letter-spacing:1px}
 .imp-label{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;white-space:nowrap}
-#golRules{position:fixed;right:10px;bottom:10px;z-index:149;pointer-events:none;max-width:520px;padding:10px 16px;background:rgba(8,12,28,0.30);border:1px solid var(--bdr);border-radius:8px;backdrop-filter:blur(14px);font-family:'Rajdhani',sans-serif;font-size:16.5px;color:var(--txt2);line-height:1.5;opacity:0;visibility:hidden}
+#golRules{position:fixed;right:10px;right:max(10px,env(safe-area-inset-right));bottom:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:149;pointer-events:none;max-width:520px;padding:10px 16px;background:rgba(8,12,28,0.30);border:1px solid var(--bdr);border-radius:8px;backdrop-filter:blur(14px);font-family:'Rajdhani',sans-serif;font-size:16.5px;color:var(--txt2);line-height:1.5;opacity:0;visibility:hidden}
 #golRules .rules-title{font-family:'Orbitron',sans-serif;font-size:13.5px;font-weight:700;letter-spacing:2px;color:var(--cyan);opacity:0.7;margin-bottom:5px}
 #golRules .rule{margin-bottom:3px}
 #golRules .rule em{font-style:normal;color:var(--cyan);font-weight:600}
@@ -131,6 +131,11 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
       <button class="btn" id="bWipe" title="Wipe mode &mdash; toggle eraser brush. While active, click-drag on the sphere surface to erase cells within the wipe radius">&#9711; Wipe</button>
     </div>
     <div style="height:5px"></div>
+    <div class="row">
+      <button class="btn" id="bExpCrashLog" title="Export Crash Log &mdash; download recent runtime diagnostics (WebGL context events, JS errors, and state snapshots) as JSON for analysis">&#8681; Export Crash Log</button>
+      <button class="btn d" id="bClrCrashLog" title="Clear Crash Log &mdash; remove stored runtime diagnostics from local storage">&#128465; Clear Crash Log</button>
+    </div>
+    <div style="height:5px"></div>
     <div class="sg">
       <div class="sl"><span title="Wipe Radius &mdash; diameter of the circular eraser brush used in wipe mode. Larger values erase bigger areas per stroke">Wipe Radius</span><span class="v" id="vWipeR">10</span></div>
       <input type="range" id="rWipeR" min="3" max="40" value="10">
@@ -148,7 +153,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
     <div style="height:5px"></div>
     <div class="sg">
       <div class="sl"><span title="Meteor Interval &mdash; average time in seconds between meteor spawns. The actual timing is randomised around this value for organic variety">Meteor Interval</span><span class="v" id="vMInt">1s</span></div>
-      <input type="range" id="rMInt" min="1" max="15" value="1">
+      <input type="range" id="rMInt" min="1" max="15" value="15">
     </div>
     <div style="height:5px"></div>
     <div class="sg">
@@ -380,9 +385,21 @@ let meteorAge=new Float32Array(TOTAL);
 const meteorFlashMark=new Uint8Array(TOTAL);
 const meteorFlashIdx=[];
 let activeMeteors=[];
+const meteorPool=[];
 let meteorStats={};
-const MAX_ACTIVE_METEORS=24;
-let meteorsSinceLastNuke=100;
+const BASE_MAX_ACTIVE_METEORS=16;
+let maxActiveMeteors=BASE_MAX_ACTIVE_METEORS;
+const SAFE_MAX_ACTIVE_METEORS_LEVEL1=12;
+const SAFE_MAX_ACTIVE_METEORS_LEVEL2=8;
+const CRASH_LOG_STORAGE_KEY='cl-gol-crashlog-v1';
+const CRASH_LOG_MAX_ENTRIES=300;
+const BASE_RENDER_INTERVAL_IDLE=1000/24; // base GPU cap when no meteors are active
+const BASE_RENDER_INTERVAL_METEOR=1000/45; // smoother meteor heads while meteors are in flight
+const BASE_TEX_UPDATE_INTERVAL=1000/12; // keep heavy texture rebuilds capped at 12 fps
+const METEOR_UPDATE_INTERVAL=1/60; // meteor physics at fixed 60 Hz
+let renderIntervalIdle=BASE_RENDER_INTERVAL_IDLE;
+let renderIntervalMeteor=BASE_RENDER_INTERVAL_METEOR;
+let texUpdateInterval=BASE_TEX_UPDATE_INTERVAL;
 
 // Appearance state
 let dotRadius=0.8, cellGlow=true, glowRadius=5, glowIntensity=0.1, cellExposure=16, cellSaturation=1;
@@ -462,6 +479,27 @@ function ix(x,y){
 
 function nb(x,y){let n=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;if(grid[ix(x+dx,y+dy)])n++}return n}
 
+const METEOR_FLASH_DECAY_PER_GEN=1/7;
+function decayMeteorFlashByGenerations(genCount){
+  if(genCount<=0||meteorFlashIdx.length===0)return false;
+  const decay=genCount*METEOR_FLASH_DECAY_PER_GEN;
+  let hasFlash=false;
+  for(let fi=meteorFlashIdx.length-1;fi>=0;fi--){
+    const i=meteorFlashIdx[fi];
+    meteorAge[i]-=decay;
+    if(meteorAge[i]<=0){
+      meteorAge[i]=0;
+      meteorFlashMark[i]=0;
+      const tail=meteorFlashIdx.length-1;
+      meteorFlashIdx[fi]=meteorFlashIdx[tail];
+      meteorFlashIdx.pop();
+    }else{
+      hasFlash=true;
+    }
+  }
+  return hasFlash;
+}
+
 function step(){
   pop=0;
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
@@ -470,13 +508,13 @@ function step(){
     if(buf[i]){age[i]=alive?Math.min(age[i]+1,80):0;pop++}
     else{age[i]=alive?-1:Math.min(age[i],-1)}
   }
+  decayMeteorFlashByGenerations(1);
   [grid,buf]=[buf,grid]; gen++;
 }
 
 function clear(){
   grid.fill(0);buf.fill(0);age.fill(-15);meteorAge.fill(0);
   meteorFlashMark.fill(0);meteorFlashIdx.length=0;
-  meteorsSinceLastNuke=100;
   gen=0;pop=0;running=false;updPlayBtn();
 }
 
@@ -521,7 +559,7 @@ const PAT_NAMES={
   glider:'Glider',lwss:'LWSS',mwss:'MWSS',hwss:'HWSS',copperhead:'Copperhead',
   gosper:'Gosper Gun',rpent:'R-Pento',acorn:'Acorn',diehard:'Diehard',
   thunderbird:'Thunder',piHept:'\u03C0-Hept',bhept:'B-Hept',
-  inf1:'Inf.I',inf2:'Inf.II',nuke:'Nuke',
+  inf1:'Inf.I',inf2:'Inf.II',nuke:'Nuke',superNuke:'Super Nuke',
 };
 
 // Braille pattern symbol generator (renders pattern as Unicode braille art)
@@ -559,6 +597,7 @@ function patternToBraille(patKey){
 const PAT_BRAILLE={};
 Object.keys(PAT).forEach(k=>{PAT_BRAILLE[k]=patternToBraille(k)});
 PAT_BRAILLE.nuke='\u2620';
+PAT_BRAILLE.superNuke='\u2622';
 
 function initPatternSymbols(){
   document.querySelectorAll('#selPat option').forEach(opt=>{
@@ -694,9 +733,9 @@ camera.position.set(0,0,3);
 
 function createStableRenderer(){
   const attempts=[
-    {antialias:true,powerPreference:'high-performance'},
-    {antialias:false,powerPreference:'high-performance'},
-    {antialias:false,powerPreference:'low-power'}
+    {antialias:false,powerPreference:'default'},
+    {antialias:false,powerPreference:'low-power'},
+    {antialias:true,powerPreference:'default'}
   ];
   let lastErr=null;
   for(let i=0;i<attempts.length;i++){
@@ -707,22 +746,257 @@ function createStableRenderer(){
 }
 
 const renderer=createStableRenderer();
-renderer.setSize(innerWidth,innerHeight);
-const MAX_PIXEL_RATIO=1.5;
-renderer.setPixelRatio(Math.min(devicePixelRatio,MAX_PIXEL_RATIO));
+const BASE_MAX_PIXEL_RATIO=1.25;
+const MAX_DRAW_PIXELS=2560*1440;
+let maxPixelRatio=BASE_MAX_PIXEL_RATIO;
+let contextLossCount=0;
+const CONTEXT_LOSS_BURST_WINDOW_MS=120000;
+const CONTEXT_LOSS_DEGRADE_AFTER=1;
+const CONTEXT_LOSS_PIXEL_RATIO_STEP=0.25;
+const CONTEXT_LOSS_PIXEL_RATIO_MIN=1.0;
+const contextLossTimes=[];
+let lastContextLossBurst=0;
+let contextRecoveryTimer=0;
+function getTargetPixelRatio(){
+  const viewportPixels=Math.max(1,innerWidth*innerHeight);
+  const budgetPixelRatio=Math.sqrt(MAX_DRAW_PIXELS/viewportPixels);
+  return Math.max(0.5,Math.min(devicePixelRatio,maxPixelRatio,budgetPixelRatio));
+}
+function applyRendererResolution(){
+  renderer.setPixelRatio(getTargetPixelRatio());
+  renderer.setSize(innerWidth,innerHeight);
+}
+function registerContextLossBurst(){
+  const now=performance.now();
+  contextLossTimes.push(now);
+  while(contextLossTimes.length>0&&now-contextLossTimes[0]>CONTEXT_LOSS_BURST_WINDOW_MS){
+    contextLossTimes.shift();
+  }
+  const burstCount=contextLossTimes.length;
+  if(burstCount>=CONTEXT_LOSS_DEGRADE_AFTER){
+    const drops=burstCount-CONTEXT_LOSS_DEGRADE_AFTER+1;
+    const nextMax=Math.max(CONTEXT_LOSS_PIXEL_RATIO_MIN,BASE_MAX_PIXEL_RATIO-drops*CONTEXT_LOSS_PIXEL_RATIO_STEP);
+    if(nextMax<maxPixelRatio){
+      const prev=maxPixelRatio;
+      maxPixelRatio=nextMax;
+      addCrashLog('pixel-ratio-degraded','warn',{prev:Number(prev.toFixed(3)),next:Number(nextMax.toFixed(3)),burstCount});
+    }
+  }
+  return burstCount;
+}
+function applyContextLossSafetyProfile(burstCount){
+  let changed=false;
+  let profile='none';
+
+  if(burstCount>=1){
+    profile='L1';
+    if(maxActiveMeteors>SAFE_MAX_ACTIVE_METEORS_LEVEL1){
+      maxActiveMeteors=SAFE_MAX_ACTIVE_METEORS_LEVEL1;
+      changed=true;
+    }
+    if(renderIntervalMeteor<1000/40){
+      renderIntervalMeteor=1000/40;
+      changed=true;
+    }
+    if(texUpdateInterval<1000/10){
+      texUpdateInterval=1000/10;
+      changed=true;
+    }
+  }
+
+  if(burstCount>=2){
+    profile='L2';
+    if(maxActiveMeteors>SAFE_MAX_ACTIVE_METEORS_LEVEL2){
+      maxActiveMeteors=SAFE_MAX_ACTIVE_METEORS_LEVEL2;
+      changed=true;
+    }
+    if(cellGlow){
+      cellGlow=false;
+      const tCGlow=document.getElementById('tCGlow');
+      if(tCGlow)tCGlow.checked=false;
+      changed=true;
+    }
+    if(typeof wire!=='undefined'&&wire&&wire.visible){
+      wire.visible=false;
+      const tWire=document.getElementById('tWire');
+      if(tWire)tWire.checked=false;
+      changed=true;
+    }
+    if(speed>30){
+      speed=30;
+      const rSpd=document.getElementById('rSpd');
+      const vSpd=document.getElementById('vSpd');
+      if(rSpd)rSpd.value='30';
+      if(vSpd)vSpd.textContent='30 gen/s';
+      changed=true;
+    }
+  }
+
+  if(burstCount>=3&&meteorMode){
+    profile='L3';
+    meteorMode=false;
+    const tMeteor=document.getElementById('tMeteor');
+    if(tMeteor)tMeteor.checked=false;
+    changed=true;
+  }
+
+  if(changed){
+    scheduleNextMeteor();
+    pendingTexUpdate=true;
+    save();
+    addCrashLog('context-loss-safety-profile','warn',{
+      profile,
+      burstCount,
+      maxActiveMeteors,
+      meteorInterval:Number(meteorInterval.toFixed(2)),
+      meteorMode,
+      cellGlow,
+      wireVisible:(typeof wire!=='undefined'&&wire)?wire.visible:null,
+      renderIntervalMeteorMs:Number(renderIntervalMeteor.toFixed(2)),
+      texUpdateIntervalMs:Number(texUpdateInterval.toFixed(2))
+    });
+  }
+}
+applyRendererResolution();
 renderer.setClearColor(0x0a0a0f);
 document.body.appendChild(renderer.domElement);
-renderer.domElement.style.cssText='position:fixed;top:0;left:0;z-index:0';
+renderer.domElement.style.cssText='position:fixed;top:0;left:0;z-index:0;background:#0a0a0f';
+renderer.domElement.addEventListener('webglcontextcreationerror',e=>{
+  addCrashLog('webgl-context-creation-error','error',{
+    statusMessage:(e&&typeof e.statusMessage==='string'&&e.statusMessage)?e.statusMessage:'(empty)'
+  });
+});
 let glContextLost=false;
 let wasRunningBeforeContextLost=false;
 let pageVisible=!document.hidden;
 let rafId=0;
 let disposed=false;
 let pendingTexUpdate=false;
+let resumeAfterRestoreAt=0;
 const WIPE_VISUAL_INTERVAL=1000/30;
 const OVERLAY_LAYOUT_INTERVAL=1000/30;
 let lastWipeVisualUpdate=0;
 let lastOverlayLayout=0;
+let crashLogEntries=[];
+
+function crashLogSnapshot(){
+  const meteorCount=(typeof activeMeteors!=='undefined'&&activeMeteors)?activeMeteors.length:0;
+  const overlayCount=(typeof impactSlots!=='undefined'&&impactSlots)?impactSlots.filter(s=>s).length:0;
+  const safePR=(typeof maxPixelRatio==='number')?Number(maxPixelRatio.toFixed(3)):null;
+  return{
+    gen,pop,running,
+    glContextLost,
+    meteorCount,overlayCount,
+    maxPixelRatio:safePR,
+    devicePixelRatio:Number(devicePixelRatio.toFixed(3)),
+    viewport:{w:innerWidth,h:innerHeight}
+  };
+}
+
+function persistCrashLog(){
+  try{
+    const payload={updatedAt:new Date().toISOString(),entries:crashLogEntries};
+    localStorage.setItem(CRASH_LOG_STORAGE_KEY,JSON.stringify(payload));
+  }catch(err){
+    console.warn('[CrashLog] persist failed',err);
+  }
+}
+
+function addCrashLog(kind,level='info',details){
+  const entry={
+    ts:new Date().toISOString(),
+    tMs:Math.round(performance.now()),
+    kind,
+    level,
+    snapshot:crashLogSnapshot()
+  };
+  if(details!==undefined)entry.details=details;
+  crashLogEntries.push(entry);
+  if(crashLogEntries.length>CRASH_LOG_MAX_ENTRIES){
+    crashLogEntries.splice(0,crashLogEntries.length-CRASH_LOG_MAX_ENTRIES);
+  }
+  persistCrashLog();
+}
+
+function loadCrashLog(){
+  try{
+    const raw=localStorage.getItem(CRASH_LOG_STORAGE_KEY);
+    if(!raw)return;
+    const parsed=JSON.parse(raw);
+    if(parsed&&Array.isArray(parsed.entries)){
+      crashLogEntries=parsed.entries.slice(-CRASH_LOG_MAX_ENTRIES);
+    }
+  }catch(err){
+    crashLogEntries=[];
+    console.warn('[CrashLog] load failed',err);
+  }
+}
+
+function exportCrashLog(){
+  try{
+    const payload={
+      exportedAt:new Date().toISOString(),
+      userAgent:navigator.userAgent,
+      location:location.href,
+      entries:crashLogEntries
+    };
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+    a.href=url;
+    a.download='conway-sphere-crash-log-'+stamp+'.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    addCrashLog('crash-log-exported','info',{entries:crashLogEntries.length});
+  }catch(err){
+    console.warn('[CrashLog] export failed',err);
+  }
+}
+
+function clearCrashLog(){
+  crashLogEntries=[];
+  try{localStorage.removeItem(CRASH_LOG_STORAGE_KEY)}catch(err){}
+  addCrashLog('crash-log-cleared','warn');
+}
+
+let gpuRecoveryNoticeEl=null;
+function ensureGpuRecoveryNotice(){
+  if(gpuRecoveryNoticeEl)return gpuRecoveryNoticeEl;
+  const box=document.createElement('div');
+  box.id='gpuRecoveryNotice';
+  box.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:400;max-width:min(640px,92vw);padding:18px 20px;border:1px solid rgba(255,120,120,0.55);border-radius:10px;background:rgba(10,10,18,0.92);backdrop-filter:blur(10px);box-shadow:0 18px 48px rgba(0,0,0,0.6);color:#e8eef7;font-family:Rajdhani,sans-serif;display:none';
+  box.innerHTML=
+    '<div style="font-family:Orbitron,sans-serif;font-size:13px;letter-spacing:1.2px;color:#ff9da8;margin-bottom:8px">GPU CONTEXT LOST</div>'+
+    '<div id="gpuRecoveryNoticeMsg" style="font-size:18px;line-height:1.35;margin-bottom:12px"></div>'+
+    '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
+      '<button id="gpuRecoveryReloadBtn" class="btn p" style="min-width:160px">Reload Conway Scene</button>'+
+      '<button id="gpuRecoveryDismissBtn" class="btn" style="min-width:120px">Dismiss</button>'+
+    '</div>'+
+    '<div style="margin-top:10px;font-size:14px;color:#9ab0c8">If reload does not help: restart browser (Chrome: chrome://restart) to reset the GPU process.</div>';
+  document.body.appendChild(box);
+  const reloadBtn=box.querySelector('#gpuRecoveryReloadBtn');
+  const dismissBtn=box.querySelector('#gpuRecoveryDismissBtn');
+  if(reloadBtn)reloadBtn.onclick=()=>location.reload();
+  if(dismissBtn)dismissBtn.onclick=()=>{box.style.display='none'};
+  gpuRecoveryNoticeEl=box;
+  return box;
+}
+
+function showGpuRecoveryNotice(detail){
+  const box=ensureGpuRecoveryNotice();
+  const msgEl=box.querySelector('#gpuRecoveryNoticeMsg');
+  if(msgEl){
+    msgEl.textContent='WebGL/GPU rendering stopped. '+(detail||'Simulation was switched to safe mode.');
+  }
+  box.style.display='block';
+}
+
+function hideGpuRecoveryNotice(){
+  if(gpuRecoveryNoticeEl)gpuRecoveryNoticeEl.style.display='none';
+}
 
 // Mystical skull cursor for wipe mode (canvas-rendered with arcane glow)
 const _skullCvs=document.createElement('canvas');_skullCvs.width=40;_skullCvs.height=40;
@@ -744,7 +1018,7 @@ let _rw=0,_rh=0;
 function updateCameraCenter(){
   // Sync renderer size if viewport changed (handles deferred layout/scrollbar shifts)
   const w=innerWidth,h=innerHeight;
-  if(w!==_rw||h!==_rh){_rw=w;_rh=h;renderer.setSize(w,h)}
+  if(w!==_rw||h!==_rh){_rw=w;_rh=h;applyRendererResolution()}
   camera.aspect=w/h;
   camera.updateProjectionMatrix();
 
@@ -1064,16 +1338,34 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape')hideCtxMenu()});
 // ========================================
 const METEOR_PATS=['glider','blinker','toad','beacon','clock','lwss','rpent','acorn','thunderbird','piHept','bhept','boat','ship','block','beehive','pulsar','figureEight'];
 const NUKE_PAT_KEY='nuke';
-const NUKE_SPAWN_CHANCE=0.01;
-const NUKE_MIN_METEORS_BETWEEN=100;
+const SUPER_NUKE_PAT_KEY='superNuke';
+const NUKE_SPAWN_CHANCE=0.01; // Independent per meteor spawn (~1% long-run frequency)
+const SUPER_NUKE_SPAWN_CHANCE=0.005; // Independent per meteor spawn (~0.5% long-run frequency)
 const NUKE_WIPE_RADIUS=24;
+const SUPER_NUKE_KILL_FRACTION=0.60;
+const SUPER_NUKE_SIZE_SCALE=2.0;
+const SUPER_NUKE_SPEED_SCALE=0.5;
 const METEOR_ENABLE_POINT_LIGHT=false; // Keep sphere cell colours independent from Meteor toggle.
 const NUKE_COLOR_RGB=[255,56,0];
 const NUKE_COLOR_CSS='rgb('+NUKE_COLOR_RGB[0]+','+NUKE_COLOR_RGB[1]+','+NUKE_COLOR_RGB[2]+')';
 const NUKE_COLOR_THREE=new THREE.Color(NUKE_COLOR_RGB[0]/255,NUKE_COLOR_RGB[1]/255,NUKE_COLOR_RGB[2]/255);
+const SUPER_NUKE_COLOR_RGB=[255,0,196];
+const SUPER_NUKE_COLOR_CSS='rgb('+SUPER_NUKE_COLOR_RGB[0]+','+SUPER_NUKE_COLOR_RGB[1]+','+SUPER_NUKE_COLOR_RGB[2]+')';
+const SUPER_NUKE_COLOR_THREE=new THREE.Color(SUPER_NUKE_COLOR_RGB[0]/255,SUPER_NUKE_COLOR_RGB[1]/255,SUPER_NUKE_COLOR_RGB[2]/255);
 
-function getMeteorColorData(isNuke){
-  if(isNuke){
+function isSpecialNukeKey(patKey){
+  return patKey===NUKE_PAT_KEY||patKey===SUPER_NUKE_PAT_KEY;
+}
+
+function getMeteorColorData(patKey){
+  if(patKey===SUPER_NUKE_PAT_KEY){
+    return{
+      r:SUPER_NUKE_COLOR_RGB[0],g:SUPER_NUKE_COLOR_RGB[1],b:SUPER_NUKE_COLOR_RGB[2],
+      three:SUPER_NUKE_COLOR_THREE,
+      css:SUPER_NUKE_COLOR_CSS
+    };
+  }
+  if(patKey===NUKE_PAT_KEY){
     return{
       r:NUKE_COLOR_RGB[0],g:NUKE_COLOR_RGB[1],b:NUKE_COLOR_RGB[2],
       three:NUKE_COLOR_THREE,
@@ -1098,6 +1390,31 @@ function applyNukeWipe(cx,cy,radius){
   }
 }
 
+function applySuperNukeRadialWipe(worldImpactPt,killFraction){
+  const f=clamp(killFraction,0,1);
+  if(f<=0)return{destroyed:0,capAngleDeg:0};
+  const impactLocal=worldImpactPt.clone().normalize().applyQuaternion(rotQ.clone().invert());
+  // Spherical cap area fraction f = (1 - cos(theta)) / 2  =>  cos(theta) = 1 - 2f
+  const cosRadius=clamp(1-2*f,-1,1);
+  const capAngleDeg=Math.acos(cosRadius)*180/Math.PI;
+  let destroyed=0;
+  for(let y=0;y<H;y++){
+    const sinTh=rowSinTh[y], cosTh=rowCosTh[y];
+    for(let x=0;x<W;x++){
+      const nx=-colCosPh[x]*sinTh, ny=cosTh, nz=colSinPh[x]*sinTh;
+      const dot=nx*impactLocal.x+ny*impactLocal.y+nz*impactLocal.z;
+      if(dot<cosRadius)continue;
+      const i=y*W+x;
+      if(grid[i])destroyed++;
+      grid[i]=0;
+      age[i]=Math.min(age[i],-1);
+      meteorAge[i]=0;
+      meteorFlashMark[i]=0;
+    }
+  }
+  return{destroyed,capAngleDeg:Number(capAngleDeg.toFixed(2))};
+}
+
 // Glow sprite texture for meteor head (created once, shared)
 const meteorGlowCvs=document.createElement('canvas');meteorGlowCvs.width=meteorGlowCvs.height=64;
 const _mgx=meteorGlowCvs.getContext('2d');
@@ -1108,6 +1425,7 @@ _mgg.addColorStop(1,'rgba(0,0,0,0)');
 _mgx.fillStyle=_mgg;_mgx.fillRect(0,0,64,64);
 const meteorGlowTex=new THREE.CanvasTexture(meteorGlowCvs);
 const meteorHeadGeo=new THREE.SphereGeometry(0.008,16,12);
+const METEOR_TRAIL_LEN=72;
 const _whiteColor=new THREE.Color(1,1,1);
 
 function getMeteorCoreColor(threeColor){
@@ -1115,18 +1433,101 @@ function getMeteorCoreColor(threeColor){
   return threeColor.clone().lerp(_whiteColor,0.42);
 }
 
+function logRendererDebugInfo(){
+  try{
+    const gl=renderer.getContext();
+    if(!gl)return;
+    const ext=gl.getExtension('WEBGL_debug_renderer_info');
+    const vendor=ext?gl.getParameter(ext.UNMASKED_VENDOR_WEBGL):'unknown';
+    const rendererName=ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):'unknown';
+    const api=(typeof WebGL2RenderingContext!=='undefined'&&gl instanceof WebGL2RenderingContext)?'WebGL2':'WebGL1';
+    console.info('[WebGL] '+api+' vendor='+vendor+' renderer='+rendererName);
+    addCrashLog('renderer-info','info',{api,vendor,renderer:rendererName});
+  }catch(err){
+    console.warn('[WebGL] renderer info unavailable',err);
+    addCrashLog('renderer-info-failed','warn',{message:String(err&&err.message||err)});
+  }
+}
+
+function markObjectMaterialNeedsUpdate(obj){
+  const m=obj&&obj.material;
+  if(!m)return;
+  if(Array.isArray(m)){
+    for(let i=0;i<m.length;i++)if(m[i])m[i].needsUpdate=true;
+  }else{
+    m.needsUpdate=true;
+  }
+}
+
+function markAllMaterialsNeedsUpdate(){
+  markObjectMaterialNeedsUpdate(sph);
+  markObjectMaterialNeedsUpdate(sphBack);
+  markObjectMaterialNeedsUpdate(wire);
+  markObjectMaterialNeedsUpdate(stPts);
+  for(const m of activeMeteors){
+    markObjectMaterialNeedsUpdate(m.head);
+    markObjectMaterialNeedsUpdate(m.trail);
+    if(m&&m.trailPosAttr)m.trailPosAttr.needsUpdate=true;
+  }
+  for(const m of meteorPool){
+    markObjectMaterialNeedsUpdate(m.head);
+    markObjectMaterialNeedsUpdate(m.trail);
+    if(m&&m.trailPosAttr)m.trailPosAttr.needsUpdate=true;
+  }
+}
+
+function resetVolatileVisualStateOnContextLost(){
+  for(let i=activeMeteors.length-1;i>=0;i--){
+    releaseMeteorVisual(activeMeteors[i]);
+  }
+  activeMeteors.length=0;
+  impactRings.length=0;
+}
+
 renderer.domElement.addEventListener('webglcontextlost',e=>{
   e.preventDefault();
+  contextLossCount++;
+  const burstCount=registerContextLossBurst();
+  lastContextLossBurst=burstCount;
+  applyContextLossSafetyProfile(burstCount);
+  const msg=(e&&typeof e.statusMessage==='string'&&e.statusMessage)?e.statusMessage:'(empty)';
+  console.warn(
+    'WebGL context lost #'+contextLossCount+
+    ' (burst '+burstCount+'/120s), max pixel ratio '+maxPixelRatio.toFixed(2)+
+    ', statusMessage='+msg
+  );
+  addCrashLog('webgl-context-lost','error',{statusMessage:msg,burstCount,contextLossCount,maxPixelRatio:Number(maxPixelRatio.toFixed(3))});
   glContextLost=true;
+  renderer.domElement.style.opacity='0';
+  if(contextRecoveryTimer)clearTimeout(contextRecoveryTimer);
+  contextRecoveryTimer=setTimeout(()=>{
+    contextRecoveryTimer=0;
+    if(glContextLost){
+      showGpuRecoveryNotice('Reload this slide to recover the WebGL context.');
+      addCrashLog('webgl-context-stuck','error',{contextLossCount,burstCount,maxPixelRatio:Number(maxPixelRatio.toFixed(3))});
+    }
+  },1800);
   wasRunningBeforeContextLost=running;
   running=false;
+  resetVolatileVisualStateOnContextLost();
   updPlayBtn();
 });
 renderer.domElement.addEventListener('webglcontextrestored',()=>{
   glContextLost=false;
+  renderer.domElement.style.opacity='1';
+  if(contextRecoveryTimer){clearTimeout(contextRecoveryTimer);contextRecoveryTimer=0;}
+  hideGpuRecoveryNotice();
+  applyRendererResolution();
+  if(lastContextLossBurst>0)applyContextLossSafetyProfile(lastContextLossBurst);
   lifeTex.needsUpdate=true;
   meteorGlowTex.needsUpdate=true;
   pendingTexUpdate=true;
+  markAllMaterialsNeedsUpdate();
+  resumeAfterRestoreAt=performance.now()+350;
+  if(renderer.renderLists&&renderer.renderLists.dispose)renderer.renderLists.dispose();
+  renderer.resetState();
+  addCrashLog('webgl-context-restored','warn',{contextLossCount,maxPixelRatio:Number(maxPixelRatio.toFixed(3))});
+  logRendererDebugInfo();
   if(wasRunningBeforeContextLost){
     running=true;
     updPlayBtn();
@@ -1188,7 +1589,8 @@ function updateTrailRibbon(m,headX,headY,headZ,visFactor,camX,camY,camZ){
   const vp=m.trailVerts;
   const offX=headX-m.pos.x,offY=headY-m.pos.y,offZ=headZ-m.pos.z;
   m.trail.position.set(offX,offY,offZ);
-  const widthBase=0.052*(0.9+0.2*visFactor);
+  const widthScale=m.trailWidthScale||1;
+  const widthBase=0.052*(0.9+0.2*visFactor)*widthScale;
   let lastSx=1,lastSy=0,lastSz=0;
 
   for(let i=0;i<len;i++){
@@ -1242,9 +1644,8 @@ function updateTrailRibbon(m,headX,headY,headZ,visFactor,camX,camY,camZ){
 }
 
 function syncActiveMeteorColors(){
-  const imp=getMeteorColorData(false);
   for(const m of activeMeteors){
-    const c=m.isNuke?getMeteorColorData(true):imp;
+    const c=getMeteorColorData(m.specialKey||null);
     m.glowMat.color.copy(c.three);
     if(m.coreMat)m.coreMat.color.copy(getMeteorCoreColor(c.three));
     if(m.light)m.light.color.copy(c.three);
@@ -1252,50 +1653,41 @@ function syncActiveMeteorColors(){
   }
 }
 
-function spawnMeteor(){
-  if(activeMeteors.length>=MAX_ACTIVE_METEORS)return;
-  const canSpawnNuke=meteorsSinceLastNuke>=NUKE_MIN_METEORS_BETWEEN;
-  const isNuke=canSpawnNuke&&Math.random()<NUKE_SPAWN_CHANCE;
-  if(isNuke)meteorsSinceLastNuke=0;
-  else meteorsSinceLastNuke++;
-  const patKey=isNuke?NUKE_PAT_KEY:METEOR_PATS[Math.floor(Math.random()*METEOR_PATS.length)];
-  const imp=getMeteorColorData(isNuke);
+function setMeteorVisible(m,visible){
+  m.head.visible=visible;
+  m.trail.visible=visible;
+  if(m.light)m.light.visible=visible;
+}
 
-  // Bias 70% of meteors toward camera-visible hemisphere
-  const camDir=camera.position.clone().normalize();
-  let originDir;
-  do{
-    const rTh=Math.acos(2*Math.random()-1),rPh=Math.random()*Math.PI*2;
-    originDir=new THREE.Vector3(Math.sin(rTh)*Math.cos(rPh),Math.cos(rTh),Math.sin(rTh)*Math.sin(rPh));
-  }while(originDir.dot(camDir)<0&&Math.random()<0.6);
-  const originDist=3.5+Math.random()*2.0;
-  const origin=originDir.clone().multiplyScalar(originDist);
+function resetMeteorTrail(m,origin){
+  const len=m.trailLen;
+  const tp=m.trailPositions;
+  const tv=m.trailVerts;
+  for(let i=0;i<len;i++){
+    const pi=i*3;
+    tp[pi]=origin.x;tp[pi+1]=origin.y;tp[pi+2]=origin.z;
+    const vi=i*6;
+    tv[vi]=origin.x;tv[vi+1]=origin.y;tv[vi+2]=origin.z;
+    tv[vi+3]=origin.x;tv[vi+4]=origin.y;tv[vi+5]=origin.z;
+  }
+  m.trailPosAttr.needsUpdate=true;
+}
 
-  // Initial velocity: toward sphere center (gravity), small perpendicular deviation
-  const toCenter=origin.clone().negate().normalize();
-  const baseSpeed=Math.sqrt(2.5/originDist)*0.8; // below escape velocity -> always captured
-  const dev=new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5);
-  dev.sub(toCenter.clone().multiplyScalar(dev.dot(toCenter))).normalize();
-  const vel=toCenter.clone().multiplyScalar(baseSpeed).add(dev.multiplyScalar(baseSpeed*0.1));
-
-  // White-hot core
+function createMeteorVisual(){
   const headMat=new THREE.MeshBasicMaterial({color:0xfcfdff,transparent:true,opacity:0.92,depthWrite:false});
   const head=new THREE.Mesh(meteorHeadGeo,headMat);
-  head.position.copy(origin);
   head.renderOrder=8;
   scene.add(head);
 
-  // Bright tip point (small intense white sprite)
   const tipMat=new THREE.SpriteMaterial({map:meteorGlowTex,color:0xffffff,transparent:true,opacity:0.92,depthWrite:false});
   const tip=new THREE.Sprite(tipMat);
   tip.scale.set(0.026,0.026,1);
   tip.renderOrder=9;
   head.add(tip);
 
-  // Mid halo smooths the white-to-color transition around the head core.
   const coreMat=new THREE.SpriteMaterial({
     map:meteorGlowTex,
-    color:getMeteorCoreColor(imp.three),
+    color:0xffffff,
     transparent:true,
     opacity:0.78,
     depthWrite:false,
@@ -1306,25 +1698,18 @@ function spawnMeteor(){
   core.renderOrder=8;
   head.add(core);
 
-  // Soft radial glow sprite (NormalBlending: consistent against any background)
-  const glowMat=new THREE.SpriteMaterial({map:meteorGlowTex,color:imp.three,transparent:true,opacity:0.76,depthWrite:false});
+  const glowMat=new THREE.SpriteMaterial({map:meteorGlowTex,color:0xffffff,transparent:true,opacity:0.76,depthWrite:false});
   const glow=new THREE.Sprite(glowMat);
   glow.scale.set(0.32,0.32,1);
   glow.renderOrder=7;
   head.add(glow);
 
-  // Continuous ribbon trail: no dotted points, lateral fade via shader
-  const trailLen=72;
+  const trailLen=METEOR_TRAIL_LEN;
   const trailPositions=new Float32Array(trailLen*3);
   const trailVerts=new Float32Array(trailLen*6);
   const trailUVs=new Float32Array(trailLen*4);
   const trailIdx=new Uint16Array((trailLen-1)*6);
   for(let i=0;i<trailLen;i++){
-    const pi=i*3;
-    trailPositions[pi]=origin.x;trailPositions[pi+1]=origin.y;trailPositions[pi+2]=origin.z;
-    const vi=i*6;
-    trailVerts[vi]=origin.x;trailVerts[vi+1]=origin.y;trailVerts[vi+2]=origin.z;
-    trailVerts[vi+3]=origin.x;trailVerts[vi+4]=origin.y;trailVerts[vi+5]=origin.z;
     const ui=i*4;
     const v=i/(trailLen-1);
     trailUVs[ui]=0;trailUVs[ui+1]=v;
@@ -1349,7 +1734,7 @@ function spawnMeteor(){
   const trailMat=new THREE.ShaderMaterial({
     uniforms:{
       map:{value:meteorGlowTex},
-      uColor:{value:imp.three.clone()},
+      uColor:{value:new THREE.Color(1,1,1)},
       uOpacity:{value:0.95}
     },
     vertexShader:[
@@ -1388,16 +1773,121 @@ function spawnMeteor(){
 
   let light=null;
   if(METEOR_ENABLE_POINT_LIGHT){
-    light=new THREE.PointLight(imp.three,2.0,6);
-    light.position.copy(origin);
+    light=new THREE.PointLight(0xffffff,2.0,6);
     scene.add(light);
   }
 
   const meteor={
     head,tip,tipMat,core,coreMat,trail,trailGeo,trailMat,trailPosAttr,trailVerts,glow,glowMat,trailPositions,trailLen,light,
-    pos:origin.clone(),prevPos:origin.clone(),renderPos:origin.clone(),vel:vel.clone(),
-    patKey,isNuke, age:0
+    pos:new THREE.Vector3(),prevPos:new THREE.Vector3(),renderPos:new THREE.Vector3(),vel:new THREE.Vector3(),
+    patKey:'',specialKey:null,isNuke:false,isSuperNuke:false,speedScale:1,sizeScale:1,trailWidthScale:1,age:0,inPool:false
   };
+  setMeteorVisible(meteor,false);
+  return meteor;
+}
+
+function acquireMeteorVisual(){
+  const meteor=meteorPool.pop()||createMeteorVisual();
+  meteor.inPool=false;
+  setMeteorVisible(meteor,true);
+  return meteor;
+}
+
+function releaseMeteorVisual(m){
+  if(!m||m.inPool)return;
+  m.inPool=true;
+  m.age=0;
+  m.patKey='';
+  m.specialKey=null;
+  m.isNuke=false;
+  m.isSuperNuke=false;
+  m.speedScale=1;
+  m.sizeScale=1;
+  m.trailWidthScale=1;
+  setMeteorVisible(m,false);
+  meteorPool.push(m);
+  if(renderer.renderLists&&renderer.renderLists.dispose)renderer.renderLists.dispose();
+}
+
+function spawnMeteor(){
+  if(activeMeteors.length>=maxActiveMeteors)return;
+  const roll=Math.random();
+  const patKey=roll<SUPER_NUKE_SPAWN_CHANCE
+    ? SUPER_NUKE_PAT_KEY
+    : roll<(SUPER_NUKE_SPAWN_CHANCE+NUKE_SPAWN_CHANCE)
+      ? NUKE_PAT_KEY
+      : METEOR_PATS[Math.floor(Math.random()*METEOR_PATS.length)];
+  const isSuperNuke=patKey===SUPER_NUKE_PAT_KEY;
+  const isNuke=patKey===NUKE_PAT_KEY;
+  const specialKey=isSpecialNukeKey(patKey)?patKey:null;
+  const imp=getMeteorColorData(specialKey);
+
+  // Spawn bias:
+  // - keep meteors mostly on the camera-visible hemisphere
+  // - favor right side of screen (user preference: fewer left, more right)
+  const camDir=camera.position.clone().normalize();
+  let originDir=null;
+  let bestDir=null;
+  let bestScore=-Infinity;
+  for(let tries=0;tries<32;tries++){
+    const rTh=Math.acos(2*Math.random()-1),rPh=Math.random()*Math.PI*2;
+    const candidate=new THREE.Vector3(Math.sin(rTh)*Math.cos(rPh),Math.cos(rTh),Math.sin(rTh)*Math.sin(rPh));
+    const visDot=candidate.dot(camDir);
+    if(visDot<0&&Math.random()<0.6)continue;
+
+    const probeScreen=worldToScreen(candidate.clone().multiplyScalar(4.2));
+    const xNormRaw=clamp(probeScreen.x/Math.max(1,innerWidth),0,1); // 0=left, 1=right
+    // Screen orientation is mirrored for this scene setup: flip so "right" means visually right.
+    const xNorm=1-xNormRaw;
+    const rightWeight=0.18+0.82*Math.pow(xNorm,1.65);
+    const score=rightWeight+Math.max(0,visDot)*0.25;
+    if(score>bestScore){bestScore=score;bestDir=candidate}
+    if(Math.random()<rightWeight){
+      originDir=candidate;
+      break;
+    }
+  }
+  if(!originDir)originDir=bestDir||new THREE.Vector3(0,0,1);
+  const originDist=3.5+Math.random()*2.0;
+  const origin=originDir.clone().multiplyScalar(originDist);
+
+  // Initial velocity: toward sphere center (gravity), small perpendicular deviation
+  const toCenter=origin.clone().negate().normalize();
+  const baseSpeed=Math.sqrt(2.5/originDist)*0.8; // below escape velocity -> always captured
+  const dev=new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5);
+  dev.sub(toCenter.clone().multiplyScalar(dev.dot(toCenter))).normalize();
+  const vel=toCenter.clone().multiplyScalar(baseSpeed).add(dev.multiplyScalar(baseSpeed*0.1));
+
+  const meteor=acquireMeteorVisual();
+  meteor.pos.copy(origin);
+  meteor.prevPos.copy(origin);
+  meteor.renderPos.copy(origin);
+  meteor.vel.copy(vel);
+  meteor.patKey=patKey;
+  meteor.specialKey=specialKey;
+  meteor.isNuke=isNuke;
+  meteor.isSuperNuke=isSuperNuke;
+  meteor.speedScale=isSuperNuke?SUPER_NUKE_SPEED_SCALE:1;
+  meteor.sizeScale=isSuperNuke?SUPER_NUKE_SIZE_SCALE:1;
+  meteor.trailWidthScale=meteor.sizeScale;
+  meteor.age=0;
+  meteor.head.position.copy(origin);
+  meteor.head.scale.setScalar(meteor.sizeScale);
+  meteor.head.material.opacity=0.92;
+  meteor.tipMat.opacity=0.92;
+  meteor.coreMat.opacity=0.78;
+  meteor.glowMat.opacity=0.76;
+  meteor.tip.scale.set(0.026*meteor.sizeScale,0.026*meteor.sizeScale,1);
+  meteor.core.scale.set(0.082*meteor.sizeScale,0.082*meteor.sizeScale,1);
+  meteor.glow.scale.set(0.32*meteor.sizeScale,0.32*meteor.sizeScale,1);
+  meteor.glowMat.color.copy(imp.three);
+  meteor.coreMat.color.copy(getMeteorCoreColor(imp.three));
+  if(meteor.light){
+    meteor.light.color.copy(imp.three);
+    meteor.light.intensity=2.0;
+    meteor.light.position.copy(origin);
+  }
+  resetMeteorTrail(meteor,origin);
   syncTrailRibbonColor(meteor,imp.three);
   updateTrailRibbon(meteor,origin.x,origin.y,origin.z,1.0,camera.position.x,camera.position.y,camera.position.z);
   activeMeteors.push(meteor);
@@ -1428,6 +1918,7 @@ function updateMeteorVisuals(interp,frameDt){
 
   for(let i=0;i<activeMeteors.length;i++){
     const m=activeMeteors[i];
+    const sizeScale=m.sizeScale||1;
     const tx=m.prevPos.x+(m.pos.x-m.prevPos.x)*a;
     const ty=m.prevPos.y+(m.pos.y-m.prevPos.y)*a;
     const tz=m.prevPos.z+(m.pos.z-m.prevPos.z)*a;
@@ -1441,12 +1932,14 @@ function updateMeteorVisuals(interp,frameDt){
     const r=Math.hypot(px,py,pz)||1;
     const facing=camNx*(px/r)+camNy*(py/r)+camNz*(pz/r); // +1=facing camera, -1=behind sphere
     const visFactor=facing>0?1.0:Math.max(0.08,0.3+facing*0.5); // behind: 8%-30%
-    m.glow.scale.set(0.32,0.32,1);
+    m.head.scale.setScalar(sizeScale);
+    m.glow.scale.set(0.32*sizeScale,0.32*sizeScale,1);
     m.glowMat.opacity=0.78*visFactor;
     m.head.material.opacity=0.92*visFactor;
     m.tipMat.opacity=0.88*visFactor;
+    m.tip.scale.set(0.026*sizeScale,0.026*sizeScale,1);
     if(m.core){
-      m.core.scale.set(0.082,0.082,1);
+      m.core.scale.set(0.082*sizeScale,0.082*sizeScale,1);
       m.coreMat.opacity=0.74*visFactor;
     }
     updateTrailRibbon(m,px,py,pz,visFactor,camX,camY,camZ);
@@ -1461,7 +1954,9 @@ function updateMeteors(dt){
   for(let mi=activeMeteors.length-1;mi>=0;mi--){
     const m=activeMeteors[mi];
     const pos=m.pos,prevPos=m.prevPos,vel=m.vel;
-    m.age+=dt;
+    const motionScale=m.speedScale||1;
+    const mDt=sDt*motionScale;
+    m.age+=dt*motionScale;
 
     // Gravitational acceleration toward sphere center
     prevPos.copy(pos);
@@ -1471,12 +1966,12 @@ function updateMeteors(dt){
     const invR=1/rGrav;
     const accScale=-G/(rGrav*rGrav);
     // Symplectic Euler: update velocity, then position
-    vel.x+=prevX*invR*accScale*sDt;
-    vel.y+=prevY*invR*accScale*sDt;
-    vel.z+=prevZ*invR*accScale*sDt;
-    pos.x+=vel.x*sDt;
-    pos.y+=vel.y*sDt;
-    pos.z+=vel.z*sDt;
+    vel.x+=prevX*invR*accScale*mDt;
+    vel.y+=prevY*invR*accScale*mDt;
+    vel.z+=prevZ*invR*accScale*mDt;
+    pos.x+=vel.x*mDt;
+    pos.y+=vel.y*mDt;
+    pos.z+=vel.z*mDt;
     const r=Math.hypot(pos.x,pos.y,pos.z); // post-update distance for impact check
 
     // Densify trail samples to avoid dotted look at higher meteor speeds
@@ -1515,7 +2010,14 @@ function updateMeteors(dt){
       const il=Math.hypot(ipx,ipy,ipz)||1;
       _impactWorldPt.set(ipx/il,ipy/il,ipz/il);
       const grid=surfaceToGrid(_impactWorldPt);
-      if(m.isNuke){
+      if(m.isSuperNuke){
+        const wipe=applySuperNukeRadialWipe(_impactWorldPt,SUPER_NUKE_KILL_FRACTION);
+        addCrashLog('super-nuke-impact','warn',{
+          killFraction:SUPER_NUKE_KILL_FRACTION,
+          destroyed:wipe.destroyed,
+          capAngleDeg:wipe.capAngleDeg
+        });
+      }else if(m.isNuke){
         applyNukeWipe(grid.x,grid.y,NUKE_WIPE_RADIUS);
       }else{
         // Keep Alive/Born color settings independent from Meteor toggle:
@@ -1528,12 +2030,13 @@ function updateMeteors(dt){
         });
       }
       cntPop();pendingTexUpdate=true;updStats();
-      impactRings.push({cx:grid.x,cy:grid.y,t:0,color:m.isNuke?NUKE_COLOR_RGB:null,bornBeat:1});
+      const ringColor=m.specialKey?getMeteorColorData(m.specialKey).rgb:null;
+      impactRings.push({cx:grid.x,cy:grid.y,t:0,color:ringColor,bornBeat:1});
       meteorStats[m.patKey]=(meteorStats[m.patKey]||0)+1;
       updMeteorStats();
       showImpactOverlay(m.patKey);
       // Cleanup
-      disposeMeteorVisuals(m);
+      releaseMeteorVisual(m);
       activeMeteors.splice(mi,1);
     }
   }
@@ -1547,14 +2050,16 @@ let impactNum=0;
 let _rulesVisible=false, _rulesShowLock=0;
 let _rulesOpacity=0; // current animated opacity
 let _rulesLastUpdate=performance.now()*0.001;
-// Fixed rules box dimensions (known from static content)
-const RULES_W=340, RULES_H=90, RULES_MARGIN=10;
+const RULES_COLLISION_PAD=6;
+const RULES_SHOW_LOCK_SEC=0.25;
+const RULES_FADE_IN_PER_SEC=2.4;
+const RULES_FADE_OUT_PER_SEC=5.5;
 
 function setRulesVisible(nextVisible){
   if(_rulesVisible===nextVisible)return;
   _rulesVisible=nextVisible;
   // Anti-flicker: after every state change, delay next possible show.
-  _rulesShowLock=2.0;
+  _rulesShowLock=RULES_SHOW_LOCK_SEC;
 }
 
 function tickRulesLock(){
@@ -1562,71 +2067,47 @@ function tickRulesLock(){
   const dt=Math.max(0,Math.min(0.25,now-_rulesLastUpdate));
   _rulesLastUpdate=now;
   if(_rulesShowLock>0)_rulesShowLock=Math.max(0,_rulesShowLock-dt);
+  return dt;
 }
 
-function estimateMeteorImpactSeconds(m,maxAhead=2.0){
-  // Short forward simulation: enough to decide "impact in < 1.5s?".
-  const G=2.5;
-  const step=0.05;
-  const timeoutLeft=Math.max(0,15-(m.age||0));
-  const horizon=Math.min(maxAhead,timeoutLeft);
-  if(horizon<=0)return 0.1;
-  let px=m.pos.x,py=m.pos.y,pz=m.pos.z;
-  let vx=m.vel.x,vy=m.vel.y,vz=m.vel.z;
-  const sDt=step*meteorSpeed*3.0;
-  for(let t=step;t<=horizon+1e-6;t+=step){
-    const rGrav=Math.max(0.1,Math.hypot(px,py,pz));
-    const invR=1/rGrav;
-    const accScale=-G/(rGrav*rGrav);
-    vx+=px*invR*accScale*sDt;
-    vy+=py*invR*accScale*sDt;
-    vz+=pz*invR*accScale*sDt;
-    px+=vx*sDt;
-    py+=vy*sDt;
-    pz+=vz*sDt;
-    if(Math.hypot(px,py,pz)<=1.005)return t;
-  }
-  return Infinity;
+function toRect(domRect){
+  return{
+    left:domRect.left,
+    top:domRect.top,
+    right:domRect.right,
+    bottom:domRect.bottom,
+    width:domRect.width,
+    height:domRect.height
+  };
 }
 
-let _spacePressureCacheT=0;
-let _spacePressureCacheVal=Infinity;
-let _spacePressureCacheMeteorCount=-1;
-let _spacePressureCacheActiveCount=-1;
-function predictSpacePressure(){
-  // Predict if incoming meteors will cause overlap with rules box.
-  if(!meteorMode||activeMeteors.length===0)return Infinity;
-  const activeCount=impactSlots.filter(s=>s).length;
-  const now=performance.now();
-  if(now-_spacePressureCacheT<180&&
-     _spacePressureCacheMeteorCount===activeMeteors.length&&
-     _spacePressureCacheActiveCount===activeCount){
-    return _spacePressureCacheVal;
-  }
-  const cap=computeOverlayCapacity();
-  if(cap.cols<=0)return Infinity;
-  // After each in-flight meteor lands, how many rows?
-  const futureRows=Math.ceil((activeCount+activeMeteors.length)/Math.max(1,cap.cols));
-  const futureOverlayBottom=cap.topY+(futureRows*(cap.cardH+cap.gridGap)-cap.gridGap)+8;
-  const rulesTop=innerHeight-RULES_MARGIN-RULES_H;
-  if(futureOverlayBottom<=rulesTop){
-    _spacePressureCacheT=now;
-    _spacePressureCacheVal=Infinity;
-    _spacePressureCacheMeteorCount=activeMeteors.length;
-    _spacePressureCacheActiveCount=activeCount;
-    return Infinity;
-  }
-  // Overlap predicted: estimate earliest impact time.
-  let soonest=Infinity;
-  for(let i=0;i<activeMeteors.length;i++){
-    const eta=estimateMeteorImpactSeconds(activeMeteors[i],2.0);
-    if(eta<soonest)soonest=eta;
-  }
-  _spacePressureCacheT=now;
-  _spacePressureCacheVal=soonest;
-  _spacePressureCacheMeteorCount=activeMeteors.length;
-  _spacePressureCacheActiveCount=activeCount;
-  return soonest;
+function getLayoutRect(el){
+  if(!el)return null;
+  const cs=getComputedStyle(el);
+  if(cs.display==='none')return null;
+  const r=el.getBoundingClientRect();
+  if(r.width<=0||r.height<=0)return null;
+  return toRect(r);
+}
+
+function getVisibleRect(el){
+  const r=getLayoutRect(el);
+  if(!r)return null;
+  const cs=getComputedStyle(el);
+  if(cs.visibility==='hidden'||parseFloat(cs.opacity||'1')<=0.01)return null;
+  return r;
+}
+
+function rectsOverlap(a,b,pad=0){
+  return a.left<(b.right-pad)&&a.right>(b.left+pad)&&a.top<(b.bottom-pad)&&a.bottom>(b.top+pad);
+}
+
+function circleRectOverlap(cx,cy,radius,rect,pad=0){
+  const left=rect.left-pad,right=rect.right+pad,top=rect.top-pad,bottom=rect.bottom+pad;
+  const nearX=Math.max(left,Math.min(cx,right));
+  const nearY=Math.max(top,Math.min(cy,bottom));
+  const dx=nearX-cx,dy=nearY-cy;
+  return dx*dx+dy*dy<=radius*radius;
 }
 
 // Precompute fixed canvas size from largest meteor pattern (all frames same size)
@@ -1652,7 +2133,6 @@ function computeOverlayCapacity(){
   const overlay=document.getElementById('impactOverlay');
   const topbar=document.getElementById('topbar');
   const foot=document.getElementById('foot');
-  const rules=document.getElementById('golRules');
   const margin=10, gridGap=8, gap=16;
 
   const topY=topbar?(topbar.getBoundingClientRect().bottom+8):60;
@@ -1692,15 +2172,7 @@ function computeOverlayCapacity(){
 
   const maxSlots=cols*maxRows;
 
-  // Left edge of the overlay (right-aligned within available space)
-  const overlayW=cols>0?(cols*cardW+(cols-1)*gridGap):0;
-  const overlayLeft=innerWidth-margin-overlayW;
-
-  // Rules height measurement
-  let rulesH=0;
-  if(rules)rulesH=rules.scrollHeight||50;
-
-  return{topY,botY,cols,maxRows,maxSlots,cardW,cardH,rulesH,overlayW,gridGap};
+  return{topY,botY,cols,maxRows,maxSlots,cardW,cardH,gridGap};
 }
 
 function positionImpactOverlay(){
@@ -1710,70 +2182,50 @@ function positionImpactOverlay(){
   const rules=document.getElementById('golRules');
   const cap=computeOverlayCapacity();
 
-  // Compute actual overlay height based on real active cards, not maxRows
-  const actualRows=cap.cols>0?Math.ceil(activeCount/cap.cols):0;
-  const actualOverlayH=actualRows>0?(actualRows*(cap.cardH+cap.gridGap)-cap.gridGap):0;
-
-  // Rules: fixed bottom-right. Check collision with sphere and overlay.
+  // Rules: fixed bottom-right. Active DOM collision management.
   if(rules){
-    // Rules rect (fixed position)
-    const rLeft=innerWidth-RULES_MARGIN-RULES_W;
-    const rTop=innerHeight-RULES_MARGIN-RULES_H;
-    const rRight=innerWidth-RULES_MARGIN;
-    const rBottom=innerHeight-RULES_MARGIN;
+    const rulesRect=getLayoutRect(rules);
+    const dtRules=tickRulesLock();
+    let hasCollision=true;
+    if(rulesRect){
+      const sc=worldToScreen(_w2sOrigin);
+      const se=worldToScreen(_w2sX);
+      const sphereR=Math.max(80,Math.hypot(se.x-sc.x,se.y-sc.y));
+      const sphereOverlap=circleRectOverlap(sc.x,sc.y,sphereR+8,rulesRect,RULES_COLLISION_PAD);
 
-    // Sphere circle on screen
-    const sc=worldToScreen(_w2sOrigin);
-    const se=worldToScreen(_w2sX);
-    const sphereR=Math.max(80,Math.hypot(se.x-sc.x,se.y-sc.y));
-    // Check circle-rect overlap
-    const closestX=Math.max(rLeft,Math.min(sc.x,rRight));
-    const closestY=Math.max(rTop,Math.min(sc.y,rBottom));
-    const distSq=(closestX-sc.x)**2+(closestY-sc.y)**2;
-    const sphereOverlap=distSq<(sphereR+8)**2;
-
-    // Overlay cards rect
-    const overlayRight=innerWidth-10;
-    const overlayLeft=overlayRight-(cap.cols>0?(cap.cols*cap.cardW+(cap.cols-1)*cap.gridGap):0);
-    const overlayTop=cap.topY;
-    const overlayBot=cap.topY+actualOverlayH;
-    // Rect-rect overlap with rules
-    const overlayOverlap=actualOverlayH>0&&
-      rLeft<overlayRight&&rRight>overlayLeft&&
-      rTop<overlayBot&&rBottom>overlayTop;
-
-    // Predictive: fade out if meteors will force overlap soon.
-    const pressureFadeOut=predictSpacePressure()<1.5;
-    const canShowRules=!sphereOverlap&&!overlayOverlap&&activeCount>0&&cap.cols>0&&!pressureFadeOut;
-
-    tickRulesLock();
-
-    if(canShowRules){
-      if(_rulesShowLock<=0)setRulesVisible(true);
-    }else{
-      // Hide immediately when any prerequisite fails.
-      setRulesVisible(false);
+      const colliders=[
+        getVisibleRect(document.getElementById('topbar')),
+        getVisibleRect(document.getElementById('panel')),
+        getVisibleRect(document.getElementById('foot')),
+        getVisibleRect(document.getElementById('ctxMenu')),
+        getVisibleRect(overlay),
+      ].filter(Boolean);
+      const uiOverlap=colliders.some(r=>rectsOverlap(rulesRect,r,RULES_COLLISION_PAD));
+      hasCollision=sphereOverlap||uiOverlap;
     }
 
+    if(hasCollision){
+      setRulesVisible(false);
+    }else if(_rulesShowLock<=0){
+      setRulesVisible(true);
+    }
 
-    // Animate opacity
-    const targetOpacity=_rulesVisible?1:0;
-    const fadeSpeed=_rulesVisible?0.025:0.08; // fade in ~0.6s, fade out ~0.2s
-    _rulesOpacity+=(_rulesOpacity<targetOpacity?fadeSpeed:-fadeSpeed);
-    _rulesOpacity=Math.max(0,Math.min(1,_rulesOpacity));
+    const fadeSpeed=_rulesVisible?RULES_FADE_IN_PER_SEC:RULES_FADE_OUT_PER_SEC;
+    _rulesOpacity=_rulesVisible
+      ?Math.min(1,_rulesOpacity+fadeSpeed*dtRules)
+      :Math.max(0,_rulesOpacity-fadeSpeed*dtRules);
     rules.style.opacity=_rulesOpacity.toFixed(3);
     rules.style.visibility=_rulesOpacity<=0?'hidden':'visible';
   }
 
   if(!activeCount||!overlay.children.length){
-    if(rules)setRulesVisible(false);
+    overlay.style.display='none';
     return;
   }
 
   // If no space at all, hide overlay and rapidly expire all slots
   if(cap.maxSlots<=0){
     overlay.style.display='none';
-    if(rules)setRulesVisible(false);
     // Quickly expire all active slots so they don't pile up
     for(let i=0;i<impactSlots.length;i++){
       if(impactSlots[i]&&impactSlots[i].timer>0.15)impactSlots[i].timer=0.15;
@@ -1794,25 +2246,26 @@ function positionImpactOverlay(){
   // Position: right-aligned, below topbar, never overlapping sphere
   overlay.style.gridTemplateColumns='repeat('+cap.cols+',auto)';
   overlay.style.left='auto';
-  overlay.style.right='10px';
+  overlay.style.right='max(10px, env(safe-area-inset-right))';
   overlay.style.top=Math.round(cap.topY)+'px';
   overlay.style.display='grid';
 }
 
 function makeImpactCard(patKey,num,useBorn=false){
-  const isNuke=patKey===NUKE_PAT_KEY;
-  const imp=isNuke?getMeteorColorData(true):(useBorn?getBornColorData():getImpactColorData());
+  const isSpecialNuke=isSpecialNukeKey(patKey);
+  const isSuperNuke=patKey===SUPER_NUKE_PAT_KEY;
+  const imp=isSpecialNuke?getMeteorColorData(patKey):(useBorn?getBornColorData():getImpactColorData());
   const icR=imp.r,icG=imp.g,icB=imp.b;
   const colStr='rgb('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+')';
   const glowStr='rgba('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+',0.6)';
   const pat=PAT[patKey];
-  if(!pat&&!isNuke)return null;
+  if(!pat&&!isSpecialNuke)return null;
   const card=document.createElement('div');card.className='imp-card';
   const numEl=document.createElement('div');numEl.className='imp-num';numEl.textContent=''+num;numEl.style.color=colStr;
   card.appendChild(numEl);
   const cvs=document.createElement('canvas');cvs.width=IMP_CVS_W;cvs.height=IMP_CVS_H;
   const ctx=cvs.getContext('2d');
-  if(isNuke){
+  if(isSpecialNuke){
     ctx.fillStyle='rgba('+Math.round(icR*0.35)+','+Math.round(icG*0.35)+','+Math.round(icB*0.35)+',0.5)';
     ctx.fillRect(2,2,IMP_CVS_W-4,IMP_CVS_H-4);
     ctx.textAlign='center';
@@ -1821,7 +2274,7 @@ function makeImpactCard(patKey,num,useBorn=false){
     ctx.shadowBlur=18;
     ctx.font='700 '+Math.floor(IMP_CVS_H*0.62)+'px Segoe UI Symbol, Noto Sans Symbols, sans-serif';
     ctx.fillStyle='rgba('+Math.round(icR)+','+Math.round(icG)+','+Math.round(icB)+',0.98)';
-    ctx.fillText('\u2620',Math.floor(IMP_CVS_W*0.5),Math.floor(IMP_CVS_H*0.56));
+    ctx.fillText(isSuperNuke?'\u2622':'\u2620',Math.floor(IMP_CVS_W*0.5),Math.floor(IMP_CVS_H*0.56));
     ctx.shadowBlur=0;
   }else{
     let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
@@ -1914,17 +2367,22 @@ function updMeteorStats(){
   const entries=Object.entries(meteorStats).sort((a,b)=>b[1]-a[1]);
   if(entries.length===0){el.innerHTML='';return}
   const total=entries.reduce((s,e)=>s+e[1],0);
-  const nukeEntry=entries.find(([k])=>k===NUKE_PAT_KEY);
-  const displayEntries=nukeEntry
-    ? [nukeEntry,...entries.filter(([k])=>k!==NUKE_PAT_KEY).slice(0,5)]
-    : entries.slice(0,6);
+  const pinnedKeys=[NUKE_PAT_KEY,SUPER_NUKE_PAT_KEY];
+  const pinnedEntries=pinnedKeys.map(k=>entries.find(([kk])=>kk===k)).filter(Boolean);
+  const otherEntries=entries.filter(([k])=>!pinnedKeys.includes(k));
+  const displayEntries=[...pinnedEntries,...otherEntries.slice(0,Math.max(0,6-pinnedEntries.length))];
   const imp=getImpactColorData();
   const soft='rgba('+Math.round(imp.r)+','+Math.round(imp.g)+','+Math.round(imp.b)+',0.72)';
   el.innerHTML='<span style="color:'+soft+'" title="Total meteor impacts since last clear"><span class="ml">Impacts:</span> <span class="mc" style="color:'+imp.css+'">'+total+'</span></span> '+
     displayEntries.map(([k,v])=>{
+      const isSuperNuke=k===SUPER_NUKE_PAT_KEY;
       const isNuke=k===NUKE_PAT_KEY;
-      const kSoft=isNuke?'rgba('+NUKE_COLOR_RGB[0]+','+NUKE_COLOR_RGB[1]+','+NUKE_COLOR_RGB[2]+',0.82)':soft;
-      const kColor=isNuke?NUKE_COLOR_CSS:imp.css;
+      const kSoft=isSuperNuke
+        ?'rgba('+SUPER_NUKE_COLOR_RGB[0]+','+SUPER_NUKE_COLOR_RGB[1]+','+SUPER_NUKE_COLOR_RGB[2]+',0.86)'
+        :isNuke
+          ?'rgba('+NUKE_COLOR_RGB[0]+','+NUKE_COLOR_RGB[1]+','+NUKE_COLOR_RGB[2]+',0.82)'
+          :soft;
+      const kColor=isSuperNuke?SUPER_NUKE_COLOR_CSS:isNuke?NUKE_COLOR_CSS:imp.css;
       return '<span style="color:'+kSoft+'" title="Number of '+((PAT_NAMES[k]||k))+' impacts delivered by meteor"><span class="ml">'+(PAT_BRAILLE[k]||'')+' '+(PAT_NAMES[k]||k)+':</span> <span class="mc" style="color:'+kColor+'">'+v+'</span></span>';
     }).join(' ');
 }
@@ -2153,6 +2611,16 @@ function updTex(){
 // ========================================
 function $(id){return document.getElementById(id)}
 function updPlayBtn(){const b=$('bPlay');b.innerHTML=running?'&#9208; Pause':'&#9654; Play';b.classList.toggle('on',running)}
+const METEOR_INTERVAL_MIN=1;
+const METEOR_INTERVAL_MAX=15;
+function meteorIntervalFromSlider(raw){
+  const v=Math.round(raw);
+  return METEOR_INTERVAL_MIN+METEOR_INTERVAL_MAX-clamp(v,METEOR_INTERVAL_MIN,METEOR_INTERVAL_MAX);
+}
+function meteorIntervalToSlider(intervalVal){
+  const v=Math.round(intervalVal);
+  return METEOR_INTERVAL_MIN+METEOR_INTERVAL_MAX-clamp(v,METEOR_INTERVAL_MIN,METEOR_INTERVAL_MAX);
+}
 function fmtNum(n){
   if(n<1e6)return n.toLocaleString();
   if(n<1e9)return(n/1e6).toFixed(2)+'M';
@@ -2166,12 +2634,21 @@ $('bStep').onclick=()=>{step();updTex();updStats()};
 $('bClear').onclick=()=>{clear();meteorStats={};updMeteorStats();updTex();updStats();save()};
 $('bApply').onclick=()=>{applyPat();save()};
 $('bRand').onclick=()=>{randomize();save()};
+$('bExpCrashLog').onclick=()=>{exportCrashLog()};
+$('bClrCrashLog').onclick=()=>{
+  if(confirm('Delete stored crash diagnostics?'))clearCrashLog();
+};
 
 $('bWipe').onclick=()=>{wipeMode=!wipeMode;$('bWipe').classList.toggle('on',wipeMode);renderer.domElement.style.cursor=wipeMode?wipeCursor:'';save()};
 $('rWipeR').oninput=e=>{wipeRadius=+e.target.value;$('vWipeR').textContent=e.target.value;save()};
 $('rSpd').oninput=e=>{speed=+e.target.value;$('vSpd').textContent=speed+' gen/s';save()};
 $('tMeteor').onchange=e=>{meteorMode=e.target.checked;meteorTimer=0;scheduleNextMeteor();save()};
-$('rMInt').oninput=e=>{meteorInterval=+e.target.value;$('vMInt').textContent=e.target.value+'s';scheduleNextMeteor();save()};
+$('rMInt').oninput=e=>{
+  meteorInterval=meteorIntervalFromSlider(+e.target.value);
+  $('vMInt').textContent=meteorInterval+'s';
+  scheduleNextMeteor();
+  save();
+};
 $('rMSpd').oninput=e=>{meteorSpeed=+e.target.value/100;$('vMSpd').textContent=meteorSpeed.toFixed(1);save()};
 $('rScat').oninput=e=>{$('vScat').textContent=e.target.value;save()};
 $('rZoom').oninput=e=>{zoom=+e.target.value/10;$('vZoom').textContent=zoom.toFixed(1);save()};
@@ -2240,7 +2717,11 @@ function load(){
     if(s.autoRot!==undefined){autoRot=s.autoRot;$('tRot').checked=autoRot}
     if(s.rotSpd){rotSpd=s.rotSpd;$('rRSpd').value=rotSpd*10;$('vRSpd').textContent=rotSpd.toFixed(1)}
     if(s.meteorMode!==undefined){meteorMode=s.meteorMode;$('tMeteor').checked=meteorMode}
-    if(s.meteorInterval){meteorInterval=s.meteorInterval;$('rMInt').value=meteorInterval;$('vMInt').textContent=meteorInterval+'s'}
+    if(s.meteorInterval!==undefined){
+      meteorInterval=s.meteorInterval;
+      $('rMInt').value=meteorIntervalToSlider(meteorInterval);
+      $('vMInt').textContent=meteorInterval+'s';
+    }
     if(s.grid!==undefined){$('tGrid').checked=s.grid}
     if(s.wireframe!==undefined){$('tWire').checked=s.wireframe;wire.visible=s.wireframe}
     if(s.wireExp!==undefined){wireShaderMat.uniforms.wOpacity.value=s.wireExp;$('rWireExp').value=s.wireExp*100;$('vWireExp').textContent=Math.round(s.wireExp*100)}
@@ -2277,17 +2758,13 @@ function load(){
 // MAIN LOOP
 // ========================================
 let lastFrame=0;
-const RENDER_INTERVAL_IDLE=1000/30; // base GPU cap when no meteors are active
-const RENDER_INTERVAL_METEOR=1000/60; // smoother meteor heads while meteors are in flight
-const TEX_UPDATE_INTERVAL=1000/15; // keep heavy texture rebuilds capped at 15 fps
-const METEOR_UPDATE_INTERVAL=1/60; // meteor physics at fixed 60 Hz
 let lastRender=0;
 let lastTexUpdate=0;
 let meteorAccum=0;
 function animate(t){
   if(disposed)return;
   rafId=requestAnimationFrame(animate);
-  if(!pageVisible||glContextLost){lastFrame=t;return}
+  if(!pageVisible||glContextLost||t<resumeAfterRestoreAt){lastFrame=t;return}
   const dtRaw=(t-lastFrame)/1000||.016;
   const dt=Math.min(0.1,dtRaw); // clamp long stalls to avoid visible jumps
   lastFrame=t;
@@ -2309,25 +2786,6 @@ function animate(t){
     meteorAccum=0;
   }
 
-  // Decay meteor flash
-  let hasMeteorFlash=false;
-  if(meteorFlashIdx.length>0){
-    for(let fi=meteorFlashIdx.length-1;fi>=0;fi--){
-      const i=meteorFlashIdx[fi];
-      meteorAge[i]-=dt*0.7;
-      if(meteorAge[i]<=0){
-        meteorAge[i]=0;
-        meteorFlashMark[i]=0;
-        const tail=meteorFlashIdx.length-1;
-        meteorFlashIdx[fi]=meteorFlashIdx[tail];
-        meteorFlashIdx.pop();
-      }else{
-        hasMeteorFlash=true;
-      }
-    }
-  }
-  if(hasMeteorFlash&&!running)pendingTexUpdate=true;
-
   // Advance and cull impact shockwave rings
   let hasRings=false;
   for(let ri=impactRings.length-1;ri>=0;ri--){
@@ -2335,7 +2793,7 @@ function animate(t){
     if(impactRings[ri].t>1.6)impactRings.splice(ri,1);
     else hasRings=true;
   }
-  if(hasRings||hasMeteorFlash)pendingTexUpdate=true;
+  if(hasRings)pendingTexUpdate=true;
 
   // Impact overlay per-slot fade (1s fade-out)
   {let _impTrim=false;
@@ -2362,8 +2820,7 @@ function animate(t){
     }
   }
   if(_impTrim)trimOverlay();
-  const overlayActive=impactSlots.some(s=>s)||_rulesVisible||_rulesOpacity>0;
-  if(overlayActive&&t-lastOverlayLayout>=OVERLAY_LAYOUT_INTERVAL){
+  if(t-lastOverlayLayout>=OVERLAY_LAYOUT_INTERVAL){
     positionImpactOverlay();
     lastOverlayLayout=t;
   }}
@@ -2379,7 +2836,7 @@ function animate(t){
   camera.position.z+=(zoom-camera.position.z)*.1;
 
   // Only render to GPU at capped framerate with stable pacing
-  const renderInterval=(activeMeteors.length>0)?RENDER_INTERVAL_METEOR:RENDER_INTERVAL_IDLE;
+  const renderInterval=(activeMeteors.length>0)?renderIntervalMeteor:renderIntervalIdle;
   const renderElapsed=t-lastRender;
   if(renderElapsed>=renderInterval){
     lastRender=t-(renderElapsed%renderInterval);
@@ -2387,12 +2844,7 @@ function animate(t){
     if(activeMeteors.length>0){
       updateMeteorVisuals(meteorAccum/METEOR_UPDATE_INTERVAL,dt);
     }
-    const overlayActive=impactSlots.some(s=>s)||_rulesVisible||_rulesOpacity>0;
-    if(overlayActive&&t-lastOverlayLayout>=OVERLAY_LAYOUT_INTERVAL){
-      positionImpactOverlay();
-      lastOverlayLayout=t;
-    }
-    if(pendingTexUpdate&&t-lastTexUpdate>=TEX_UPDATE_INTERVAL){
+    if(pendingTexUpdate&&t-lastTexUpdate>=texUpdateInterval){
       updTex();
       pendingTexUpdate=false;
     }
@@ -2400,38 +2852,90 @@ function animate(t){
   }
 }
 
-window.addEventListener('resize',()=>{
+function refreshLayoutNow(){
   if(disposed)return;
-  renderer.setPixelRatio(Math.min(devicePixelRatio,MAX_PIXEL_RATIO));
-  renderer.setSize(innerWidth,innerHeight);
   updateCameraCenter();
   positionImpactOverlay();
+}
+
+window.addEventListener('resize',()=>{
+  if(disposed)return;
+  applyRendererResolution();
+  refreshLayoutNow();
 });
+
+let visualViewportHandler=null;
+if(window.visualViewport){
+  visualViewportHandler=()=>{refreshLayoutNow()};
+  window.visualViewport.addEventListener('resize',visualViewportHandler,{passive:true});
+  window.visualViewport.addEventListener('scroll',visualViewportHandler,{passive:true});
+}
+
+let layoutResizeObserver=null;
+if('ResizeObserver' in window){
+  layoutResizeObserver=new ResizeObserver(()=>{refreshLayoutNow()});
+  ['topbar','panel','foot','golRules','impactOverlay'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)layoutResizeObserver.observe(el);
+  });
+}
 
 document.addEventListener('visibilitychange',()=>{
   pageVisible=!document.hidden;
+  addCrashLog('visibility-change','info',{hidden:document.hidden});
   if(pageVisible){
     lastFrame=performance.now();
     lastRender=0;
     lastOverlayLayout=0;
-    updateCameraCenter();
+    refreshLayoutNow();
   }
+});
+
+window.addEventListener('error',e=>{
+  addCrashLog('window-error','error',{
+    message:e.message||'',
+    source:e.filename||'',
+    line:e.lineno||0,
+    column:e.colno||0
+  });
+});
+
+window.addEventListener('unhandledrejection',e=>{
+  let reason='';
+  try{reason=String(e&&e.reason&&e.reason.stack?e.reason.stack:e.reason)}catch(err){reason='[unserializable rejection]'}
+  addCrashLog('unhandled-rejection','error',{reason});
 });
 
 function disposeScene(){
   if(disposed)return;
+  addCrashLog('dispose-scene','warn');
   disposed=true;
   running=false;
+  if(contextRecoveryTimer){clearTimeout(contextRecoveryTimer);contextRecoveryTimer=0;}
+  hideGpuRecoveryNotice();
   if(rafId)cancelAnimationFrame(rafId);
 
   for(let i=activeMeteors.length-1;i>=0;i--){
     disposeMeteorVisuals(activeMeteors[i]);
   }
   activeMeteors.length=0;
+  for(let i=meteorPool.length-1;i>=0;i--){
+    disposeMeteorVisuals(meteorPool[i]);
+  }
+  meteorPool.length=0;
   impactRings.length=0;
   impactSlots.length=0;
   meteorFlashIdx.length=0;
   meteorFlashMark.fill(0);
+  if(window.visualViewport&&visualViewportHandler){
+    window.visualViewport.removeEventListener('resize',visualViewportHandler);
+    window.visualViewport.removeEventListener('scroll',visualViewportHandler);
+    visualViewportHandler=null;
+  }
+  if(layoutResizeObserver){
+    layoutResizeObserver.disconnect();
+    layoutResizeObserver=null;
+  }
 
   meteorHeadGeo.dispose();
   meteorGlowTex.dispose();
@@ -2444,21 +2948,32 @@ function disposeScene(){
   stGeo.dispose();
   stMat.dispose();
 
-  if(renderer.forceContextLoss)renderer.forceContextLoss();
   renderer.dispose();
 }
 
-window.addEventListener('pagehide',disposeScene,{once:true});
-window.addEventListener('beforeunload',disposeScene,{once:true});
+window.addEventListener('pagehide',e=>{
+  addCrashLog('pagehide','info',{persisted:!!(e&&e.persisted)});
+  // Don't tear down on BFCache pagehide; this page can resume.
+  if(e&&e.persisted)return;
+  disposeScene();
+},{once:true});
+window.addEventListener('beforeunload',()=>{
+  addCrashLog('beforeunload','info');
+  disposeScene();
+},{once:true});
 
 // ========================================
 // INIT
 // ========================================
+loadCrashLog();
+addCrashLog('logger-initialized','info',{existingEntries:crashLogEntries.length});
 load();
 initPatternSymbols();
 scheduleNextMeteor();
 randomize();
 updStats();
+logRendererDebugInfo();
+addCrashLog('app-init-complete','info');
 animate(0);
 
 

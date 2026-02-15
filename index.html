@@ -1,45 +1,497 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Caf&eacute; Demo</title>
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            max-width: 600px;
-            margin: 60px auto;
-            padding: 0 20px;
-            color: #333;
+            background: #0b0d17;
+            color: #e0e4ec;
+            min-height: 100vh;
             line-height: 1.6;
         }
-        h1 { margin-bottom: 0.3em; }
-        p.subtitle { color: #666; margin-top: 0; }
-        ul { list-style: none; padding: 0; }
-        li { padding: 8px 0; border-bottom: 1px solid #eee; }
-        a { color: #0366d6; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        .tag {
-            font-size: 0.75em;
-            padding: 2px 6px;
-            border-radius: 3px;
-            margin-left: 8px;
-            vertical-align: middle;
+
+        /* ── Header ── */
+        header {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 48px 24px 12px;
         }
-        .html { background: #e3f2fd; color: #1565c0; }
-        .json { background: #fff3e0; color: #e65100; }
-        .md { background: #f3e5f5; color: #7b1fa2; }
+        header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00f5ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        header p {
+            color: #8892a6;
+            margin-top: 4px;
+            font-size: 1.05rem;
+        }
+
+        /* ── Card Grid ── */
+        .grid {
+            max-width: 1100px;
+            margin: 32px auto 64px;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+            gap: 28px;
+        }
+
+        /* ── Card ── */
+        .card {
+            background: #13161f;
+            border: 1px solid #1e2230;
+            border-radius: 14px;
+            overflow: hidden;
+            transition: border-color .25s, box-shadow .25s;
+        }
+        .card:hover {
+            border-color: #00f5ff44;
+            box-shadow: 0 0 24px rgba(0, 245, 255, .08);
+        }
+
+        /* ── Preview container ── */
+        .preview-wrap {
+            display: block;
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: #0a0c14;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .preview-wrap iframe {
+            width: 200%;
+            height: 200%;
+            border: none;
+            transform: scale(0.5);
+            transform-origin: top left;
+            pointer-events: none;
+        }
+        /* Overlay to capture clicks */
+        .preview-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+        }
+        /* Markdown / JSON fallback */
+        .preview-code {
+            width: 100%;
+            height: 100%;
+            padding: 20px 24px;
+            overflow: hidden;
+            font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+            font-size: 13px;
+            line-height: 1.55;
+            color: #bfc9db;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* ── Card body ── */
+        .card-body {
+            padding: 20px 24px 24px;
+        }
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .tag {
+            font-size: .7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+        .tag-html { background: #162a3e; color: #58a6ff; }
+        .tag-md   { background: #261430; color: #c084fc; }
+        .tag-ext  { background: #1a2218; color: #7ee787; }
+
+        /* ── Section divider ── */
+        .section-divider {
+            max-width: 1100px;
+            margin: 12px auto 28px;
+            padding: 0 24px;
+        }
+        .section-divider h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #8892a6;
+            border-bottom: 1px solid #1e2230;
+            padding-bottom: 10px;
+        }
+
+        /* ── Branded preview for external sites ── */
+        .preview-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            gap: 18px;
+        }
+        .preview-brand svg {
+            opacity: .7;
+        }
+        .preview-brand .brand-text {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            opacity: .6;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #f0f2f5;
+            margin-bottom: 6px;
+        }
+        .card-desc {
+            font-size: .92rem;
+            color: #8892a6;
+            margin-bottom: 16px;
+        }
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .88rem;
+            font-weight: 500;
+            color: #00d4e6;
+            text-decoration: none;
+            transition: color .2s;
+        }
+        .card-link:hover {
+            color: #00f5ff;
+            text-decoration: underline;
+        }
+        .card-link svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        /* ── Page wrapper with sidebar ── */
+        .page-wrapper {
+            display: flex;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        /* ── Sidebar Index ── */
+        .sidebar {
+            position: sticky;
+            top: 0;
+            align-self: flex-start;
+            width: 220px;
+            min-width: 220px;
+            max-height: 100vh;
+            overflow-y: auto;
+            padding: 48px 0 48px 24px;
+        }
+        .sidebar h3 {
+            font-size: .7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #555d70;
+            margin-bottom: 12px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar li {
+            margin-bottom: 2px;
+        }
+        .sidebar a {
+            display: block;
+            padding: 6px 12px;
+            font-size: .82rem;
+            color: #8892a6;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background .2s, color .2s;
+        }
+        .sidebar a:hover {
+            background: #1a1d28;
+            color: #e0e4ec;
+        }
+        .sidebar .sep {
+            height: 1px;
+            background: #1e2230;
+            margin: 14px 12px;
+        }
+
+        /* ── Main content area ── */
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+        }
+        @media (max-width: 560px) {
+            .grid { grid-template-columns: 1fr; }
+            .preview-wrap { height: 220px; }
+            header h1 { font-size: 1.5rem; }
+        }
     </style>
 </head>
 <body>
-    <h1>AI Caf&eacute; Demo</h1>
-    <p class="subtitle">Files in this repository</p>
+
+<div class="page-wrapper">
+
+<nav class="sidebar" aria-label="Index">
+    <h3>Index</h3>
     <ul>
-        <li><a href="human-ai-comparison.html">Human vs. AI Comparison</a><span class="tag html">HTML</span></li>
-        <li><a href="ai-timeline-productivity.html">AI Timeline Productivity</a><span class="tag html">HTML</span></li>
-        <li><a href="conway-sphere.html">Conway Sphere</a><span class="tag html">HTML</span></li>
-        <li><a href="human-ai-comparison-settings.json">Comparison Settings</a><span class="tag json">JSON</span></li>
-        <li><a href="WORKSHOP_HUMAN_AI_COMPARISON.md">Workshop Guide</a><span class="tag md">MD</span></li>
+        <li><a href="#ai-timeline">AI Evolution Timeline</a></li>
+        <li><a href="#conway">Conway&rsquo;s Game of Life</a></li>
+        <li><a href="#git">Git</a></li>
+        <li><a href="#github">GitHub</a></li>
+        <li><a href="#human-ai">Human vs AI Comparison</a></li>
+        <li><a href="#markdown">Markdown Live Preview</a></li>
+        <li><a href="#vscode">Visual Studio Code</a></li>
+        <li><a href="#workshop">Workshop Guide</a></li>
     </ul>
+</nav>
+
+<div class="main-content">
+
+<header>
+    <h1>AI Caf&eacute; Demo</h1>
+    <p>Interactive demos &amp; resources from the AI Caf&eacute; workshop</p>
+</header>
+
+<main class="grid">
+
+    <!-- 1 ── Human vs AI Comparison ── -->
+    <article class="card" id="human-ai">
+        <a href="human-ai-comparison.html" class="preview-wrap" title="Open Human vs AI Comparison">
+            <div class="preview-overlay"></div>
+            <iframe src="human-ai-comparison.html" loading="lazy" sandbox="allow-scripts" tabindex="-1" aria-hidden="true"></iframe>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-html">HTML</span></div>
+            <h2 class="card-title">Human vs AI &ndash; Capability Comparison</h2>
+            <p class="card-desc">Interactive radar-chart application that lets you compare human and AI capabilities across 24 attributes in 6 categories. Adjust scores with sliders, toggle a combined &ldquo;Best of Both Worlds&rdquo; view, and export/import settings as JSON. Concept and implementation by Martin H&auml;mmerli.</p>
+            <a href="human-ai-comparison.html" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                Open Demo
+            </a>
+        </div>
+    </article>
+
+    <!-- Workshop Guide (MD) – paired with Human vs AI -->
+    <article class="card" id="workshop">
+        <a href="WORKSHOP_HUMAN_AI_COMPARISON.md" class="preview-wrap" title="Open Workshop Guide">
+            <div class="preview-overlay"></div>
+            <pre class="preview-code"># Workshop: Building an Interactive Web Application with AI
+
+## Iterative Prompting with GitHub Copilot
+
+---
+
+## 🎯 Goal
+
+Create an interactive single-page web application that visualizes and
+compares Human vs AI capabilities using radar charts. Participants will
+learn how to:
+
+1. Start with a clear initial prompt to establish the foundation
+2. Iterate with focused correction prompts to add features
+3. Polish and refine with a final prompt for professional finishing touches
+
+---
+
+## 🛠️ Tools Required
+
+- Visual Studio Code (VS Code)
+- GitHub Copilot (Chat/Agent mode)
+- A modern web browser for testing
+
+---
+
+## 📋 Workshop Structure
+
+| Phase            | Duration  | Description                |
+|------------------|-----------|----------------------------|
+| Introduction     | 5 min     | Goal overview and setup    |
+| Prompt 1         | 10-15 min | Create the foundation      |
+| Review &amp; Discuss | 5 min     | Analyze the result         |
+| Prompt 2         | 10-15 min | Add interactivity          |
+| Review &amp; Discuss | 5 min     | Analyze improvements       |
+| Prompt 3         | 10-15 min | Polish and finalize        |
+| Final Review     | 5-10 min  | Test and discuss learnings |
+
+Total: ~60-75 minutes
+
+---
+
+## 🚀 The Prompts
+
+### Prompt 1 – Foundation
+### Prompt 2 – Add Interactivity
+### Prompt 3 – Polish and Professional Touches
+
+---
+
+## 💡 Key Learnings
+## 🔄 Troubleshooting Tips
+## 🎓 Workshop Takeaways
+
+Workshop created for AI Café - February 2nd, 2026</pre>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-md">MD</span></div>
+            <h2 class="card-title">Workshop Guide &ndash; Iterative Prompting</h2>
+            <p class="card-desc">Step-by-step workshop document teaching how to build the Human vs AI comparison app through iterative prompting with GitHub Copilot. Covers three prompt phases (foundation, interactivity, polish) over a ~60-75&nbsp;minute session.</p>
+            <a href="WORKSHOP_HUMAN_AI_COMPARISON.md" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                View File
+            </a>
+        </div>
+    </article>
+
+    <!-- 2 ── AI Timeline & Productivity ── -->
+    <article class="card" id="ai-timeline">
+        <a href="ai-timeline-productivity.html" class="preview-wrap" title="Open AI Timeline">
+            <div class="preview-overlay"></div>
+            <iframe src="ai-timeline-productivity.html" loading="lazy" sandbox="allow-scripts" tabindex="-1" aria-hidden="true"></iframe>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-html">HTML</span></div>
+            <h2 class="card-title">AI Evolution Timeline &amp; Personal Productivity</h2>
+            <p class="card-desc">A visually rich, animated timeline covering the evolution of AI from 2015 to 2026. Highlights key milestones in language models, code assistants, and personal productivity tools with a futuristic starfield design. Concept and implementation by Martin H&auml;mmerli.</p>
+            <a href="ai-timeline-productivity.html" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                Open Demo
+            </a>
+        </div>
+    </article>
+
+    <!-- 3 ── Conway Sphere ── -->
+    <article class="card" id="conway">
+        <a href="conway-sphere.html" class="preview-wrap" title="Open Conway Sphere">
+            <div class="preview-overlay"></div>
+            <iframe src="conway-sphere.html" loading="lazy" sandbox="allow-scripts" tabindex="-1" aria-hidden="true"></iframe>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-html">HTML</span></div>
+            <h2 class="card-title">Conway&rsquo;s Game of Life &ndash; Sphere Edition</h2>
+            <p class="card-desc">A 3D twist on the classic cellular automaton mapped onto a rotating sphere. The Game of Life was invented in 1970 by British mathematician John Horton Conway (1937&ndash;2020), who spent most of his career at the University of Cambridge and later at Princeton University. Conway made groundbreaking contributions to group theory, number theory, coding theory, and combinatorial game theory; his Game of Life became one of the most famous examples of cellular automata and emergent complexity. This interactive Sphere Edition was developed by Martin H&auml;mmerli and features real-time WebGL rendering, multiple preset patterns, adjustable simulation speed, color schemes, and interactive camera controls.</p>
+            <a href="conway-sphere.html" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                Open Demo
+            </a>
+        </div>
+    </article>
+
+</main>
+
+<div class="section-divider">
+    <h2>Essential Tools &amp; Downloads</h2>
+</div>
+
+<section class="grid">
+
+    <!-- ── GitHub ── -->
+    <article class="card" id="github">
+        <a href="https://github.com" target="_blank" rel="noopener" class="preview-wrap" title="Open GitHub" style="background: linear-gradient(135deg, #0d1117 0%, #161b22 60%, #1a2233 100%);">
+            <div class="preview-overlay"></div>
+            <div class="preview-brand">
+                <svg height="64" viewBox="0 0 16 16" width="64" fill="#e6edf3"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                <span class="brand-text" style="color:#e6edf3;">GitHub</span>
+            </div>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-ext">WEB</span></div>
+            <h2 class="card-title">GitHub &ndash; Where the World Builds Software</h2>
+            <p class="card-desc">Founded in 2008 by Tom Preston-Werner, Chris Wanstrath, PJ Hyett, and Scott Chacon as an independent Git hosting startup. Acquired by Microsoft in October 2018 for $7.5&nbsp;billion. Today the largest source-code platform on earth with over 100&nbsp;million developers and 420+ million repositories. Core features include version control, code review, CI/CD via GitHub Actions, project management, and AI-powered coding through GitHub Copilot.</p>
+            <a href="https://github.com" target="_blank" rel="noopener" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                github.com
+            </a>
+        </div>
+    </article>
+
+    <!-- ── Git ── -->
+    <article class="card" id="git">
+        <a href="https://git-scm.com/downloads" target="_blank" rel="noopener" class="preview-wrap" title="Download Git" style="background: linear-gradient(135deg, #1a0e0a 0%, #2a1510 60%, #331a12 100%);">
+            <div class="preview-overlay"></div>
+            <div class="preview-brand">
+                <svg height="64" width="64" viewBox="0 0 92 92" fill="#f05033"><path d="M90.156 41.965 50.036 1.848a5.913 5.913 0 0 0-8.368 0l-8.332 8.332 10.566 10.566a7.03 7.03 0 0 1 7.23 1.684 7.043 7.043 0 0 1 1.673 7.277l10.183 10.184a7.026 7.026 0 0 1 7.278 1.672 7.04 7.04 0 0 1 0 9.957 7.047 7.047 0 0 1-9.965 0 7.044 7.044 0 0 1-1.528-7.66l-9.5-9.497v24.997a7.04 7.04 0 0 1 1.86 1.3 7.047 7.047 0 0 1 0 9.965 7.04 7.04 0 0 1-9.957 0 7.04 7.04 0 0 1 0-9.965 7.06 7.06 0 0 1 2.304-1.539V33.926a7.06 7.06 0 0 1-2.304-1.539 7.044 7.044 0 0 1-1.516-7.7L29.242 14.273 1.734 41.777a5.918 5.918 0 0 0 0 8.371L41.852 90.27a5.92 5.92 0 0 0 8.37 0l39.934-39.934a5.92 5.92 0 0 0 0-8.371"/></svg>
+                <span class="brand-text" style="color:#f05033;">Git</span>
+            </div>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-ext">WEB</span></div>
+            <h2 class="card-title">Git &ndash; Distributed Version Control</h2>
+            <p class="card-desc">Created by Linus Torvalds in April 2005 to manage Linux kernel development after the proprietary tool BitKeeper revoked its free license. Free and open-source under GPL-2.0, maintained by Junio Hamano since its inception. Git is now the de-facto standard for version control, used by virtually every software project worldwide and serving as the foundation for GitHub, GitLab, and Bitbucket. Over 100&nbsp;million developers rely on Git daily.</p>
+            <a href="https://git-scm.com/downloads" target="_blank" rel="noopener" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                git-scm.com/downloads
+            </a>
+        </div>
+    </article>
+
+    <!-- ── Visual Studio Code ── -->
+    <article class="card" id="vscode">
+        <a href="https://code.visualstudio.com/download" target="_blank" rel="noopener" class="preview-wrap" title="Download VS Code" style="background: linear-gradient(135deg, #0a1628 0%, #0e1d36 60%, #132744 100%);">
+            <div class="preview-overlay"></div>
+            <div class="preview-brand">
+                <svg height="64" width="64" viewBox="0 0 256 256" fill="none"><mask id="a" width="256" height="256" x="0" y="0" maskUnits="userSpaceOnUse"><path fill="#fff" d="M181.534 254.252a15.15 15.15 0 0 0 12.082-1.652l51.744-25.133a15.15 15.15 0 0 0 8.64-13.676V42.209a15.15 15.15 0 0 0-8.64-13.676l-51.744-25.133a15.152 15.152 0 0 0-17.259 3.14l-99.353 90.7-43.5-33.032a10.1 10.1 0 0 0-12.9.606l-14.37 13.074a10.1 10.1 0 0 0-.001 14.918L48.87 128 6.233 163.393a10.1 10.1 0 0 0 0 14.918l14.371 13.074a10.1 10.1 0 0 0 12.9.606l43.5-33.032 99.353 90.7a15.1 15.1 0 0 0 5.177 4.593ZM192.4 69.07 115.147 128l77.254 58.93V69.07Z"/></mask><g mask="url(#a)"><path fill="#0065A9" d="M245.318 28.47 193.362 3.332a15.15 15.15 0 0 0-17.244 3.17L6.234 163.394a10.1 10.1 0 0 0 0 14.918l14.371 13.074a10.1 10.1 0 0 0 12.9.606L236.108 31.176a15.15 15.15 0 0 1 17.21 13.67v-2.7a15.15 15.15 0 0 0-8-13.676Z"/><path fill="#007ACC" d="m245.318 227.53-51.956 25.138a15.15 15.15 0 0 1-17.244-3.17L6.234 92.606a10.1 10.1 0 0 1 0-14.918l14.371-13.074a10.1 10.1 0 0 1 12.9-.606l202.603 160.816a15.15 15.15 0 0 0 17.21-13.67v2.7a15.15 15.15 0 0 1-8 13.676Z"/><path fill="#1F9CF0" d="M193.362 252.668a15.15 15.15 0 0 1-17.244-3.17c5.837 5.836 15.774 1.703 15.774-6.553V13.055c0-8.256-9.937-12.389-15.774-6.553a15.15 15.15 0 0 1 17.244-3.17l51.956 25.138A15.15 15.15 0 0 1 254 42.145v196.71a15.15 15.15 0 0 1-8.682 13.675l-51.956 25.138Z"/></g></svg>
+                <span class="brand-text" style="color:#1F9CF0;">VS Code</span>
+            </div>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-ext">WEB</span></div>
+            <h2 class="card-title">Visual Studio Code &ndash; Code Editor</h2>
+            <p class="card-desc">Free, open-source code editor developed by Microsoft, first released in April 2015. Built on the Electron framework under the technical leadership of Erich Gamma. Quickly became the world&rsquo;s most popular editor with over 14&nbsp;million monthly active users. Key features include IntelliSense, an integrated terminal, built-in Git support, a vast extension marketplace with 50,000+ extensions, and deep integration with GitHub Copilot for AI-assisted development.</p>
+            <a href="https://code.visualstudio.com/download" target="_blank" rel="noopener" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                code.visualstudio.com/download
+            </a>
+        </div>
+    </article>
+
+    <!-- ── Markdown Live Preview ── -->
+    <article class="card" id="markdown">
+        <a href="https://markdownlivepreview.com/" target="_blank" rel="noopener" class="preview-wrap" title="Open Markdown Live Preview" style="background: linear-gradient(135deg, #111318 0%, #1a1d26 60%, #222633 100%);">
+            <div class="preview-overlay"></div>
+            <div class="preview-brand">
+                <svg height="64" width="64" viewBox="0 0 208 128" fill="#e8e8e8"><path d="M15 0C6.716 0 0 6.716 0 15v98c0 8.284 6.716 15 15 15h178c8.284 0 15-6.716 15-15V15c0-8.284-6.716-15-15-15H15zm18.5 102.5L10 64l23.5-38.5L45 32 28 64l17 32-11.5 6.5zM73 102.5 50 25.5h15l17 52 17-52h15L91 102.5H73zm68 0L124 64l23.5-38.5L159 32l-17 32 17 32-18 6.5z"/></svg>
+                <span class="brand-text" style="color:#e8e8e8;">Markdown</span>
+            </div>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-ext">WEB</span></div>
+            <h2 class="card-title">Markdown Live Preview</h2>
+            <p class="card-desc">Free, browser-based Markdown editor with real-time side-by-side preview. Originally created as an open-source community tool, it provides instant rendering of Markdown syntax without sign-up or installation. Ideal for quickly drafting and previewing README files, documentation, and notes. Markdown itself was invented in 2004 by John Gruber and Aaron Swartz as a lightweight markup language; it is now the standard format for documentation on GitHub, GitLab, Stack Overflow, and countless other platforms.</p>
+            <a href="https://markdownlivepreview.com/" target="_blank" rel="noopener" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                markdownlivepreview.com
+            </a>
+        </div>
+    </article>
+
+</section>
+
+</div><!-- /.main-content -->
+</div><!-- /.page-wrapper -->
+
 </body>
 </html>
