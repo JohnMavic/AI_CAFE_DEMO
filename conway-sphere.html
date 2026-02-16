@@ -142,8 +142,8 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
     </div>
     <div style="height:8px"></div>
     <div class="sg">
-      <div class="sl"><span title="Speed &mdash; how many generations per second the simulation computes when playing. Higher values make evolution faster">Speed</span><span class="v" id="vSpd">5 gen/s</span></div>
-      <input type="range" id="rSpd" min="1" max="60" value="5">
+      <div class="sl"><span title="Speed &mdash; how many generations per second the simulation computes when playing. Higher values make evolution faster">Speed</span><span class="v" id="vSpd">2 gen/s</span></div>
+      <input type="range" id="rSpd" min="1" max="60" value="2">
     </div>
     <div style="height:8px"></div>
     <div class="trow">
@@ -152,8 +152,8 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
     </div>
     <div style="height:5px"></div>
     <div class="sg">
-      <div class="sl"><span title="Meteor Interval &mdash; average time in seconds between meteor spawns. The actual timing is randomised around this value for organic variety">Meteor Interval</span><span class="v" id="vMInt">1s</span></div>
-      <input type="range" id="rMInt" min="1" max="15" value="15">
+      <div class="sl"><span title="Meteor Interval &mdash; average time in seconds between meteor spawns. The actual timing is randomised around this value for organic variety">Meteor Interval</span><span class="v" id="vMInt">3s</span></div>
+      <input type="range" id="rMInt" min="2" max="15" value="14">
     </div>
     <div style="height:5px"></div>
     <div class="sg">
@@ -381,8 +381,8 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 // ========================================
 const W=400, H=200, TOTAL=W*H, HW=W>>1;
 let grid=new Uint8Array(TOTAL), buf=new Uint8Array(TOTAL), age=new Float32Array(TOTAL);
-let gen=0, pop=0, running=false, speed=5, lastTick=0;
-let meteorMode=true, meteorInterval=1, meteorTimer=0, nextMeteorTime=1;
+let gen=0, pop=0, running=false, speed=2, lastTick=0;
+let meteorMode=true, meteorInterval=3, meteorTimer=0, nextMeteorTime=3;
 let meteorSpeed=0.1;
 let meteorAge=new Float32Array(TOTAL);
 const meteorFlashMark=new Uint8Array(TOTAL);
@@ -892,6 +892,11 @@ const OVERLAY_LAYOUT_INTERVAL=1000/30;
 let lastWipeVisualUpdate=0;
 let lastOverlayLayout=0;
 let crashLogEntries=[];
+let crashLogStorageEnabled=true;
+
+function isLocalStorageSecurityError(err){
+  return !!(err && (err.name==='SecurityError' || String(err).toLowerCase().includes('localstorage')));
+}
 
 function crashLogSnapshot(){
   const meteorCount=(typeof activeMeteors!=='undefined'&&activeMeteors)?activeMeteors.length:0;
@@ -908,10 +913,15 @@ function crashLogSnapshot(){
 }
 
 function persistCrashLog(){
+  if(!crashLogStorageEnabled)return;
   try{
     const payload={updatedAt:new Date().toISOString(),entries:crashLogEntries};
     localStorage.setItem(CRASH_LOG_STORAGE_KEY,JSON.stringify(payload));
   }catch(err){
+    if(isLocalStorageSecurityError(err)){
+      crashLogStorageEnabled=false;
+      return;
+    }
     console.warn('[CrashLog] persist failed',err);
   }
 }
@@ -933,6 +943,10 @@ function addCrashLog(kind,level='info',details){
 }
 
 function loadCrashLog(){
+  if(!crashLogStorageEnabled){
+    crashLogEntries=[];
+    return;
+  }
   try{
     const raw=localStorage.getItem(CRASH_LOG_STORAGE_KEY);
     if(!raw)return;
@@ -942,6 +956,10 @@ function loadCrashLog(){
     }
   }catch(err){
     crashLogEntries=[];
+    if(isLocalStorageSecurityError(err)){
+      crashLogStorageEnabled=false;
+      return;
+    }
     console.warn('[CrashLog] load failed',err);
   }
 }
@@ -972,7 +990,11 @@ function exportCrashLog(){
 
 function clearCrashLog(){
   crashLogEntries=[];
-  try{localStorage.removeItem(CRASH_LOG_STORAGE_KEY)}catch(err){}
+  if(crashLogStorageEnabled){
+    try{localStorage.removeItem(CRASH_LOG_STORAGE_KEY)}catch(err){
+      if(isLocalStorageSecurityError(err))crashLogStorageEnabled=false;
+    }
+  }
   addCrashLog('crash-log-cleared','warn');
 }
 
@@ -2640,7 +2662,7 @@ function updTex(){
 // ========================================
 function $(id){return document.getElementById(id)}
 function updPlayBtn(){const b=$('bPlay');b.innerHTML=running?'&#9208; Pause':'&#9654; Play';b.classList.toggle('on',running)}
-const METEOR_INTERVAL_MIN=1;
+const METEOR_INTERVAL_MIN=2;
 const METEOR_INTERVAL_MAX=15;
 function meteorIntervalFromSlider(raw){
   const v=Math.round(raw);
@@ -2747,7 +2769,7 @@ function load(){
     if(s.rotSpd){rotSpd=s.rotSpd;$('rRSpd').value=rotSpd*10;$('vRSpd').textContent=rotSpd.toFixed(1)}
     if(s.meteorMode!==undefined){meteorMode=s.meteorMode;$('tMeteor').checked=meteorMode}
     if(s.meteorInterval!==undefined){
-      meteorInterval=s.meteorInterval;
+      meteorInterval=clamp(s.meteorInterval,METEOR_INTERVAL_MIN,METEOR_INTERVAL_MAX);
       $('rMInt').value=meteorIntervalToSlider(meteorInterval);
       $('vMInt').textContent=meteorInterval+'s';
     }
