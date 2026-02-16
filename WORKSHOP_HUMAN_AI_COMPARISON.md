@@ -1,4 +1,4 @@
-# Workshop: Building an Interactive Web Application with AI
+﻿# Workshop: Building an Interactive Web Application with AI
 
 ## Iterative Prompting with GitHub Copilot
 
@@ -34,9 +34,10 @@ By the end of this workshop, you will have built a fully functional, visually ap
 | Prompt 2 | 10-15 min | Add interactivity |
 | Review & Discuss | 5 min | Analyze improvements |
 | Prompt 3 | 10-15 min | Polish and finalize |
+| Bonus Prompt 4 (optional) | 5-10 min | Advanced polish and portability |
 | Final Review | 5-10 min | Test and discuss learnings |
 
-**Total: ~60-75 minutes**
+**Total: ~60-75 minutes (+5-10 min optional)**
 
 ---
 
@@ -99,28 +100,58 @@ Great start! Now add these features:
 
 ### Prompt 3: Polish and Professional Touches
 
-**Goal:** Add final polish, user controls, and export functionality.
+**Goal:** Add final polish and independent display controls.
 
 ```
 Almost perfect! Final improvements:
 
-- Add display controls to adjust label positioning, font size and radar size (with separate settings for normal and combined view)
-- Add Export/Import buttons to save and load settings as JSON file
-- Add a Reset to Defaults button
-- The title should change from "Human vs AI" to "Human + AI" when combined, with matching neon yellow color scheme
-- Add glow effects to the slider thumbs and chart borders
+- Add a collapsible "Display Controls" panel in the page footer
+- Add two separate control groups:
+  - Normal view (separate Human vs AI charts)
+  - Combined view (Human + AI chart)
+- In each group, add independent sliders for:
+  - Overall radar chart size
+  - Label circle width
+  - Label circle height
+  - Inner value circle size
+  - Label font size
+- Structure sliders and slider labels clearly (grouped and easy to scan), and ensure the UI layout prevents any overlap between controls, labels, or values
+- Ensure strict independence: changing one slider must only affect its own property in its own view and must not change any other setting
+- Change title text from "Human vs AI" to "Human + AI" in combined mode, with matching neon yellow color transition
 ```
 
 **Expected Result:**
-- ✅ Display control sliders (collapsible panel)
-- ✅ Export/Import JSON functionality
-- ✅ Reset to defaults button
+- ✅ Collapsible footer panel with display control sliders
+- ✅ Independent radar/label/value sizing controls for normal and combined views
+- ✅ Clear, non-overlapping slider and label layout
 - ✅ Dynamic title with color transition
-- ✅ Glowing visual effects
 
 **Discussion Points:**
 - How do correction prompts build on previous context?
 - When is "good enough" actually good enough?
+
+---
+
+### Bonus Prompt 4: Optional Enhancements
+
+**Goal:** Add optional advanced polish and settings portability if time permits.
+
+```
+Great progress! If time allows, add these optional enhancements:
+
+- Add Export/Import buttons to save and load all settings as a JSON file
+- Add a Reset to Defaults button
+- Add glow effects to slider thumbs and chart borders
+```
+
+**Expected Result:**
+- ✅ Export/Import JSON functionality
+- ✅ Reset to defaults button
+- ✅ Glowing visual effects
+
+**Discussion Points:**
+- Which enhancements are essential vs. optional in a time-boxed workshop?
+- How do we decide when to split a prompt into a bonus step?
 
 ---
 
@@ -199,3 +230,5 @@ The file should:
 ---
 
 *Workshop created for AI Café - February 2nd, 2026*
+
+
