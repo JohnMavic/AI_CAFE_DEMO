@@ -2042,6 +2042,49 @@
                 alert('Popup blocked. Allow popups for this page and try again.');
             }
         }
+
+        // Domain-specific cache bypass to force fresh workshop content from GitHub Pages.
+        // Scope is intentionally narrow to avoid changing behavior for unrelated sites.
+        const CACHE_BYPASS_RULES = [
+            { host: 'johnmavic.github.io', pathPrefix: '/ai_cafe_demo' }
+        ];
+
+        function shouldBypassRemoteCache(url) {
+            try {
+                const parsed = new URL(url);
+                if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+                const host = parsed.hostname.toLowerCase();
+                const path = (parsed.pathname || '/').toLowerCase();
+                return CACHE_BYPASS_RULES.some(rule => {
+                    const prefix = String(rule.pathPrefix || '').toLowerCase().replace(/\/+$/, '');
+                    return host === rule.host && (path === prefix || path.startsWith(prefix + '/'));
+                });
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function applyRemoteCacheBypass(url) {
+            if (!shouldBypassRemoteCache(url)) return url;
+            try {
+                const parsed = new URL(url);
+                parsed.searchParams.set('_cb', String(Date.now()));
+                return parsed.toString();
+            } catch (e) {
+                return url;
+            }
+        }
+
+        function stripRemoteCacheBypass(url) {
+            if (!shouldBypassRemoteCache(url)) return url;
+            try {
+                const parsed = new URL(url);
+                parsed.searchParams.delete('_cb');
+                return parsed.toString();
+            } catch (e) {
+                return url;
+            }
+        }
         
         function loadUrl(addToHistory = true) {
             let input = document.getElementById('urlInput').value.trim();
@@ -2091,8 +2134,10 @@
             // Always update lastBrowseUrl
             lastBrowseUrl = loadableUrl;
 
+            const effectiveLoadableUrl = applyRemoteCacheBypass(loadableUrl);
+
             // Track loading URL for error detection
-            currentLoadingUrl = loadableUrl;
+            currentLoadingUrl = effectiveLoadableUrl;
 
             // URLs that are very likely auth-redirect/frame-blocked are opened directly.
             if (shouldOpenExternallyFirst(loadableUrl)) {
@@ -2114,7 +2159,7 @@
 
             const frame = document.getElementById('contentFrame');
             showPageSwitchBlack();
-            frame.src = loadableUrl;
+            frame.src = effectiveLoadableUrl;
 
             // If capture is active, switch to browser view
             if (screenStream) {
@@ -2132,17 +2177,17 @@
             if (loadTimeout) clearTimeout(loadTimeout);
 
             // Set timeout for external URLs (not file://)
-            if (!loadableUrl.startsWith('file://') && !loadableUrl.startsWith('blob:')) {
+            if (!effectiveLoadableUrl.startsWith('file://') && !effectiveLoadableUrl.startsWith('blob:')) {
                 loadTimeout = setTimeout(() => {
-                    checkIframeLoaded(loadableUrl);
+                    checkIframeLoaded(effectiveLoadableUrl);
                 }, 3000); // 3 second timeout
             }
 
             // Proactive auth/framing detection for all external URLs.
             // Runs concurrently with iframe loading. If auth redirect detected,
             // replaces the iframe with the info panel.
-            if (loadableUrl.startsWith('https://') || loadableUrl.startsWith('http://')) {
-                detectAuthRedirect(loadableUrl);
+            if (effectiveLoadableUrl.startsWith('https://') || effectiveLoadableUrl.startsWith('http://')) {
+                detectAuthRedirect(effectiveLoadableUrl);
             }
         }
         
@@ -2307,12 +2352,14 @@
             if (navigationHistory.length > 1) {
                 navigationHistory.pop(); // Remove current
                 const previousUrl = navigationHistory[navigationHistory.length - 1];
+                const effectivePreviousUrl = applyRemoteCacheBypass(previousUrl);
                 document.getElementById('urlInput').value = previousUrl;
                 document.getElementById('iframeError').style.display = 'none';
                 hideExternalOpenState();
                 document.getElementById('contentFrame').style.display = 'block';
                 showPageSwitchBlack();
-                document.getElementById('contentFrame').src = previousUrl;
+                currentLoadingUrl = effectivePreviousUrl;
+                document.getElementById('contentFrame').src = effectivePreviousUrl;
                 localStorage.setItem(STORAGE_KEY, previousUrl);
                 // Update active tab
                 if (tabs[activeTabIndex]) {
@@ -2526,8 +2573,10 @@
                     loadUrl(false);
                 } else {
                     // During startup restore, avoid popup attempts without user gesture.
+                    const startupUrl = applyRemoteCacheBypass(loadableUrl);
                     showPageSwitchBlack();
-                    frame.src = loadableUrl;
+                    currentLoadingUrl = startupUrl;
+                    frame.src = startupUrl;
                     frame.style.display = 'block';
                     document.getElementById('emptyState').style.display = 'none';
                     document.getElementById('iframeError').style.display = 'none';
@@ -2982,8 +3031,10 @@
                 if (url) {
                     document.getElementById('urlInput').value = tab.url;
                     if (!frame.src || frame.src === 'about:blank') {
+                        const effectiveUrl = applyRemoteCacheBypass(url);
                         showPageSwitchBlack();
-                        frame.src = url;
+                        currentLoadingUrl = effectiveUrl;
+                        frame.src = effectiveUrl;
                     }
                     frame.style.display = 'block';
                 } else {
@@ -3229,11 +3280,15 @@
             if (urlToRestore && !urlToRestore.startsWith('blob:')) {
                 document.getElementById('urlInput').value = tab.url;
                 const frame = document.getElementById('contentFrame');
-                if (frame.src && frame.src === urlToRestore) {
+                const normalizedFrameSrc = stripRemoteCacheBypass(frame.src || '');
+                const normalizedRestoreUrl = stripRemoteCacheBypass(urlToRestore);
+                if (normalizedFrameSrc && normalizedFrameSrc === normalizedRestoreUrl) {
                     frame.style.display = 'block';
                 } else {
+                    const effectiveRestoreUrl = applyRemoteCacheBypass(urlToRestore);
                     showPageSwitchBlack();
-                    frame.src = urlToRestore;
+                    currentLoadingUrl = effectiveRestoreUrl;
+                    frame.src = effectiveRestoreUrl;
                     frame.style.display = 'block';
                 }
                 document.getElementById('emptyState').style.display = 'none';

@@ -493,5 +493,26 @@ Workshop created for AI Café - February 2nd, 2026</pre>
 </div><!-- /.main-content -->
 </div><!-- /.page-wrapper -->
 
+<script>
+    (function () {
+        function withCacheBust(href) {
+            try {
+                const url = new URL(href, window.location.href);
+                url.searchParams.set('_cb', String(Date.now()));
+                return url.toString();
+            } catch (e) {
+                return href;
+            }
+        }
+
+        const workshopLinks = document.querySelectorAll('a[href="WORKSHOP_HUMAN_AI_COMPARISON.md"]');
+        workshopLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                this.href = withCacheBust('WORKSHOP_HUMAN_AI_COMPARISON.md');
+            });
+        });
+    })();
+</script>
+
 </body>
 </html>
