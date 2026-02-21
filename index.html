@@ -260,6 +260,7 @@
     <ul>
         <li><a href="#ai-timeline">AI Evolution Timeline</a></li>
         <li><a href="#conway">Conway&rsquo;s Game of Life</a></li>
+        <li><a href="#conway-rebuild">Conway Rebuild Guide</a></li>
         <li><a href="#git">Git</a></li>
         <li><a href="#github">GitHub</a></li>
         <li><a href="#human-ai">Human vs AI Comparison</a></li>
@@ -366,24 +367,7 @@ Workshop created for AI Café - February 2nd, 2026</pre>
         </div>
     </article>
 
-    <!-- 2 ── AI Timeline & Productivity ── -->
-    <article class="card" id="ai-timeline">
-        <a href="ai-timeline-productivity.html" class="preview-wrap" title="Open AI Timeline">
-            <div class="preview-overlay"></div>
-            <iframe src="ai-timeline-productivity.html" loading="lazy" sandbox="allow-scripts" tabindex="-1" aria-hidden="true"></iframe>
-        </a>
-        <div class="card-body">
-            <div class="card-meta"><span class="tag tag-html">HTML</span></div>
-            <h2 class="card-title">AI Evolution Timeline &amp; Personal Productivity</h2>
-            <p class="card-desc">A visually rich, animated timeline covering the evolution of AI from 2015 to 2026. Highlights key milestones in language models, code assistants, and personal productivity tools with a futuristic starfield design. Concept and implementation by Martin H&auml;mmerli.</p>
-            <a href="ai-timeline-productivity.html" class="card-link">
-                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
-                Open Demo
-            </a>
-        </div>
-    </article>
-
-    <!-- 3 ── Conway Sphere ── -->
+    <!-- 2 ── Conway Sphere ── -->
     <article class="card" id="conway">
         <a href="conway-sphere.html" class="preview-wrap" title="Open Conway Sphere">
             <div class="preview-overlay"></div>
@@ -394,6 +378,56 @@ Workshop created for AI Café - February 2nd, 2026</pre>
             <h2 class="card-title">Conway&rsquo;s Game of Life &ndash; Sphere Edition</h2>
             <p class="card-desc">Can complex, life-like behavior emerge from a handful of trivially simple rules? In the 1940s, John von Neumann explored self-replicating machines using cellular automata, but his models required dozens of states and were impossibly complex. Starting in 1968, British mathematician John Horton Conway (1937&ndash;2020) set out to find the simplest possible set of rules that could still produce unpredictable, emergent behavior&mdash;patterns that grow, move, and interact without any external direction. The result, published via Martin Gardner&rsquo;s &ldquo;Mathematical Games&rdquo; column in Scientific American in October 1970, was the Game of Life: just four rules, two states, and an infinite grid. It proved to be Turing complete&mdash;capable, in principle, of computing anything a real computer can. Today it stands as one of the most famous demonstrations of emergence and self-organization in science. Conway spent most of his career at the University of Cambridge and later held the John von Neumann Chair at Princeton University. This interactive Sphere Edition, developed by Martin H&auml;mmerli, maps the automaton onto a rotating 3D sphere and features real-time WebGL rendering, multiple preset patterns, adjustable simulation speed, color schemes, and interactive camera controls.</p>
             <a href="conway-sphere.html" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                Open Demo
+            </a>
+        </div>
+    </article>
+
+    <!-- Conway Rebuild Instructions (MD) – paired with Conway Sphere -->
+    <article class="card" id="conway-rebuild">
+        <a href="CONWAY_SPHERE_REBUILD_INSTRUCTIONS.md" class="preview-wrap" title="Open Conway Rebuild Instructions">
+            <div class="preview-overlay"></div>
+            <pre class="preview-code"># Conway Sphere – Rebuild Instructions
+
+Step-by-step guide to rebuilding the Conway's Game of Life
+Sphere Edition from scratch using AI-assisted development.
+
+Covers the complete process from initial prompt through
+iterative refinement to the final interactive 3D WebGL
+application with all features:
+
+- 3D sphere mapping with icosphere geometry
+- Real-time Game of Life simulation
+- Multiple preset patterns (Glider, Pulsar, etc.)
+- Adjustable simulation speed and color schemes
+- Interactive camera controls (rotate, zoom, pan)
+- Responsive design with dark theme
+
+Built with GitHub Copilot in Visual Studio Code.</pre>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-md">MD</span></div>
+            <h2 class="card-title">Conway Sphere &ndash; Rebuild Instructions</h2>
+            <p class="card-desc">Detailed rebuild guide documenting how to recreate the Conway Sphere application from scratch using AI-assisted prompting. Includes the full prompt sequence and iterative development steps.</p>
+            <a href="CONWAY_SPHERE_REBUILD_INSTRUCTIONS.md" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                View File
+            </a>
+        </div>
+    </article>
+
+    <!-- 3 ── AI Timeline & Productivity ── -->
+    <article class="card" id="ai-timeline">
+        <a href="ai-timeline-productivity.html" class="preview-wrap" title="Open AI Timeline">
+            <div class="preview-overlay"></div>
+            <iframe src="ai-timeline-productivity.html" loading="lazy" sandbox="allow-scripts" tabindex="-1" aria-hidden="true"></iframe>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-html">HTML</span></div>
+            <h2 class="card-title">AI Evolution Timeline &amp; Personal Productivity</h2>
+            <p class="card-desc">A visually rich, animated timeline covering the evolution of AI from 2015 to 2026. Highlights key milestones in language models, code assistants, and personal productivity tools with a futuristic starfield design. Concept and implementation by Martin H&auml;mmerli.</p>
+            <a href="ai-timeline-productivity.html" class="card-link">
                 <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
                 Open Demo
             </a>
@@ -509,6 +543,13 @@ Workshop created for AI Café - February 2nd, 2026</pre>
         workshopLinks.forEach(link => {
             link.addEventListener('click', function () {
                 this.href = withCacheBust('WORKSHOP_HUMAN_AI_COMPARISON.md');
+            });
+        });
+
+        const conwayLinks = document.querySelectorAll('a[href="CONWAY_SPHERE_REBUILD_INSTRUCTIONS.md"]');
+        conwayLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                this.href = withCacheBust('CONWAY_SPHERE_REBUILD_INSTRUCTIONS.md');
             });
         });
     })();
