@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Caf&eacute; Demo</title>
+    <title>AI Presenter &amp; AI Caf&eacute; Demo</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -257,7 +257,13 @@
 <div class="page-wrapper">
 
 <nav class="sidebar" aria-label="Index">
-    <h3>Index</h3>
+    <h3>AI Presenter</h3>
+    <ul>
+        <li><a href="#presenter">Presenter App</a></li>
+        <li><a href="#presenter-guide">User Guide</a></li>
+    </ul>
+    <div class="sep"></div>
+    <h3>AI Caf&eacute; Demo</h3>
     <ul>
         <li><a href="#ai-timeline">AI Evolution Timeline</a></li>
         <li><a href="#conway">Conway&rsquo;s Game of Life</a></li>
@@ -272,6 +278,66 @@
 </nav>
 
 <div class="main-content">
+
+<header>
+    <h1>AI Presenter</h1>
+    <p>A multi-display presentation tool for live demos, screen capture &amp; drawing</p>
+</header>
+
+<main class="grid">
+
+    <!-- Presenter App -->
+    <article class="card" id="presenter">
+        <a href="Presenter/ai_cafe_presenter_noChat.html" class="preview-wrap" title="Open AI Presenter">
+            <div class="preview-overlay"></div>
+            <iframe src="Presenter/ai_cafe_presenter_noChat.html" loading="lazy" sandbox="allow-scripts" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-html">HTML</span></div>
+            <h2 class="card-title">AI Caf&eacute; Presenter</h2>
+            <p class="card-desc">A single-file HTML presentation tool designed for multi-display setups. Features tabbed web browsing, real-time screen capture mirroring, a canvas-based drawing overlay with shape recognition, fullscreen mode, and optional PowerPoint slide control via a local server. To download all required files, go to the <a href="https://github.com/JohnMavic/AI_CAFE_DEMO/tree/main/Presenter" style="color:#00d4e6;">Presenter folder on GitHub</a>, then click <strong>Code &rarr; Download ZIP</strong> on the <a href="https://github.com/JohnMavic/AI_CAFE_DEMO" style="color:#00d4e6;">repository main page</a> and extract the Presenter folder. Concept and implementation by Martin H&auml;mmerli.</p>
+            <a href="Presenter/ai_cafe_presenter_noChat.html" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                Open Presenter
+            </a>
+        </div>
+    </article>
+
+    <!-- Presenter User Guide (MD) -->
+    <article class="card" id="presenter-guide">
+        <a href="Presenter/AI_CAFE_PRESENTER_USER_GUIDE.md" class="preview-wrap" title="Open User Guide">
+            <div class="preview-overlay"></div>
+            <pre class="preview-code"># AI Caf&eacute; Presenter &ndash; User Guide
+Version 0.1.0-alpha (Prototype) | February 21, 2026
+
+## &gt;&gt; READ THIS FIRST &lt;&lt;
+This guide is essential for using the AI Presenter
+effectively. It covers the complete setup process,
+multi-display configuration, and all features:
+
+- Multi-Display Setup (3-screen recommended)
+- Browse Mode with Tabbed Navigation
+- Real-Time Screen Capture &amp; Mirroring
+- Canvas Drawing Overlay with Shape Recognition
+- Fullscreen Mode
+- PowerPoint Slide Control (Advanced)
+- Keyboard Shortcuts Reference
+- Troubleshooting Guide
+
+Author: Martin H&auml;mmerli</pre>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-md">MD</span></div>
+            <h2 class="card-title">AI Presenter &ndash; User Guide (Essential Reading)</h2>
+            <p class="card-desc"><strong>You must read this guide to use the AI Presenter effectively.</strong> Covers the full multi-display setup, all features from browse mode and screen capture to drawing tools and PowerPoint control, keyboard shortcuts, and troubleshooting. Without it, many features are not self-explanatory.</p>
+            <a href="Presenter/AI_CAFE_PRESENTER_USER_GUIDE.md" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                Read User Guide
+            </a>
+        </div>
+    </article>
+
+</main>
 
 <header>
     <h1>AI Caf&eacute; Demo</h1>
@@ -551,6 +617,13 @@ Built with GitHub Copilot in Visual Studio Code.</pre>
         conwayLinks.forEach(link => {
             link.addEventListener('click', function () {
                 this.href = withCacheBust('CONWAY_SPHERE_REBUILD_INSTRUCTIONS.md');
+            });
+        });
+
+        const guideLinks = document.querySelectorAll('a[href="Presenter/AI_CAFE_PRESENTER_USER_GUIDE.md"]');
+        guideLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                this.href = withCacheBust('Presenter/AI_CAFE_PRESENTER_USER_GUIDE.md');
             });
         });
     })();
