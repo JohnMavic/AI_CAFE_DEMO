@@ -128,9 +128,29 @@
         .section-divider h2 {
             font-size: 1.15rem;
             font-weight: 600;
-            color: #8892a6;
+            background: linear-gradient(135deg, #00f5ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             border-bottom: 1px solid #1e2230;
             padding-bottom: 10px;
+            margin-bottom: 0;
+        }
+        .section-divider .section-date {
+            display: block;
+            font-size: .75rem;
+            font-weight: 400;
+            color: #555d70;
+            letter-spacing: 1px;
+            padding-top: 6px;
+        }
+
+        /* Ensure section titles are visible when navigating via anchor links */
+        .section-divider {
+            scroll-margin-top: 80px;
+        }
+        [id] {
+            scroll-margin-top: 80px;
         }
 
         /* ── Branded preview for external sites ── */
@@ -209,6 +229,14 @@
             color: #555d70;
             margin-bottom: 12px;
         }
+        .sidebar h3 a {
+            color: inherit;
+            text-decoration: none;
+            transition: color .2s;
+        }
+        .sidebar h3 a:hover {
+            color: #e0e4ec;
+        }
         .sidebar ul {
             list-style: none;
             padding: 0;
@@ -257,29 +285,42 @@
 <div class="page-wrapper">
 
 <nav class="sidebar" aria-label="Index">
-    <h3>AI Presenter</h3>
+    <h3><a href="#section-presenter">AI Presenter</a></h3>
     <ul>
         <li><a href="#presenter">Presenter App</a></li>
         <li><a href="#presenter-guide">User Guide</a></li>
     </ul>
     <div class="sep"></div>
-    <h3>AI Caf&eacute; Demo</h3>
+    <h3><a href="#section-cafe-demo">AI Caf&eacute; Demo</a></h3>
+    <ul>
+        <li><a href="#cooling-plant">Cooling Plant Monitor</a></li>
+        <li><a href="#cooling-plant-workshop">Cooling Plant Workshop</a></li>
+    </ul>
+    <ul>
+        <li><a href="#human-ai">Human vs AI Comparison</a></li>
+        <li><a href="#workshop">Workshop Guide</a></li>
+    </ul>
+    <ul>
+        <li><a href="#conway">Conway&rsquo;s Game of Life</a></li>
+        <li><a href="#conway-rebuild">Rebuild Guide</a></li>
+    </ul>
     <ul>
         <li><a href="#ai-timeline">AI Evolution Timeline</a></li>
-        <li><a href="#conway">Conway&rsquo;s Game of Life</a></li>
-        <li><a href="#conway-rebuild">Conway Rebuild Guide</a></li>
+        <li><a href="#ai-timeline-workshop">Timeline Workshop</a></li>
+    </ul>
+    <div class="sep"></div>
+    <h3><a href="#section-tools">Tools &amp; Downloads</a></h3>
+    <ul>
         <li><a href="#git">Git</a></li>
         <li><a href="#github">GitHub</a></li>
-        <li><a href="#human-ai">Human vs AI Comparison</a></li>
-        <li><a href="#markdown">Markdown Live Preview</a></li>
         <li><a href="#vscode">Visual Studio Code</a></li>
-        <li><a href="#workshop">Workshop Guide</a></li>
+        <li><a href="#markdown">Markdown Live Preview</a></li>
     </ul>
 </nav>
 
 <div class="main-content">
 
-<header>
+<header id="section-presenter">
     <h1>AI Presenter</h1>
     <p>A multi-display presentation tool for live demos, screen capture &amp; drawing</p>
 </header>
@@ -335,15 +376,126 @@ Author: Martin H&auml;mmerli</pre>
 
 </main>
 
-<header>
+<header id="section-cafe-demo">
     <h1>AI Caf&eacute; Demo</h1>
-    <p>Interactive demos &amp; resources from the AI Caf&eacute; workshop</p>
+    <p>Each demo below was built entirely through conversational prompting &mdash; no manual coding required. On the left you see the finished result, and on the right the exact prompts that created it. Open the prompt file, paste the prompts one by one into <strong>Visual Studio Code</strong> with <strong>GitHub Copilot</strong> (or any AI coding assistant), and watch the application come to life step by step. Give it a try!</p>
 </header>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- Cooling Plant Monitor                                          -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section-divider" id="cooling-plant">
+    <h2>Cooling Plant &ndash; Seawater Cooling System</h2>
+    <span class="section-date">March 2026</span>
+</div>
 
 <main class="grid">
 
-    <!-- 1 ── Human vs AI Comparison ── -->
-    <article class="card" id="human-ai">
+    <!-- Cooling Plant Demo -->
+    <article class="card">
+        <a href="cooling-plant.html" class="preview-wrap" title="Open Cooling Plant Monitor">
+            <div class="preview-overlay"></div>
+            <iframe src="cooling-plant.html" loading="lazy" sandbox="allow-scripts" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-html">HTML</span></div>
+            <h2 class="card-title">Cooling Plant &ndash; Seawater Cooling System Monitor</h2>
+            <p class="card-desc">A single-file HTML application for visualizing a seawater cooling plant. Users can draw custom water flow pipelines on the system diagram, set the flow direction for each pipe, toggle water temperature between cold (blue) and warm (red) per segment, and delete or modify pipes at any time. Activating the seawater pump animates the flow along all drawn pipes. All pipe data is persisted in localStorage. Concept and implementation by Martin H&auml;mmerli.</p>
+            <a href="cooling-plant.html" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                Open Demo
+            </a>
+        </div>
+    </article>
+
+    <!-- Cooling Plant Workshop Guide (MD) -->
+    <article class="card" id="cooling-plant-workshop">
+        <a href="WORKSHOP_COOLING_PLANT.md" class="preview-wrap" title="Open Cooling Plant Workshop Guide">
+            <div class="preview-overlay"></div>
+            <pre class="preview-code"># Workshop: Building an Interactive Cooling Plant Monitor with AI
+
+## Iterative Prompting with GitHub Copilot
+
+---
+
+## 🎯 Goal
+
+Create an interactive single-page web application that displays a
+cooling plant diagram with drawable water flow pipelines and pump
+control. Participants will learn how to:
+
+1. Start with a clear initial prompt to establish layout and visual design
+2. Add an SVG-based pipe editor with drawing tools and persistence
+3. Bring the pipes to life with flow animation and advanced interactions
+4. Polish and refine with a final prompt for professional finishing touches
+
+---
+
+## 🛠️ Tools Required
+
+- Visual Studio Code (VS Code)
+- GitHub Copilot (Chat/Agent mode)
+- A modern web browser for testing
+
+---
+
+## 📋 Workshop Structure
+
+| Phase            | Duration  | Description                     |
+|------------------|-----------|---------------------------------|
+| Introduction     | 5 min     | Goal overview and tool setup    |
+| Prompt 1         | 10-15 min | Page layout and visual design   |
+| Review &amp; Discuss | 5 min     | Analyze the result              |
+| Prompt 2         | 10-15 min | SVG pipe editor with tools      |
+| Review &amp; Discuss | 5 min     | Analyze improvements            |
+| Prompt 3         | 10-15 min | Flow animation and interactions |
+| Prompt 4 (opt.)  | 5-10 min  | Polish and advanced features    |
+| Final Review     | 5-10 min  | Test and discuss learnings      |
+
+Total: ~60-80 minutes (+5-10 min optional)
+
+---
+
+## 🚀 The Prompts
+
+### Prompt 1 – Page Layout &amp; Visual Design
+### Prompt 2 – SVG Pipe Editor
+### Prompt 3 – Flow Animation &amp; Visual Effects
+### Prompt 4 – Polish &amp; Responsive (Optional)
+
+---
+
+## 💡 Key Learnings
+## 🔄 Troubleshooting Tips
+## 🎓 Workshop Takeaways
+
+Workshop created for Cooling Plant Demo – March 12th, 2026</pre>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-md">MD</span></div>
+            <h2 class="card-title">Cooling Plant &ndash; Workshop Guide</h2>
+            <p class="card-desc">Step-by-step workshop document teaching how to build the Cooling Plant Monitor through iterative prompting with GitHub Copilot. Covers four prompt phases (layout, pipe editor, flow animation, polish) over a ~60-80&nbsp;minute session.</p>
+            <a href="WORKSHOP_COOLING_PLANT.md" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                View File
+            </a>
+        </div>
+    </article>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- Human vs AI Capability Comparison                              -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section-divider" id="human-ai">
+    <h2>Human vs AI &ndash; Capability Comparison</h2>
+    <span class="section-date">January 2026</span>
+</div>
+
+<main class="grid">
+
+    <!-- Human vs AI Demo -->
+    <article class="card">
         <a href="human-ai-comparison.html" class="preview-wrap" title="Open Human vs AI Comparison">
             <div class="preview-overlay"></div>
             <iframe src="human-ai-comparison.html" loading="lazy" sandbox="allow-scripts" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
@@ -430,8 +582,20 @@ Workshop created for AI Café - February 2nd, 2026</pre>
         </div>
     </article>
 
-    <!-- 2 ── Conway Sphere ── -->
-    <article class="card" id="conway">
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- Conway's Game of Life                                          -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section-divider" id="conway">
+    <h2>Conway&rsquo;s Game of Life &ndash; Sphere Edition</h2>
+    <span class="section-date">February 2026</span>
+</div>
+
+<main class="grid">
+
+    <!-- Conway Sphere Demo -->
+    <article class="card">
         <a href="conway-sphere.html" class="preview-wrap" title="Open Conway Sphere">
             <div class="preview-overlay"></div>
             <iframe src="conway-sphere.html" loading="lazy" sandbox="allow-scripts" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
@@ -447,7 +611,7 @@ Workshop created for AI Café - February 2nd, 2026</pre>
         </div>
     </article>
 
-    <!-- Conway Rebuild Instructions (MD) – paired with Conway Sphere -->
+    <!-- Conway Rebuild Instructions (MD) -->
     <article class="card" id="conway-rebuild">
         <a href="CONWAY_SPHERE_REBUILD_INSTRUCTIONS.md" class="preview-wrap" title="Open Conway Rebuild Instructions">
             <div class="preview-overlay"></div>
@@ -480,8 +644,20 @@ Built with GitHub Copilot in Visual Studio Code.</pre>
         </div>
     </article>
 
-    <!-- 3 ── AI Timeline & Productivity ── -->
-    <article class="card" id="ai-timeline">
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- AI Evolution Timeline                                          -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section-divider" id="ai-timeline">
+    <h2>AI Evolution Timeline</h2>
+    <span class="section-date">February 2026</span>
+</div>
+
+<main class="grid">
+
+    <!-- AI Timeline Demo -->
+    <article class="card">
         <a href="ai-timeline-productivity.html" class="preview-wrap" title="Open AI Timeline">
             <div class="preview-overlay"></div>
             <iframe src="ai-timeline-productivity.html" loading="lazy" sandbox="allow-scripts" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
@@ -497,15 +673,89 @@ Built with GitHub Copilot in Visual Studio Code.</pre>
         </div>
     </article>
 
+    <!-- AI Timeline Workshop Guide (MD) -->
+    <article class="card" id="ai-timeline-workshop">
+        <a href="WORKSHOP_AI_TIMELINE.md" class="preview-wrap" title="Open AI Timeline Workshop Guide">
+            <div class="preview-overlay"></div>
+            <pre class="preview-code"># Workshop: Building an AI Evolution Timeline &amp; Productivity
+#           Visualizer with AI
+
+## Iterative Prompting with GitHub Copilot
+
+---
+
+## 🎯 Goal
+
+Create an interactive single-page web application that visualizes the
+evolution of AI from 2015 to 2026 alongside a cumulative productivity
+impact chart. Participants will learn how to:
+
+1. Build a futuristic dual-panel layout with glass-morphism
+2. Render an interactive timeline on HTML Canvas with real milestones
+3. Add a productivity impact chart with configurable parameters
+4. Polish with a methodology page and responsive enhancements
+
+---
+
+## 🛠️ Tools Required
+
+- Visual Studio Code (VS Code)
+- GitHub Copilot (Chat/Agent mode)
+- A modern web browser for testing
+
+---
+
+## 📋 Workshop Structure
+
+| Phase            | Duration  | Description                        |
+|------------------|-----------|------------------------------------|
+| Introduction     | 5 min     | Goal overview and tool setup       |
+| Prompt 1         | 10-15 min | Layout, design, and controls panel |
+| Review &amp; Discuss | 5 min     | Analyze the result                 |
+| Prompt 2         | 10-15 min | Timeline canvas with AI milestones |
+| Review &amp; Discuss | 5 min     | Analyze improvements               |
+| Prompt 3         | 10-15 min | Productivity chart &amp; interactivity |
+| Prompt 4 (opt.)  | 5-10 min  | About page and polish              |
+| Final Review     | 5-10 min  | Test and discuss learnings         |
+
+Total: ~60-80 minutes (+5-10 min optional)
+
+---
+
+## 🚀 The Prompts
+
+### Prompt 1 – Layout, Animated Background &amp; Controls Panel
+### Prompt 2 – Timeline Canvas with AI Milestones
+### Prompt 3 – Productivity Chart &amp; Panel Splitter
+### Prompt 4 – About/Methodology Page (Optional)
+
+---
+
+## 💡 Key Learnings
+## 🔄 Troubleshooting Tips
+## 🎓 Workshop Takeaways
+
+Workshop created for AI Caf&eacute; Demo – February 2026</pre>
+        </a>
+        <div class="card-body">
+            <div class="card-meta"><span class="tag tag-md">MD</span></div>
+            <h2 class="card-title">AI Evolution Timeline &ndash; Workshop Guide</h2>
+            <p class="card-desc">Step-by-step workshop document teaching how to build the AI Timeline &amp; Productivity visualization through iterative prompting with GitHub Copilot. Covers four prompt phases (layout, timeline canvas, productivity chart, methodology page) over a ~60-80&nbsp;minute session.</p>
+            <a href="WORKSHOP_AI_TIMELINE.md" class="card-link">
+                <svg viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0 0 1h6.793L2.146 11.146a.5.5 0 0 0 .708.708L11 3.707V10.5a.5.5 0 0 0 1 0v-8a.5.5 0 0 0-.5-.5h-8z"/></svg>
+                View File
+            </a>
+        </div>
+    </article>
+
 </main>
 
-<div class="section-divider">
-    <h2>Essential Tools &amp; Downloads</h2>
-</div>
+<header id="section-tools">
+    <h1>Essential Tools &amp; Downloads</h1>
+    <p>The tools you need to get started</p>
+</header>
 
 <section class="grid">
-
-    <!-- ── GitHub ── -->
     <article class="card" id="github">
         <a href="https://github.com" target="_blank" rel="noopener" class="preview-wrap" title="Open GitHub" style="background: linear-gradient(135deg, #0d1117 0%, #161b22 60%, #1a2233 100%);">
             <div class="preview-overlay"></div>
@@ -620,6 +870,20 @@ Built with GitHub Copilot in Visual Studio Code.</pre>
         guideLinks.forEach(link => {
             link.addEventListener('click', function () {
                 this.href = withCacheBust('Presenter/AI_CAFE_PRESENTER_USER_GUIDE.md');
+            });
+        });
+
+        const coolingLinks = document.querySelectorAll('a[href="WORKSHOP_COOLING_PLANT.md"]');
+        coolingLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                this.href = withCacheBust('WORKSHOP_COOLING_PLANT.md');
+            });
+        });
+
+        const timelineLinks = document.querySelectorAll('a[href="WORKSHOP_AI_TIMELINE.md"]');
+        timelineLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                this.href = withCacheBust('WORKSHOP_AI_TIMELINE.md');
             });
         });
     })();
