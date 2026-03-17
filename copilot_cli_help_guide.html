@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Copilot CLI — Help Guide v1.0.6</title>
+    <style>
+        /* ═══════════════════════════════════════════════════════════
+           GitHub Copilot CLI Help Guide — Dark Neon Theme
+           Version: 1.0.6
+           ═══════════════════════════════════════════════════════════ */
+
+        :root {
+            --bg-primary: #181818;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #1e1e1e;
+            --bg-card-hover: #252525;
+            --bg-input: #1e1e1e;
+            --text-primary: #e5e5e5;
+            --text-secondary: #999999;
+            --text-muted: #666666;
+            --border-color: #2a2a2a;
+            --border-glow: rgba(0, 240, 255, 0.15);
+
+            --neon-cyan: #00f0ff;
+            --neon-magenta: #ff00ff;
+            --neon-green: #39ff14;
+            --neon-yellow: #e0ff00;
+            --neon-orange: #ff6b35;
+            --neon-pink: #ff1493;
+            --neon-blue: #4d7dff;
+            --neon-purple: #b14dff;
+            --neon-red: #ff4d6a;
+            --neon-teal: #00ffcc;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: var(--neon-cyan) var(--bg-secondary);
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Background grid effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ─── Header & Logo ─────────────────────────────────── */
+
+        header {
+            text-align: center;
+            padding: 48px 0 24px;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 12px;
+        }
+
+        .copilot-face {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.5))
+                    drop-shadow(0 0 24px rgba(0, 240, 255, 0.25));
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .copilot-face .eye-dot {
+            animation: pulse-glow 2.5s ease-in-out infinite;
+        }
+
+        .header-text h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.4),
+                         0 0 30px rgba(0, 240, 255, 0.15);
+        }
+
+        .header-text h1 .accent { color: var(--neon-magenta); }
+
+        .header-text .subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .version-badge {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 16px;
+            border: 1px solid var(--neon-cyan);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--neon-cyan);
+            background: rgba(0, 240, 255, 0.06);
+            letter-spacing: 1px;
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.15);
+        }
+
+        /* ─── Search ────────────────────────────────────────── */
+
+        .search-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: linear-gradient(var(--bg-primary), var(--bg-primary) 85%, transparent);
+            padding: 18px 0 28px;
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 560px;
+            margin: 0 auto;
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: var(--neon-cyan);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 16px 14px 46px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-box input:focus {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.15),
+                        inset 0 0 6px rgba(0, 240, 255, 0.05);
+        }
+
+        .search-stats {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            transition: opacity 0.3s;
+        }
+
+        .search-stats.hidden { opacity: 0; }
+
+        /* ─── Command Groups ────────────────────────────────── */
+
+        .groups-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            padding-bottom: 40px;
+        }
+
+        .command-group {
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            background: var(--bg-card);
+            overflow: hidden;
+            transition: border-color 0.3s, box-shadow 0.3s, opacity 0.3s;
+        }
+
+        .command-group:hover {
+            border-color: var(--group-color, var(--neon-cyan));
+            box-shadow: 0 0 16px rgba(var(--group-color-rgb, 0,240,255), 0.1);
+        }
+
+        .command-group.hidden-group {
+            display: none;
+        }
+
+        .group-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .group-header:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .group-icon {
+            font-size: 1.1rem;
+            width: 28px;
+            text-align: center;
+        }
+
+        .group-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--group-color, var(--neon-cyan));
+            flex: 1;
+            text-shadow: 0 0 8px rgba(var(--group-color-rgb, 0,240,255), 0.3);
+        }
+
+        .group-count {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            padding: 2px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+        }
+
+        .group-toggle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            transition: transform 0.3s;
+        }
+
+        .group-toggle.collapsed { transform: rotate(-90deg); }
+
+        .group-body {
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .group-body.collapsed {
+            max-height: 0 !important;
+        }
+
+        /* ─── Command Rows ──────────────────────────────────── */
+
+        .command-row {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            padding: 8px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            transition: background 0.15s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .command-row:last-child { border-bottom: none; }
+
+        .command-row:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .command-row:active {
+            background: rgba(var(--group-color-rgb, 0,240,255), 0.12);
+        }
+
+        /* Copied toast on each row */
+        .command-row .copy-toast {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--neon-green);
+            text-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .command-row .copy-toast.show {
+            opacity: 1;
+        }
+
+        .command-row.hidden-row { display: none; }
+
+        .command-row.highlight {
+            background: rgba(var(--group-color-rgb, 0,240,255), 0.06);
+        }
+
+        .cmd-shortcut {
+            flex: 0 0 240px;
+            font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 0.85rem;
+            color: var(--neon-green);
+            text-shadow: 0 0 6px rgba(57, 255, 20, 0.25);
+            white-space: nowrap;
+        }
+
+        .cmd-shortcut .key {
+            display: inline-block;
+            padding: 1px 6px;
+            border: 1px solid rgba(57, 255, 20, 0.25);
+            border-radius: 4px;
+            background: rgba(57, 255, 20, 0.06);
+            font-size: 0.82rem;
+            margin-right: 2px;
+        }
+
+        .cmd-slash {
+            color: var(--neon-yellow);
+            text-shadow: 0 0 6px rgba(224, 255, 0, 0.25);
+        }
+
+        .cmd-desc {
+            flex: 1;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .cmd-desc mark {
+            background: rgba(255, 0, 255, 0.2);
+            color: var(--neon-magenta);
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+
+        /* ─── Instructions Section ──────────────────────────── */
+
+        .instructions-section {
+            margin-top: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            background: var(--bg-card);
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .instructions-section:hover {
+            border-color: var(--neon-teal);
+        }
+
+        .instructions-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .instructions-header .group-icon { color: var(--neon-teal); }
+        .instructions-header .group-name {
+            color: var(--neon-teal);
+            text-shadow: 0 0 8px rgba(0, 255, 204, 0.3);
+        }
+
+        .instruction-row {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            padding: 6px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 0.82rem;
+        }
+
+        .instruction-row:last-child { border-bottom: none; }
+
+        .instruction-file {
+            color: var(--neon-teal);
+            text-shadow: 0 0 6px rgba(0, 255, 204, 0.2);
+            flex: 0 0 360px;
+            white-space: nowrap;
+        }
+
+        .instruction-note {
+            color: var(--text-muted);
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 0.82rem;
+        }
+
+        /* ─── Footer ────────────────────────────────────────── */
+
+        footer {
+            text-align: center;
+            padding: 32px 0 48px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
+
+        footer .footer-tip {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        footer .footer-tip code {
+            color: var(--neon-green);
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            font-size: 0.82rem;
+        }
+
+        footer .footer-link {
+            color: var(--neon-cyan);
+            text-decoration: none;
+            font-size: 0.82rem;
+            transition: text-shadow 0.2s;
+        }
+
+        footer .footer-link:hover {
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        }
+
+        footer .footer-note {
+            margin-top: 14px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        /* ─── Responsive ────────────────────────────────────── */
+
+        @media (max-width: 700px) {
+            .command-row {
+                flex-direction: column;
+                gap: 2px;
+            }
+            .cmd-shortcut { flex: none; }
+            .instruction-row {
+                flex-direction: column;
+                gap: 2px;
+            }
+            .instruction-file { flex: none; }
+            .header-text h1 { font-size: 1.5rem; }
+        }
+
+        /* ─── No-results ────────────────────────────────────── */
+
+        .no-results {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-muted);
+            display: none;
+        }
+
+        .no-results.visible { display: block; }
+
+        .no-results .no-results-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* ─── Scrollbar ─────────────────────────────────────── */
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb {
+            background: var(--neon-cyan);
+            border-radius: 3px;
+            opacity: 0.4;
+        }
+
+        /* ─── Experimental banner ───────────────────────────── */
+
+        .experimental-banner {
+            text-align: center;
+            padding: 10px 20px;
+            font-size: 0.82rem;
+            color: var(--neon-yellow);
+            border: 1px dashed rgba(224, 255, 0, 0.2);
+            border-radius: 10px;
+            background: rgba(224, 255, 0, 0.03);
+            margin-bottom: 20px;
+        }
+
+        .experimental-banner code {
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            color: var(--neon-green);
+        }
+
+        /* ─── Header ───────────────────────────────────────── */
+
+        .help-title {
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 1.1rem;
+            line-height: 1.0;
+            color: #bd79cc;
+            text-shadow: 0 0 20px rgba(189, 121, 204, 0.25);
+            margin: 0 auto 12px;
+            display: inline-block;
+            text-align: left;
+            white-space: pre;
+        }
+
+        @media (max-width: 600px) {
+            .help-title { font-size: 0.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ═══ Header ═══ -->
+        <header>
+            <div style="text-align:center; margin-bottom: 12px;">
+                <img src="Images/copilot_animated_banner_reduced.png"
+                     alt="GitHub Copilot CLI"
+                     style="max-width: 100%; height: auto;"/>
+            </div>
+
+            <div style="text-align:center; margin: 16px 0 8px;">
+<pre class="help-title">██    ██    ███████   ██          ███████
+██    ██    ███████   ██          ███████
+██    ██   ██         ██         ██    ██
+██    ██   ██         ██         ██    ██
+████████   ██████     ██          ███████
+████████   ██████     ██          ███████
+██    ██   ██         ██         ██      
+██    ██   ██         ██         ██      
+██    ██    ███████    ███████   ██      
+██    ██    ███████    ███████   ██      </pre>
+                <span class="version-badge">v1.0.6</span>
+            </div>
+        </header>
+
+        <!-- ═══ Search ═══ -->
+        <div class="search-wrapper">
+            <div class="search-box">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
+                </svg>
+                <input type="text" id="search-input"
+                       placeholder="Search commands…  (e.g. &quot;model&quot;, &quot;ctrl&quot;, &quot;session&quot;)"
+                       autocomplete="off" spellcheck="false"/>
+            </div>
+            <div class="search-stats hidden" id="search-stats"></div>
+        </div>
+
+        <!-- ═══ Command Groups (rendered by script) ═══ -->
+        <div class="groups-grid" id="commands-container"></div>
+
+        <!-- ═══ No Results ═══ -->
+        <div class="no-results" id="no-results">
+            <div class="no-results-icon">🔍</div>
+            <div>No commands found matching your search.</div>
+        </div>
+
+        <!-- ═══ Experimental Banner ═══ -->
+        <div class="experimental-banner">
+            Run with <code>--experimental</code> or use <code>/experimental</code> for more commands
+        </div>
+
+        <!-- ═══ Instructions Section ═══ -->
+        <div class="instructions-section" id="instructions-section">
+            <div class="instructions-header">
+                <span class="group-icon">📄</span>
+                <span class="group-name">Custom Instructions — File Locations</span>
+            </div>
+            <div style="padding: 8px 0;">
+                <div class="instruction-row">
+                    <span class="instruction-file">CLAUDE.md</span>
+                    <span class="instruction-note"></span>
+                </div>
+                <div class="instruction-row">
+                    <span class="instruction-file">GEMINI.md</span>
+                    <span class="instruction-note"></span>
+                </div>
+                <div class="instruction-row">
+                    <span class="instruction-file">AGENTS.md</span>
+                    <span class="instruction-note">in git root &amp; cwd</span>
+                </div>
+                <div class="instruction-row">
+                    <span class="instruction-file">.github/instructions/**/*.instructions.md</span>
+                    <span class="instruction-note">in git root &amp; cwd</span>
+                </div>
+                <div class="instruction-row">
+                    <span class="instruction-file">.github/copilot-instructions.md</span>
+                    <span class="instruction-note"></span>
+                </div>
+                <div class="instruction-row">
+                    <span class="instruction-file">$HOME/.copilot/copilot-instructions.md</span>
+                    <span class="instruction-note"></span>
+                </div>
+                <div class="instruction-row">
+                    <span class="instruction-file">COPILOT_CUSTOM_INSTRUCTIONS_DIRS</span>
+                    <span class="instruction-note">additional directories via env var</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ Footer ═══ -->
+        <footer>
+            <div class="footer-tip">
+                To learn about what Copilot can do — ask: <code>"What can you do?"</code>
+            </div>
+            <a class="footer-link" href="https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli"
+               target="_blank" rel="noopener">
+                docs.github.com/copilot → CLI Documentation ↗
+            </a>
+            <div class="footer-note">GITHUB COPILOT CLI &bull; HELP GUIDE &bull; v1.0.6</div>
+        </footer>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         Application Logic — Vanilla TypeScript (ES2020 target)
+         Compiled to JavaScript for direct browser execution.
+         ═══════════════════════════════════════════════════════════ -->
+    <script>
+    "use strict";
+
+    // ──────────────────────────────────────────────────────────
+    // Type definitions (TypeScript interfaces as JSDoc)
+    // ──────────────────────────────────────────────────────────
+
+    /**
+     * @typedef {Object} Command
+     * @property {string} shortcut  — keyboard shortcut or slash command
+     * @property {string} description — what the command does
+     */
+
+    /**
+     * @typedef {Object} CommandGroup
+     * @property {string} name      — display name
+     * @property {string} icon      — emoji icon
+     * @property {string} color     — CSS neon color
+     * @property {string} colorRgb  — RGB values for rgba()
+     * @property {Command[]} commands
+     */
+
+    // ──────────────────────────────────────────────────────────
+    // Data: all command groups
+    // ──────────────────────────────────────────────────────────
+
+    /** @type {CommandGroup[]} */
+    const COMMAND_GROUPS = [
+        {
+            name: "Global",
+            icon: "🌐",
+            color: "var(--neon-cyan)",
+            colorRgb: "0,240,255",
+            commands: [
+                { shortcut: "@", description: "Mention files, include contents in context" },
+                { shortcut: "ctrl+s", description: "Run command while preserving input" },
+                { shortcut: "shift+tab", description: "Cycle modes (interactive → plan)" },
+                { shortcut: "ctrl+t", description: "Toggle model reasoning display" },
+                { shortcut: "ctrl+o", description: "Expand recent timeline (when no input)" },
+                { shortcut: "ctrl+e", description: "Expand all timeline (when no input)" },
+                { shortcut: "↑ ↓", description: "Navigate command history" },
+                { shortcut: "ctrl+c", description: "Cancel / clear input / copy selection" },
+                { shortcut: "ctrl+c ×2", description: "Exit from the CLI" },
+                { shortcut: "!", description: "Execute command in your local shell (bypass Copilot)" },
+                { shortcut: "Esc", description: "Cancel the current operation" },
+                { shortcut: "ctrl+d", description: "Shutdown" },
+                { shortcut: "ctrl+l", description: "Clear the screen" },
+                { shortcut: "ctrl+x → o", description: "Open link from most recent timeline event" }
+            ]
+        },
+        {
+            name: "Editing",
+            icon: "✏️",
+            color: "var(--neon-magenta)",
+            colorRgb: "255,0,255",
+            commands: [
+                { shortcut: "ctrl+a", description: "Move to beginning of line (when typing)" },
+                { shortcut: "ctrl+e", description: "Move to end of line (when typing)" },
+                { shortcut: "ctrl+h", description: "Delete previous character" },
+                { shortcut: "ctrl+w", description: "Delete previous word" },
+                { shortcut: "ctrl+u", description: "Delete from cursor to beginning of line" },
+                { shortcut: "ctrl+k", description: "Delete from cursor to end of line (joins lines at end of line)" },
+                { shortcut: "meta+← →", description: "Move cursor by word" },
+                { shortcut: "ctrl+g", description: "Edit prompt in external editor" }
+            ]
+        },
+        {
+            name: "Agent Environment",
+            icon: "🤖",
+            color: "var(--neon-green)",
+            colorRgb: "57,255,20",
+            commands: [
+                { shortcut: "/init", description: "Initialize Copilot instructions for this repository, or suppress the init suggestion" },
+                { shortcut: "/agent", description: "Browse and select from available agents (if any)" },
+                { shortcut: "/skills", description: "Manage skills for enhanced capabilities" },
+                { shortcut: "/mcp", description: "Manage MCP server configuration" },
+                { shortcut: "/plugin", description: "Manage plugins and plugin marketplaces" }
+            ]
+        },
+        {
+            name: "Models & Subagents",
+            icon: "🧠",
+            color: "var(--neon-yellow)",
+            colorRgb: "224,255,0",
+            commands: [
+                { shortcut: "/model", description: "Select AI model to use" },
+                { shortcut: "/delegate", description: "Send this session to GitHub and Copilot will create a PR" },
+                { shortcut: "/fleet", description: "Enable fleet mode for parallel subagent execution" },
+                { shortcut: "/tasks", description: "View and manage background tasks (subagents and shell sessions)" }
+            ]
+        },
+        {
+            name: "Code",
+            icon: "💻",
+            color: "var(--neon-orange)",
+            colorRgb: "255,107,53",
+            commands: [
+                { shortcut: "/ide", description: "Connect to an IDE workspace" },
+                { shortcut: "/diff", description: "Review the changes made in the current directory" },
+                { shortcut: "/pr", description: "Operate on pull requests for the current branch" },
+                { shortcut: "/review", description: "Run code review agent to analyze changes" },
+                { shortcut: "/lsp", description: "Manage language server configuration" },
+                { shortcut: "/terminal-setup", description: "Configure terminal for multiline input support (shift+enter)" }
+            ]
+        },
+        {
+            name: "Permissions",
+            icon: "🔒",
+            color: "var(--neon-pink)",
+            colorRgb: "255,20,147",
+            commands: [
+                { shortcut: "/allow-all", description: "Enable all permissions (tools, paths, and URLs)" },
+                { shortcut: "/add-dir", description: "Add a directory to the allowed list for file access" },
+                { shortcut: "/list-dirs", description: "Display all allowed directories for file access" },
+                { shortcut: "/cwd", description: "Change working directory or show current directory" },
+                { shortcut: "/reset-allowed-tools", description: "Reset the list of allowed tools" }
+            ]
+        },
+        {
+            name: "Session",
+            icon: "📋",
+            color: "var(--neon-blue)",
+            colorRgb: "77,125,255",
+            commands: [
+                { shortcut: "/resume", description: "Switch to a different session (optionally specify session ID)" },
+                { shortcut: "/rename", description: "Rename the current session (alias for /session rename)" },
+                { shortcut: "/context", description: "Show context window token usage and visualization" },
+                { shortcut: "/usage", description: "Display session usage metrics and statistics" },
+                { shortcut: "/session", description: "Show session info and workspace summary. Use subcommands for details." },
+                { shortcut: "/compact", description: "Summarize conversation history to reduce context window usage" },
+                { shortcut: "/share", description: "Share session or research report to markdown file or GitHub gist" },
+                { shortcut: "/copy", description: "Copy the last response to the clipboard" }
+            ]
+        },
+        {
+            name: "Help & Feedback",
+            icon: "❓",
+            color: "var(--neon-purple)",
+            colorRgb: "177,77,255",
+            commands: [
+                { shortcut: "/help", description: "Show help for interactive commands" },
+                { shortcut: "/changelog", description: "Display changelog for CLI versions. Add 'summarize' to get an AI summary." },
+                { shortcut: "/feedback", description: "Provide feedback about the CLI" },
+                { shortcut: "/theme", description: "View or set color mode" },
+                { shortcut: "/update", description: "Update the CLI to the latest version" },
+                { shortcut: "/version", description: "Display version information and check for updates" },
+                { shortcut: "/experimental", description: "Show available experimental features, or enable/disable experimental mode" },
+                { shortcut: "/clear", description: "Clear the conversation history" },
+                { shortcut: "/instructions", description: "View and toggle custom instruction files" },
+                { shortcut: "/streamer-mode", description: "Toggle streamer mode (hides preview model names and quota details for streaming)" }
+            ]
+        },
+        {
+            name: "Other Commands",
+            icon: "⚡",
+            color: "var(--neon-red)",
+            colorRgb: "255,77,106",
+            commands: [
+                { shortcut: "/collect-debug-logs", description: "Collect debug logs to .tgz file or GitHub gist" },
+                { shortcut: "/diagnose", description: "Analyze the current session log, optionally with a custom prompt" },
+                { shortcut: "/exit, /quit", description: "Exit the CLI" },
+                { shortcut: "/login", description: "Log in to Copilot" },
+                { shortcut: "/logout", description: "Log out of Copilot" },
+                { shortcut: "/plan", description: "Create an implementation plan before coding" },
+                { shortcut: "/chronicle", description: "Session history tools and insights" },
+                { shortcut: "/research", description: "Run deep research investigation using GitHub search and web sources" },
+                { shortcut: "/restart", description: "Restart the CLI, preserving the current session" },
+                { shortcut: "/user", description: "Manage GitHub user list" }
+            ]
+        }
+    ];
+
+    // ──────────────────────────────────────────────────────────
+    // Renderer
+    // ──────────────────────────────────────────────────────────
+
+    class HelpGuideApp {
+        /** @type {HTMLElement} */ #container;
+        /** @type {HTMLInputElement} */ #searchInput;
+        /** @type {HTMLElement} */ #searchStats;
+        /** @type {HTMLElement} */ #noResults;
+
+        constructor() {
+            this.#container  = /** @type {HTMLElement} */ (document.getElementById("commands-container"));
+            this.#searchInput = /** @type {HTMLInputElement} */ (document.getElementById("search-input"));
+            this.#searchStats = /** @type {HTMLElement} */ (document.getElementById("search-stats"));
+            this.#noResults   = /** @type {HTMLElement} */ (document.getElementById("no-results"));
+
+            this.#render();
+            this.#bindSearch();
+            this.#bindCollapse();
+            this.#bindCopyOnClick();
+        }
+
+        // ── Render command groups ──────────────────────────
+
+        #render() {
+            const fragment = document.createDocumentFragment();
+
+            for (const group of COMMAND_GROUPS) {
+                const section = document.createElement("section");
+                section.className = "command-group";
+                section.style.setProperty("--group-color", group.color);
+                section.style.setProperty("--group-color-rgb", group.colorRgb);
+                section.dataset.groupName = group.name.toLowerCase();
+
+                // Header
+                const header = document.createElement("div");
+                header.className = "group-header";
+                header.innerHTML = `
+                    <span class="group-icon">${group.icon}</span>
+                    <span class="group-name">${group.name}</span>
+                    <span class="group-count">${group.commands.length}</span>
+                    <span class="group-toggle">▼</span>
+                `;
+                section.appendChild(header);
+
+                // Body
+                const body = document.createElement("div");
+                body.className = "group-body";
+
+                for (const cmd of group.commands) {
+                    const row = document.createElement("div");
+                    row.className = "command-row";
+                    row.dataset.shortcut = cmd.shortcut.toLowerCase();
+                    row.dataset.desc = cmd.description.toLowerCase();
+
+                    const isSlash = cmd.shortcut.startsWith("/");
+                    const shortcutHtml = isSlash
+                        ? `<span class="cmd-slash">${this.#escapeHtml(cmd.shortcut)}</span>`
+                        : this.#formatKeys(cmd.shortcut);
+
+                    row.innerHTML = `
+                        <span class="cmd-shortcut">${shortcutHtml}</span>
+                        <span class="cmd-desc">${this.#escapeHtml(cmd.description)}</span>
+                        <span class="copy-toast">✓ Copied</span>
+                    `;
+                    body.appendChild(row);
+                }
+
+                // Measure natural height for collapse animation
+                section.appendChild(body);
+                fragment.appendChild(section);
+            }
+
+            this.#container.appendChild(fragment);
+
+            // Set max-height after layout
+            requestAnimationFrame(() => {
+                this.#container.querySelectorAll(".group-body").forEach((/** @type {HTMLElement} */ el) => {
+                    el.style.maxHeight = el.scrollHeight + "px";
+                });
+            });
+        }
+
+        // ── Format keyboard keys ──────────────────────────
+
+        /** @param {string} raw @returns {string} */
+        #formatKeys(raw) {
+            // Split on + but keep special tokens like "← →" together
+            const parts = raw.split(/(\+|→|×\d+)/g).filter(Boolean);
+            let html = "";
+            for (const part of parts) {
+                const trimmed = part.trim();
+                if (!trimmed || trimmed === "+") continue;
+                if (trimmed === "→") {
+                    html += ` <span style="opacity:0.4">→</span> `;
+                } else if (trimmed.startsWith("×")) {
+                    html += ` <span style="color:var(--text-muted);font-size:0.78rem">${trimmed}</span>`;
+                } else {
+                    html += `<span class="key">${this.#escapeHtml(trimmed)}</span>`;
+                }
+            }
+            return html;
+        }
+
+        /** @param {string} str @returns {string} */
+        #escapeHtml(str) {
+            const div = document.createElement("div");
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ── Search ────────────────────────────────────────
+
+        #bindSearch() {
+            let debounceTimer = 0;
+
+            this.#searchInput.addEventListener("input", () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = window.setTimeout(() => this.#performSearch(), 120);
+            });
+
+            // Keyboard shortcut: Ctrl+K or / to focus search
+            document.addEventListener("keydown", (e) => {
+                if ((e.ctrlKey && e.key === "k") || (e.key === "/" && document.activeElement !== this.#searchInput)) {
+                    e.preventDefault();
+                    this.#searchInput.focus();
+                    this.#searchInput.select();
+                }
+            });
+        }
+
+        #performSearch() {
+            const query = this.#searchInput.value.trim().toLowerCase();
+            const groups = this.#container.querySelectorAll(".command-group");
+            let totalVisible = 0;
+            let totalCommands = 0;
+
+            for (const group of groups) {
+                const rows = group.querySelectorAll(".command-row");
+                let groupVisible = 0;
+
+                for (const row of rows) {
+                    const el = /** @type {HTMLElement} */ (row);
+                    totalCommands++;
+
+                    if (!query) {
+                        el.classList.remove("hidden-row", "highlight");
+                        groupVisible++;
+                        totalVisible++;
+                        continue;
+                    }
+
+                    const matchesShortcut = (el.dataset.shortcut || "").includes(query);
+                    const matchesDesc = (el.dataset.desc || "").includes(query);
+
+                    if (matchesShortcut || matchesDesc) {
+                        el.classList.remove("hidden-row");
+                        el.classList.toggle("highlight", true);
+                        groupVisible++;
+                        totalVisible++;
+
+                        // Highlight matching text in description
+                        const descEl = el.querySelector(".cmd-desc");
+                        if (descEl) {
+                            const original = /** @type {string} */ (el.dataset.desc || "");
+                            const descText = COMMAND_GROUPS
+                                .flatMap(g => g.commands)
+                                .find(c => c.description.toLowerCase() === original)
+                                ?.description || original;
+                            descEl.innerHTML = this.#highlightText(descText, query);
+                        }
+                    } else {
+                        el.classList.add("hidden-row");
+                        el.classList.remove("highlight");
+                    }
+                }
+
+                const section = /** @type {HTMLElement} */ (group);
+                section.classList.toggle("hidden-group", groupVisible === 0);
+
+                // Update count badge
+                const countBadge = group.querySelector(".group-count");
+                if (countBadge) {
+                    countBadge.textContent = query
+                        ? `${groupVisible}/${rows.length}`
+                        : `${rows.length}`;
+                }
+
+                // Auto-expand groups with results when searching
+                if (query && groupVisible > 0) {
+                    const body = /** @type {HTMLElement} */ (group.querySelector(".group-body"));
+                    const toggle = group.querySelector(".group-toggle");
+                    if (body && body.classList.contains("collapsed")) {
+                        body.classList.remove("collapsed");
+                        body.style.maxHeight = body.scrollHeight + "px";
+                        toggle?.classList.remove("collapsed");
+                    }
+                }
+            }
+
+            // Stats
+            if (query) {
+                this.#searchStats.textContent = `${totalVisible} of ${totalCommands} commands match "${query}"`;
+                this.#searchStats.classList.remove("hidden");
+            } else {
+                this.#searchStats.classList.add("hidden");
+            }
+
+            // No results state
+            this.#noResults.classList.toggle("visible", query.length > 0 && totalVisible === 0);
+        }
+
+        /**
+         * @param {string} text
+         * @param {string} query
+         * @returns {string}
+         */
+        #highlightText(text, query) {
+            if (!query) return this.#escapeHtml(text);
+            const escaped = this.#escapeHtml(text);
+            const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+            return escaped.replace(regex, "<mark>$1</mark>");
+        }
+
+        // ── Collapse / Expand ─────────────────────────────
+
+        #bindCollapse() {
+            this.#container.addEventListener("click", (e) => {
+                const header = /** @type {HTMLElement} */ (e.target)?.closest?.(".group-header");
+                if (!header) return;
+
+                const group = header.closest(".command-group");
+                if (!group) return;
+
+                const body = /** @type {HTMLElement} */ (group.querySelector(".group-body"));
+                const toggle = group.querySelector(".group-toggle");
+                if (!body) return;
+
+                const isCollapsed = body.classList.contains("collapsed");
+                if (isCollapsed) {
+                    body.classList.remove("collapsed");
+                    body.style.maxHeight = body.scrollHeight + "px";
+                    toggle?.classList.remove("collapsed");
+                } else {
+                    body.style.maxHeight = body.scrollHeight + "px";
+                    requestAnimationFrame(() => {
+                        body.classList.add("collapsed");
+                        toggle?.classList.add("collapsed");
+                    });
+                }
+            });
+        }
+
+        // ── Click-to-copy ─────────────────────────────────
+
+        #bindCopyOnClick() {
+            this.#container.addEventListener("click", (e) => {
+                const row = /** @type {HTMLElement} */ (e.target)?.closest?.(".command-row");
+                if (!row) return;
+
+                // Get the shortcut text (plain text, not HTML)
+                const shortcutEl = row.querySelector(".cmd-shortcut");
+                if (!shortcutEl) return;
+                const text = (shortcutEl.textContent || "").trim();
+                if (!text) return;
+
+                // Copy to clipboard
+                navigator.clipboard.writeText(text).then(() => {
+                    const toast = row.querySelector(".copy-toast");
+                    if (toast) {
+                        toast.classList.add("show");
+                        setTimeout(() => toast.classList.remove("show"), 1200);
+                    }
+                });
+            });
+        }
+    }
+
+    // ── Bootstrap ─────────────────────────────────────────
+    document.addEventListener("DOMContentLoaded", () => {
+        new HelpGuideApp();
+    });
+    </script>
+</body>
+</html>
