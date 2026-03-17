@@ -696,6 +696,118 @@
             box-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
         }
 
+        /* Version badge */
+        .version-badge {
+            font-size: 10px;
+            color: rgba(0, 217, 255, 0.35);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(0, 217, 255, 0.04);
+            white-space: nowrap;
+            cursor: default;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: color 0.2s, background 0.2s;
+        }
+        .version-badge:hover {
+            color: rgba(0, 217, 255, 0.6);
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        /* File path modal dialog */
+        .file-path-modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        .file-path-modal-backdrop.active { display: flex; }
+        .file-path-modal {
+            background: linear-gradient(135deg, #0f2133 0%, #162d44 50%, #0f2133 100%);
+            border: 1px solid rgba(0, 180, 255, 0.25);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 620px;
+            width: 90%;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 140, 255, 0.12);
+            color: #cde4f2;
+        }
+        .file-path-modal h2 {
+            color: #7dd3ff;
+            margin: 0 0 8px 0;
+            font-size: 1.3rem;
+        }
+        .file-path-modal .modal-hint {
+            font-size: 13px;
+            color: #8aacbf;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+        .file-path-modal .modal-filename {
+            background: rgba(0, 180, 255, 0.1);
+            color: #bfe9ff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+        .file-path-modal input[type="text"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid rgba(0, 180, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(0, 20, 40, 0.6);
+            color: #e0f0ff;
+            font-size: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .file-path-modal input[type="text"]:focus {
+            border-color: rgba(0, 180, 255, 0.6);
+            box-shadow: 0 0 12px rgba(0, 180, 255, 0.15);
+        }
+        .file-path-modal .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .file-path-modal .modal-btn {
+            padding: 10px 22px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .file-path-modal .modal-btn.primary {
+            background: linear-gradient(135deg, #00d9ff, #0099cc);
+            color: white;
+        }
+        .file-path-modal .modal-btn.primary:hover {
+            transform: scale(1.04);
+            box-shadow: 0 0 16px rgba(0, 217, 255, 0.4);
+        }
+        .file-path-modal .modal-btn.secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #8aacbf;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .file-path-modal .modal-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.14);
+            color: #b5d4e8;
+        }
+
         /* Info overlay for URLs opened externally in a new tab */
         .external-open-state {
             flex: 1;
@@ -1333,7 +1445,7 @@
                 <div class="toolbar-group browse-controls">
                     <button class="nav-btn secondary active" id="tabPanelToggle" onclick="toggleTabPanel()" title="Toggle tab panel">&#x1F4D1;</button>
                     <div class="btn-group">
-                        <button class="nav-btn secondary" onclick="document.getElementById('fileInput').click()" title="Open local file">&#x1F4C2;</button>
+                        <button class="nav-btn secondary" onclick="pickLocalFile()" title="Open local file">&#x1F4C2;</button>
                     </div>
                     <input type="text" class="url-input" id="urlInput" placeholder="URL or path..." onkeydown="if(event.key==='Enter') loadUrl()">
                     <button class="nav-btn" onclick="loadUrl()" title="Load URL or file path">Go</button>
@@ -1343,6 +1455,7 @@
                             <button onclick="event.stopPropagation(); clearAllTabs()">&#x1F5D1;&#xFE0F; Clear All Tabs</button>
                         </div>
                     </div>
+                    <span class="version-badge" title="AI Cafe Presenter v2.0.0">v2.0.0</span>
                 </div>
             </div>
         </div>
@@ -1455,12 +1568,15 @@
             <button class="btn-open-tab" onclick="openInNewTab()">🔗 Open in New Browser Tab</button>
         </div>
         <div id="externalOpenState" class="external-open-state">
-            <div class="icon">↗️</div>
-            <h2>Opened In New Browser Tab</h2>
+            <div class="icon">🌐</div>
+            <h2>Cannot Display In Presenter</h2>
             <div class="error-url" id="externalOpenUrl"></div>
-            <p>This page uses login/security policies that are usually blocked inside iframes.
-               AI Cafe opens it directly in a normal browser tab.</p>
-            <button class="btn-open-tab" onclick="reopenExternalUrl()">🔗 Open Again</button>
+            <p>This website blocks iframe embedding (X-Frame-Options or Content-Security-Policy).<br>
+               You can open it in a separate browser tab instead.</p>
+            <div style="display:flex; gap:12px; justify-content:center; margin-top:12px; flex-wrap:wrap;">
+                <button class="btn-open-tab" onclick="reopenExternalUrl()">↗️ Open in New Tab</button>
+                <button class="btn-open-tab" onclick="retryCurrentUrl()" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">🔄 Retry in Presenter</button>
+            </div>
         </div>
         <div id="authRequiredState" class="external-open-state">
             <div class="icon">🔒</div>
@@ -1472,6 +1588,23 @@
             <div style="display:flex; gap:12px; justify-content:center; margin-top:12px; flex-wrap:wrap;">
                 <button class="btn-open-tab" onclick="authLoginPopup()">↗️ Open in New Tab</button>
                 <button class="btn-open-tab" onclick="retryAfterAuth()" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">🔄 Retry in Presenter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- File path modal for external local files -->
+    <div id="filePathModal" class="file-path-modal-backdrop">
+        <div class="file-path-modal">
+            <h2>📂 Enter Full File Path</h2>
+            <p class="modal-hint">
+                The file picker cannot detect the full path (browser security).<br>
+                Please enter or paste the complete path so images and styles load correctly.
+            </p>
+            <div class="modal-filename" id="filePathModalFilename"></div>
+            <input type="text" id="filePathModalInput" placeholder="E:\Folder\file.html" spellcheck="false" autocomplete="off">
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeFilePathModal(false)">Cancel</button>
+                <button class="modal-btn primary" id="filePathModalOk" onclick="closeFilePathModal(true)">Open</button>
             </div>
         </div>
     </div>
@@ -1510,7 +1643,6 @@
         let iframeStateListenerTabId = null;
         let iframeStateScrollHandler = null;
         let iframeStateScrollTimer = null;
-
         function resolveLocalPptControllerPath() {
             if (window.location.protocol !== 'file:') {
                 return CONFIG.PPT_CONTROLLER_PATH;
@@ -1616,7 +1748,7 @@
                 const path = (parsed.pathname || '').toLowerCase();
 
                 if (FORCE_EXTERNAL_HOSTS.has(host)) return true;
-                if (blockedFrameHosts.has(host)) return true;
+                // Don't check blockedFrameHosts — give every site a fair iframe attempt
                 if (path.includes('/.auth/')) return true;
                 if (host === 'github.com' || host.endsWith('.github.com')) return true;
                 if (host.endsWith('.auth0.com')) return true;
@@ -1778,29 +1910,27 @@
         // This runs concurrently with iframe loading; if a redirect is detected,
         // it replaces the (broken) iframe with the info panel.
         async function detectAuthRedirect(url) {
-            // Strategy: try a same-origin-safe fetch first; if that fails
-            // (expected when running from file://), fall back to a timer that
-            // checks whether the iframe loaded successfully.
+            // Strategy: try a same-origin fetch first to detect 302→login redirects.
+            // Skip cross-origin fetches to avoid noisy CORS console errors.
+            // For cross-origin URLs, the timer fallback handles detection.
             let fetchWorked = false;
-            const canProbeWithFetch = window.location.protocol !== 'file:';
-            if (canProbeWithFetch) {
+            const isSameOrigin = (() => {
+                try { return new URL(url).origin === window.location.origin; } catch(e) { return false; }
+            })();
+            if (isSameOrigin) {
                 try {
-                    // Use 'cors' mode with 'manual' redirect to detect 302→login.
-                    // This will only succeed for same-origin or CORS-enabled servers.
                     const response = await fetch(url, {
                         mode: 'cors',
                         redirect: 'manual',
-                        credentials: 'include'
+                        credentials: 'omit'
                     });
                     fetchWorked = true;
-                    // opaqueredirect = server returned 302 (likely to a login page)
                     if (response.type === 'opaqueredirect' && currentLoadingUrl === url) {
                         console.info('[AI Cafe] Auth redirect detected via fetch for:', url);
-                        autoOpenInNewTab(url, 'auth-redirect-detected');
+                        showExternalOpenState(url, 'auth-redirect-detected');
                     }
-                    // 200 = page accessible, iframe should load fine
                 } catch (e) {
-                    // fetch failed due to CORS/network; timer fallback handles detection.
+                    // fetch failed; timer fallback handles detection.
                 }
             }
 
@@ -1827,8 +1957,8 @@
                         isBroken = false;
                     }
                     if (isBroken) {
-                        console.info('[AI Cafe] Timer fallback: iframe broken, auto-opening in new tab:', url);
-                        autoOpenInNewTab(url, 'iframe-broken-timer');
+                        console.info('[AI Cafe] Timer fallback: iframe appears broken:', url);
+                        showExternalOpenState(url, 'iframe-broken-timer');
                     }
                 }
             }
@@ -1896,6 +2026,24 @@
                 alert('Popup blocked. Allow popups for this page and try again.');
             }
         }
+
+        function retryCurrentUrl() {
+            var url = externalOpenUrl || document.getElementById('urlInput').value.trim();
+            if (!url) return;
+            // Remove from blocked hosts so it gets a clean retry
+            var host = getUrlHostname(url);
+            if (host && blockedFrameHosts.has(host)) {
+                blockedFrameHosts.delete(host);
+                saveBlockedFrameHosts();
+            }
+            hideExternalOpenState();
+            var frame = document.getElementById('contentFrame');
+            showPageSwitchBlack();
+            frame.src = resolveUrl(url);
+            frame.style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('iframeError').style.display = 'none';
+        }
         
         function loadUrl(addToHistory = true, captureCurrentState = true) {
             let input = document.getElementById('urlInput').value.trim();
@@ -1911,11 +2059,24 @@
 
             if (/^[A-Za-z]:[\\\/]/.test(input)) {
                 // Windows absolute path: E:\AI Café\file.html
-                loadableUrl = 'file:///' + input.replace(/\\/g, '/');
-                storableUrl = toRelativePath(loadableUrl);
+                if (isHttpMode()) {
+                    loadableUrl = localFileToProxyUrl(input);
+                    storableUrl = input;
+                } else {
+                    loadableUrl = 'file:///' + input.replace(/\\/g, '/');
+                    storableUrl = toRelativePath(loadableUrl);
+                }
             } else if (/^file:\/\/\//.test(input)) {
+                if (isHttpMode()) {
+                    loadableUrl = localFileToProxyUrl(input);
+                    storableUrl = input;
+                } else {
+                    loadableUrl = input;
+                    storableUrl = toRelativePath(input);
+                }
+            } else if (/^blob:/.test(input)) {
                 loadableUrl = input;
-                storableUrl = toRelativePath(input);
+                storableUrl = input;
             } else if (/^https?:\/\//.test(input)) {
                 loadableUrl = input;
                 storableUrl = input;
@@ -2047,11 +2208,10 @@
         }
 
         function showIframeError(url, reason) {
-            // Any external URL that can't be displayed: auto-open in a new
-            // browser tab and show the info panel.
-            // Covers auth redirects, X-Frame-Options blocks, CSP violations, etc.
+            // External URL that can't be displayed in iframe: show info panel
+            // with option to open in new tab. Don't auto-open — let user decide.
             if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-                autoOpenInNewTab(url, reason || 'iframe-error');
+                showExternalOpenState(url, reason || 'iframe-error');
                 return;
             }
 
@@ -2191,13 +2351,35 @@
             return false;
         }
 
+        // HTTP mode helpers: when presenter runs via localhost server
+        function isHttpMode() {
+            return /^https?:$/.test(window.location.protocol);
+        }
+
+        function localFileToProxyUrl(input) {
+            var path = input;
+            if (/^file:\/\/\//i.test(path)) {
+                path = decodeURIComponent(path.substring(8));
+            }
+            path = path.replace(/\\/g, '/');
+            return '/local/' + path.split('/').map(function(s) {
+                return encodeURIComponent(s);
+            }).join('/').replace(/%3A/gi, ':');
+        }
+
         function resolveUrl(url) {
             if (!url) return url;
             if (/^(javascript|data|vbscript):/i.test(url.trim())) return '';
             if (/^https?:\/\//.test(url)) return url;
-            if (/^file:\/\/\//.test(url)) return url;
+            if (/^file:\/\/\//.test(url)) {
+                if (isHttpMode()) return localFileToProxyUrl(url);
+                return url;
+            }
             if (/^blob:/.test(url)) return url;
-            if (/^[A-Za-z]:[\\\/]/.test(url)) return 'file:///' + url.replace(/\\/g, '/');
+            if (/^[A-Za-z]:[\\\/]/.test(url)) {
+                if (isHttpMode()) return localFileToProxyUrl(url);
+                return 'file:///' + url.replace(/\\/g, '/');
+            }
             // Relative path — resolve against presenter location
             if (window.location.protocol === 'file:') {
                 const baseDir = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
@@ -2208,6 +2390,14 @@
 
         function toRelativePath(absoluteUrl) {
             if (!absoluteUrl) return absoluteUrl;
+            // In HTTP mode, convert same-origin URLs to relative paths
+            if (isHttpMode() && /^https?:\/\//.test(absoluteUrl)) {
+                var httpBase = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+                if (absoluteUrl.startsWith(httpBase)) {
+                    return decodeURIComponent(absoluteUrl.substring(httpBase.length));
+                }
+                return absoluteUrl;
+            }
             if (!/^file:\/\/\//.test(absoluteUrl)) return absoluteUrl;
             if (window.location.protocol !== 'file:') return absoluteUrl;
             const baseDir = decodeURIComponent(window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1));
@@ -2913,6 +3103,127 @@
             toggleSettingsMenu();
         }
         
+        // Pick a local file — uses server-side native dialog (HTTP mode) or browser file picker (file:// mode)
+        function pickLocalFile() {
+            if (isHttpMode()) {
+                // Ask the Python server to open a native Windows file dialog
+                fetch('/api/pick-file').then(function(resp) {
+                    return resp.json();
+                }).then(function(data) {
+                    if (data.error) {
+                        console.warn('[AI Cafe] Server file picker error:', data.error);
+                        // Fall back to browser file picker
+                        document.getElementById('fileInput').click();
+                        return;
+                    }
+                    if (!data.path) return; // User cancelled
+
+                    var fullPath = data.path;
+                    var filename = fullPath.split(/[\\\/]/).pop();
+
+                    // Check if file is in the presenter's served directory
+                    var presenterDir = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+                    var directUrl = presenterDir + encodeURIComponent(filename);
+
+                    fetch(directUrl, { method: 'HEAD' }).then(function(resp) {
+                        if (resp.ok) {
+                            // Same directory — load directly with relative path
+                            var relativePath = toRelativePath(directUrl);
+                            document.getElementById('urlInput').value = relativePath;
+                            if (tabs[activeTabIndex]) {
+                                tabs[activeTabIndex].url = relativePath;
+                                tabs[activeTabIndex].title = getTabTitleFromUrl(filename);
+                                renderTabList();
+                                saveTabs();
+                            }
+                            showPageSwitchBlack();
+                            document.getElementById('contentFrame').src = directUrl;
+                            localStorage.setItem(STORAGE_KEY, relativePath);
+                            navigationHistory.push(directUrl);
+                            updateBackButton();
+                            if (screenStream) { lastBrowseUrl = directUrl; switchView('browse'); }
+                            else {
+                                document.getElementById('contentFrame').style.display = 'block';
+                                document.getElementById('emptyState').style.display = 'none';
+                                document.getElementById('iframeError').style.display = 'none';
+                                hideExternalOpenState();
+                            }
+                        } else {
+                            // External directory — load via /local/ proxy
+                            loadFileViaProxy(fullPath, filename);
+                        }
+                    }).catch(function() {
+                        // Network error — load via proxy as fallback
+                        loadFileViaProxy(fullPath, filename);
+                    });
+                }).catch(function(err) {
+                    console.warn('[AI Cafe] Server file picker unavailable:', err);
+                    // Fall back to browser file picker
+                    document.getElementById('fileInput').click();
+                });
+            } else {
+                // file:// mode — use browser file picker
+                document.getElementById('fileInput').click();
+            }
+        }
+
+        // Modal dialog for entering full file path (fallback if server picker unavailable)
+        var _filePathModalResolve = null;
+        function showFilePathModal(filename) {
+            return new Promise(function(resolve) {
+                _filePathModalResolve = resolve;
+                var modal = document.getElementById('filePathModal');
+                var input = document.getElementById('filePathModalInput');
+                document.getElementById('filePathModalFilename').textContent = 'Picked file: ' + filename;
+                input.value = '';
+                input.setAttribute('placeholder', 'E:\\Folder\\' + filename);
+                modal.classList.add('active');
+                setTimeout(function() { input.focus(); }, 100);
+                // Enter key submits
+                input.onkeydown = function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); closeFilePathModal(true); }
+                    if (e.key === 'Escape') { e.preventDefault(); closeFilePathModal(false); }
+                };
+            });
+        }
+        function closeFilePathModal(accepted) {
+            var modal = document.getElementById('filePathModal');
+            var input = document.getElementById('filePathModalInput');
+            modal.classList.remove('active');
+            if (_filePathModalResolve) {
+                var val = accepted ? input.value.trim() : null;
+                _filePathModalResolve(val);
+                _filePathModalResolve = null;
+            }
+        }
+
+        // Load an external file via the /local/ proxy after getting the full path from the modal
+        function loadFileViaProxy(fullPath, filename) {
+            var proxyUrl = localFileToProxyUrl(fullPath);
+            var displayPath = fullPath;
+            document.getElementById('urlInput').value = displayPath;
+            if (tabs[activeTabIndex]) {
+                tabs[activeTabIndex].url = displayPath;
+                tabs[activeTabIndex].title = filename || getTabTitleFromUrl(displayPath);
+                renderTabList();
+                saveTabs();
+            }
+            showPageSwitchBlack();
+            document.getElementById('contentFrame').src = proxyUrl;
+            localStorage.setItem(STORAGE_KEY, displayPath);
+            navigationHistory.push(proxyUrl);
+            updateBackButton();
+            if (screenStream) {
+                lastBrowseUrl = proxyUrl;
+                switchView('browse');
+            } else {
+                document.getElementById('contentFrame').style.display = 'block';
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('iframeError').style.display = 'none';
+                hideExternalOpenState();
+            }
+        }
+
         function openLocalFile(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -2935,50 +3246,126 @@
             };
             const mimeType = mimeTypes[ext] || file.type || 'application/octet-stream';
             
-            // For HTML files in the same directory as the presenter, load directly via file:// URL
-            // This allows relative paths (like Images/...) to work correctly
-            if ((ext === 'html' || ext === 'htm') && window.location.protocol === 'file:') {
+            // For HTML files in the same directory as the presenter, load directly
+            // (file:// URL or HTTP URL). This preserves relative paths (Images/...).
+            if ((ext === 'html' || ext === 'htm') && (window.location.protocol === 'file:' || isHttpMode())) {
                 // Get the presenter's directory path
                 const presenterPath = window.location.href;
                 const baseDir = presenterPath.substring(0, presenterPath.lastIndexOf('/') + 1);
                 
-                // Construct the file:// URL for the selected HTML file (assuming same directory)
+                // Construct the URL for the selected HTML file (assuming same directory)
                 const fileUrl = baseDir + encodeURIComponent(file.name).replace(/%20/g, '%20');
-                
-                // Store relative path in tab
-                const relativePath = toRelativePath(fileUrl);
-                document.getElementById('urlInput').value = relativePath;
-                if (tabs[activeTabIndex]) {
-                    tabs[activeTabIndex].url = relativePath;
-                    tabs[activeTabIndex].title = file.name;
-                    renderTabList();
-                    saveTabs();
+
+                var loadDirect = function() {
+                    var relativePath = toRelativePath(fileUrl);
+                    document.getElementById('urlInput').value = relativePath;
+                    if (tabs[activeTabIndex]) {
+                        tabs[activeTabIndex].url = relativePath;
+                        tabs[activeTabIndex].title = file.name;
+                        renderTabList();
+                        saveTabs();
+                    }
+                    showPageSwitchBlack();
+                    document.getElementById('contentFrame').src = fileUrl;
+                    localStorage.setItem(STORAGE_KEY, relativePath);
+                    navigationHistory.push(fileUrl);
+                    updateBackButton();
+                    if (screenStream) {
+                        lastBrowseUrl = fileUrl;
+                        switchView('browse');
+                    } else {
+                        document.getElementById('contentFrame').style.display = 'block';
+                        document.getElementById('emptyState').style.display = 'none';
+                        document.getElementById('iframeError').style.display = 'none';
+                        hideExternalOpenState();
+                    }
+                };
+
+                if (isHttpMode()) {
+                    // Verify file exists in served directory; fall back to path modal if not
+                    var pickedFile = file;
+                    var fileInput = event.target;
+                    fetch(fileUrl, { method: 'HEAD' }).then(function(resp) {
+                        if (resp.ok) {
+                            loadDirect();
+                        } else {
+                            // File not in presenter directory — ask for full path via modal
+                            showFilePathModal(pickedFile.name).then(function(fullPath) {
+                                if (fullPath && /^[A-Za-z]:[\\\/]/.test(fullPath)) {
+                                    loadFileViaProxy(fullPath, pickedFile.name);
+                                } else if (fullPath) {
+                                    // User entered something but not a valid Windows path
+                                    alert('Please enter a full Windows path like E:\\Folder\\file.html');
+                                }
+                                // null = cancelled, do nothing
+                            });
+                        }
+                        fileInput.value = '';
+                    }).catch(function() {
+                        showFilePathModal(pickedFile.name).then(function(fullPath) {
+                            if (fullPath && /^[A-Za-z]:[\\\/]/.test(fullPath)) {
+                                loadFileViaProxy(fullPath, pickedFile.name);
+                            }
+                        });
+                        fileInput.value = '';
+                    });
+                    return;
                 }
 
-                // Load directly via file:// URL
-                showPageSwitchBlack();
-                document.getElementById('contentFrame').src = fileUrl;
-                localStorage.setItem(STORAGE_KEY, relativePath);
-                navigationHistory.push(fileUrl);
-                updateBackButton();
-
-                // If capture active, switch to browser view
-                if (screenStream) {
-                    lastBrowseUrl = fileUrl;
-                    switchView('browse');
-                } else {
-                    document.getElementById('contentFrame').style.display = 'block';
-                    document.getElementById('emptyState').style.display = 'none';
-                    document.getElementById('iframeError').style.display = 'none';
-                    hideExternalOpenState();
-                }
-
-                // Reset file input for re-selection of same file
+                // file:// mode — load directly
+                loadDirect();
                 event.target.value = '';
                 return;
             }
             
-            // For other files (PDFs, images, etc.), use blob URL as before
+            // For other files (PDFs, images, etc.)
+            if (isHttpMode()) {
+                // In HTTP mode, check if file is in served directory first
+                var presenterDir = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+                var checkUrl = presenterDir + encodeURIComponent(file.name);
+                var otherFile = file;
+                var otherInput = event.target;
+                fetch(checkUrl, { method: 'HEAD' }).then(function(resp) {
+                    if (resp.ok) {
+                        // File in served directory — load directly
+                        var relPath = file.name;
+                        showPageSwitchBlack();
+                        document.getElementById('contentFrame').src = checkUrl;
+                        document.getElementById('urlInput').value = relPath;
+                        if (tabs[activeTabIndex]) {
+                            tabs[activeTabIndex].url = relPath;
+                            tabs[activeTabIndex].title = otherFile.name;
+                            renderTabList();
+                            saveTabs();
+                        }
+                        if (screenStream) { lastBrowseUrl = checkUrl; switchView('browse'); }
+                        else {
+                            document.getElementById('contentFrame').style.display = 'block';
+                            document.getElementById('emptyState').style.display = 'none';
+                            document.getElementById('iframeError').style.display = 'none';
+                            hideExternalOpenState();
+                        }
+                    } else {
+                        // External file — ask for full path
+                        showFilePathModal(otherFile.name).then(function(fullPath) {
+                            if (fullPath && /^[A-Za-z]:[\\\/]/.test(fullPath)) {
+                                loadFileViaProxy(fullPath, otherFile.name);
+                            }
+                        });
+                    }
+                    otherInput.value = '';
+                }).catch(function() {
+                    showFilePathModal(otherFile.name).then(function(fullPath) {
+                        if (fullPath && /^[A-Za-z]:[\\\/]/.test(fullPath)) {
+                            loadFileViaProxy(fullPath, otherFile.name);
+                        }
+                    });
+                    otherInput.value = '';
+                });
+                return;
+            }
+
+            // file:// mode — use blob URL (works for non-HTML files without relative paths)
             const reader = new FileReader();
             reader.onload = function(e) {
                 // Create a blob URL with correct MIME type
@@ -5322,7 +5709,6 @@
             
             // Resolve and display local BAT path for this presenter location
             initPptControllerPathDisplay();
-            
             // Initialize tab system (replaces single-URL and home restore)
             initTabs();
             initToolbarLayoutObserver();
